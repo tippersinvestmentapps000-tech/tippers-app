@@ -52,8 +52,6 @@ color:white;
 cursor:pointer;
 }
 
-.hidden{display:none}
-
 .nav{
 display:flex;
 justify-content:space-around;
@@ -68,7 +66,9 @@ margin-top:10px;
 border-radius:10px;
 }
 
-#toast{
+.hidden{display:none}
+
+#toastBox{
 position:fixed;
 bottom:20px;
 left:50%;
@@ -85,133 +85,88 @@ display:none;
 <body>
 
 <div class="app">
-
 <div class="header">Tippers Investment</div>
-
 <div class="content" id="screen"></div>
-
 </div>
 
-<div id="toast"></div>
+<div id="toastBox"></div>
 
 <script>
 
 let users = JSON.parse(localStorage.getItem("users")) || [];
 let currentUser = null;
-let step = "welcome";
 
-/* MAIN RENDER */
-function render(){
+/* TOAST */
+function showToast(msg){
+let t = document.getElementById("toastBox");
+t.innerText = msg;
+t.style.display = "block";
+setTimeout(()=>t.style.display="none",2500);
+}
 
-if(step==="welcome"){
-screen.innerHTML=`
+/* WELCOME */
+function showWelcome(){
+document.getElementById("screen").innerHTML = `
 <h3>Welcome 🚀</h3>
-<p>Grow your income with Tippers Investment App</p>
-<button onclick="step='register';render()">Get Started</button>
+<p>Grow your income with Tippers Investment</p>
+<button onclick="showRegister()">Get Started</button>
 `;
 }
 
 /* REGISTER */
-if(step==="register"){
-screen.innerHTML=`
+function showRegister(){
+document.getElementById("screen").innerHTML = `
 <h3>Register</h3>
 
 <input id="fname" placeholder="First Name">
-<input id="lname" placeholder="Last Name">
-
-<select id="code">
-<option>+250</option>
-<option>+254</option>
-</select>
-
-<input id="phone" placeholder="Phone">
 <input id="email" placeholder="Email">
 <input id="pass" type="password" placeholder="Password">
 <input id="cpass" type="password" placeholder="Confirm Password">
 
 <button onclick="doRegister()">Register</button>
-<p onclick="step='login';render()" style="color:blue;cursor:pointer">Login</p>
+<p onclick="showLogin()" style="color:blue;cursor:pointer">Login</p>
 `;
 }
 
 /* LOGIN */
-if(step==="login"){
-screen.innerHTML=`
+function showLogin(){
+document.getElementById("screen").innerHTML = `
 <h3>Login</h3>
 
 <input id="logEmail" placeholder="Email">
 <input id="logPass" type="password" placeholder="Password">
 
 <button onclick="doLogin()">Login</button>
-<p onclick="step='register';render()" style="color:blue;cursor:pointer">Create account</p>
+<p onclick="showRegister()" style="color:blue;cursor:pointer">Create account</p>
 `;
 }
 
 /* DASHBOARD */
-if(step==="dashboard"){
-screen.innerHTML=`
+function showDashboard(){
+document.getElementById("screen").innerHTML = `
 <div class="nav">
-<button onclick="tab('home')">🏠</button>
-<button onclick="tab('deposit')">💰</button>
-<button onclick="tab('proof')">📤</button>
-<button onclick="tab('withdraw')">📅</button>
+<button onclick="showHome()">🏠</button>
+<button onclick="showDeposit()">💰</button>
+<button onclick="showProof()">📤</button>
+<button onclick="showWithdraw()">📅</button>
 </div>
 
-<div id="tabContent"></div>
+<div id="tab"></div>
 `;
 
-tab("home");
+showHome();
 }
 
-}
-
-/* REGISTER FUNCTION */
-function doRegister(){
-if(pass.value!==cpass.value){
-toast("Passwords not match ❌");return;
-}
-
-users.push({
-fname:fname.value,
-email:email.value,
-pass:pass.value
-});
-
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Registered! Login now ✅");
-step="login";
-render();
-}
-
-/* LOGIN */
-function doLogin(){
-let user = users.find(u =>
-u.email===logEmail.value &&
-u.pass===logPass.value
-);
-
-if(!user){
-toast("Invalid login ❌");return;
-}
-
-currentUser=user;
-step="dashboard";
-render();
-toast("Welcome "+user.fname+" 🎉");
-}
-
-/* TABS */
-function tab(name){
-
-if(name==="home"){
-tabContent.innerHTML=`
-<div class="card">Welcome ${currentUser.fname}</div>
+/* HOME */
+function showHome(){
+document.getElementById("tab").innerHTML = `
+<div class="card">Welcome ${currentUser.fname} 🎉</div>
 `;
 }
 
-if(name==="deposit"){
-tabContent.innerHTML=`
+/* DEPOSIT */
+function showDeposit(){
+document.getElementById("tab").innerHTML = `
 <div class="card">
 Number: <b>0795410739</b><br>
 Name: Baraka Bolingo
@@ -220,22 +175,24 @@ Name: Baraka Bolingo
 <input id="amount" placeholder="Amount">
 <input id="sender" placeholder="Sender">
 
-<button onclick="nextDeposit()">Continue</button>
+<button onclick="goProof()">Continue</button>
 `;
 }
 
-if(name==="proof"){
-tabContent.innerHTML=`
+/* PROOF */
+function showProof(){
+document.getElementById("tab").innerHTML = `
 <div class="card">
 Upload proof:
-<input type="file" onchange="enableProof()">
-<button id="btn" disabled onclick="submitProof()">Submit</button>
+<input type="file" onchange="enableBtn()">
+<button id="confirmBtn" disabled onclick="goWithdraw()">Submit</button>
 </div>
 `;
 }
 
-if(name==="withdraw"){
-tabContent.innerHTML=`
+/* WITHDRAW */
+function showWithdraw(){
+document.getElementById("tab").innerHTML = `
 <div class="card">
 <select id="plan">
 <option>Daily</option>
@@ -249,36 +206,68 @@ tabContent.innerHTML=`
 `;
 }
 
+/* FLOW FUNCTIONS */
+function goProof(){
+showToast("Payment step started 💰");
+showProof();
 }
 
-/* FLOW */
-function nextDeposit(){
-toast("Payment initiated 💰");
-tab("proof");
+function enableBtn(){
+document.getElementById("confirmBtn").disabled = false;
 }
 
-function enableProof(){
-btn.disabled=false;
-}
-
-function submitProof(){
-toast("Proof submitted ✅");
-tab("withdraw");
+function goWithdraw(){
+showToast("Proof uploaded ✅");
+showWithdraw();
 }
 
 function finish(){
-toast("Success! Investment activated 🎉");
-tab("home");
+showToast("Investment successful 🎉");
+showHome();
 }
 
-/* TOAST */
-function toast(msg){
-toast.innerText=msg;
-toast.style.display="block";
-setTimeout(()=>toast.style.display="none",2500);
+/* REGISTER */
+function doRegister(){
+let pass = document.getElementById("pass").value;
+let cpass = document.getElementById("cpass").value;
+
+if(pass !== cpass){
+showToast("Passwords do not match ❌");
+return;
 }
 
-render();
+users.push({
+fname:document.getElementById("fname").value,
+email:document.getElementById("email").value,
+pass:pass
+});
+
+localStorage.setItem("users", JSON.stringify(users));
+
+showToast("Registered! Now login ✅");
+showLogin();
+}
+
+/* LOGIN */
+function doLogin(){
+let email = document.getElementById("logEmail").value;
+let pass = document.getElementById("logPass").value;
+
+let user = users.find(u => u.email === email && u.pass === pass);
+
+if(!user){
+showToast("Invalid login ❌");
+return;
+}
+
+currentUser = user;
+
+showToast("Welcome "+user.fname+" 🎉");
+showDashboard();
+}
+
+/* START */
+showWelcome();
 
 </script>
 
