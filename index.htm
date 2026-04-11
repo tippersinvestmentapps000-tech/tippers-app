@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tippers App</title>
+<title>Tippers Investment App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -17,21 +17,28 @@ height:100vh;
 }
 
 .app{
-width:400px;
+width:420px;
 background:white;
 border-radius:15px;
 overflow:hidden;
-box-shadow:0 20px 40px rgba(0,0,0,0.3);
+box-shadow:0 20px 50px rgba(0,0,0,0.3);
+display:flex;
+flex-direction:column;
 }
 
 .header{
 background:#4f46e5;
 color:white;
-text-align:center;
 padding:10px;
+text-align:center;
+font-weight:bold;
 }
 
-.content{padding:15px}
+.content{
+padding:15px;
+height:500px;
+overflow-y:auto;
+}
 
 input,select{
 width:100%;
@@ -55,7 +62,7 @@ cursor:pointer;
 .nav{
 display:flex;
 justify-content:space-around;
-background:#eee;
+background:#f3f4f6;
 padding:8px;
 }
 
@@ -66,9 +73,7 @@ margin-top:10px;
 border-radius:10px;
 }
 
-.hidden{display:none}
-
-#toastBox{
+#toast{
 position:fixed;
 bottom:20px;
 left:50%;
@@ -79,6 +84,15 @@ padding:10px;
 border-radius:8px;
 display:none;
 }
+
+.passBox{position:relative}
+.eye{position:absolute;right:10px;top:15px;cursor:pointer}
+
+.phoneBox{display:flex;gap:5px}
+.phoneBox select{width:35%}
+.phoneBox input{width:65%}
+
+.hidden{display:none}
 </style>
 </head>
 
@@ -87,118 +101,166 @@ display:none;
 <div class="app">
 <div class="header">Tippers Investment</div>
 <div class="content" id="screen"></div>
+
+<div class="nav hidden" id="bottomNav">
+<button onclick="home()">🏠</button>
+<button onclick="deposit()">💰</button>
+<button onclick="proof()">📤</button>
+<button onclick="withdraw()">📅</button>
+</div>
 </div>
 
-<div id="toastBox"></div>
+<div id="toast"></div>
 
 <script>
 
 let users = JSON.parse(localStorage.getItem("users")) || [];
 let currentUser = null;
+let currentAmount = 0;
 
 /* TOAST */
 function showToast(msg){
-let t = document.getElementById("toastBox");
-t.innerText = msg;
-t.style.display = "block";
-setTimeout(()=>t.style.display="none",2500);
+toast.innerText=msg;
+toast.style.display="block";
+setTimeout(()=>toast.style.display="none",2500);
 }
 
 /* WELCOME */
-function showWelcome(){
-document.getElementById("screen").innerHTML = `
-<h3>Welcome 🚀</h3>
-<p>Grow your income with Tippers Investment</p>
-<button onclick="showRegister()">Get Started</button>
+function welcome(){
+bottomNav.classList.add("hidden");
+screen.innerHTML=`
+<h3>Welcome !</h3>
+<p>Join Tippers Investment and grow your income smartly.</p>
+<button onclick="register()">Continue ➡️</button>
 `;
 }
 
 /* REGISTER */
-function showRegister(){
-document.getElementById("screen").innerHTML = `
+function register(){
+screen.innerHTML=`
 <h3>Register</h3>
 
 <input id="fname" placeholder="First Name">
+<input id="lname" placeholder="Last Name">
+
+<div class="phoneBox">
+<select id="code">
+<option>+250</option>
+<option>+254</option>
+</select>
+<input id="phone" placeholder="Phone number">
+</div>
+
+<div>
+<label><input type="checkbox" id="male"> Male</label>
+<label><input type="checkbox" id="female"> Female</label>
+</div>
+
 <input id="email" placeholder="Email">
+
+<div class="passBox">
 <input id="pass" type="password" placeholder="Password">
+<span class="eye" onclick="togglePass()">👁️</span>
+</div>
+
 <input id="cpass" type="password" placeholder="Confirm Password">
 
 <button onclick="doRegister()">Register</button>
-<p onclick="showLogin()" style="color:blue;cursor:pointer">Login</p>
+
+<p onclick="login()" style="color:blue;cursor:pointer">Login</p>
+<p onclick="forgot()" style="color:blue;cursor:pointer">Forgot password?</p>
 `;
 }
 
 /* LOGIN */
-function showLogin(){
-document.getElementById("screen").innerHTML = `
+function login(){
+screen.innerHTML=`
 <h3>Login</h3>
 
 <input id="logEmail" placeholder="Email">
 <input id="logPass" type="password" placeholder="Password">
 
 <button onclick="doLogin()">Login</button>
-<p onclick="showRegister()" style="color:blue;cursor:pointer">Create account</p>
+
+<p onclick="register()" style="color:blue;cursor:pointer">Create account</p>
+<p onclick="forgot()" style="color:blue;cursor:pointer">Forgot password?</p>
 `;
 }
 
-/* DASHBOARD */
-function showDashboard(){
-document.getElementById("screen").innerHTML = `
-<div class="nav">
-<button onclick="showHome()">🏠</button>
-<button onclick="showDeposit()">💰</button>
-<button onclick="showProof()">📤</button>
-<button onclick="showWithdraw()">📅</button>
-</div>
+/* FORGOT */
+function forgot(){
+screen.innerHTML=`
+<h3>Reset Password</h3>
 
-<div id="tab"></div>
+<input id="resetEmail" placeholder="Email">
+<input id="newPass" placeholder="New Password">
+
+<button onclick="resetPass()">Reset</button>
 `;
-
-showHome();
 }
 
 /* HOME */
-function showHome(){
-document.getElementById("tab").innerHTML = `
-<div class="card">Welcome ${currentUser.fname} 🎉</div>
+function home(){
+screen.innerHTML=`
+
+<div class="card">
+<b>Balance:</b> ${currentUser.balance.toLocaleString()} RWF 💰
+</div>
+
+<div class="card">
+<b>Market Updates</b><br>
+1$ = 1300 RWF<br>
+1€ = 1400 RWF<br>
+Crypto rising
+</div>
+
+<div class="card">
+<h3>About Tippers Investment</h3>
+<p>
+Tippers helps you invest and earn profits through smart plans.
+</p>
+</div>
 `;
 }
 
 /* DEPOSIT */
-function showDeposit(){
-document.getElementById("tab").innerHTML = `
+function deposit(){
+screen.innerHTML=`
+
 <div class="card">
 Number: <b>0795410739</b><br>
 Name: Baraka Bolingo
 </div>
 
-<input id="amount" placeholder="Amount">
-<input id="sender" placeholder="Sender">
+<input id="amount" placeholder="Amount (RWF)">
+<input id="sender" placeholder="Sender name e.g John">
 
 <button onclick="goProof()">Continue</button>
 `;
 }
 
 /* PROOF */
-function showProof(){
-document.getElementById("tab").innerHTML = `
-<div class="card">
-Upload proof:
+function proof(){
+screen.innerHTML=`
+<h3>Upload proof of payment screenshot</h3>
 <input type="file" onchange="enableBtn()">
-<button id="confirmBtn" disabled onclick="goWithdraw()">Submit</button>
-</div>
+<button id="btn" disabled onclick="goWithdraw()">Submit</button>
 `;
 }
 
 /* WITHDRAW */
-function showWithdraw(){
-document.getElementById("tab").innerHTML = `
+function withdraw(){
+screen.innerHTML=`
+
 <div class="card">
 <select id="plan">
-<option>Daily</option>
+<option>Everyday</option>
 <option>Weekly</option>
 <option>Monthly</option>
-<option>1 Year</option>
+<option>2 months</option>
+<option>3 months</option>
+<option>6 months</option>
+<option>12 months</option>
 </select>
 
 <button onclick="finish()">Confirm</button>
@@ -206,68 +268,119 @@ document.getElementById("tab").innerHTML = `
 `;
 }
 
-/* FLOW FUNCTIONS */
-function goProof(){
-showToast("Payment step started 💰");
-showProof();
-}
-
-function enableBtn(){
-document.getElementById("confirmBtn").disabled = false;
-}
-
-function goWithdraw(){
-showToast("Proof uploaded ✅");
-showWithdraw();
-}
-
-function finish(){
-showToast("Investment successful 🎉");
-showHome();
+/* FUNCTIONS */
+function togglePass(){
+pass.type = pass.type==="password"?"text":"password";
 }
 
 /* REGISTER */
 function doRegister(){
-let pass = document.getElementById("pass").value;
-let cpass = document.getElementById("cpass").value;
 
-if(pass !== cpass){
-showToast("Passwords do not match ❌");
-return;
+if(!fname.value || !lname.value || !phone.value || !email.value || !pass.value || !cpass.value){
+showToast("Fill all fields ❌"); return;
+}
+
+if(pass.value!==cpass.value){
+showToast("Passwords not match ❌"); return;
 }
 
 users.push({
-fname:document.getElementById("fname").value,
-email:document.getElementById("email").value,
-pass:pass
+fname:fname.value,
+lname:lname.value,
+email:email.value,
+pass:pass.value,
+balance:0
 });
 
-localStorage.setItem("users", JSON.stringify(users));
+localStorage.setItem("users",JSON.stringify(users));
 
-showToast("Registered! Now login ✅");
-showLogin();
+showToast("Registered successfully ✅");
+login();
 }
 
 /* LOGIN */
 function doLogin(){
-let email = document.getElementById("logEmail").value;
-let pass = document.getElementById("logPass").value;
 
-let user = users.find(u => u.email === email && u.pass === pass);
-
-if(!user){
-showToast("Invalid login ❌");
-return;
+if(!logEmail.value || !logPass.value){
+showToast("Fill all fields ❌"); return;
 }
 
-currentUser = user;
+let user = users.find(u=>u.email===logEmail.value && u.pass===logPass.value);
 
-showToast("Welcome "+user.fname+" 🎉");
-showDashboard();
+if(!user){
+showToast("Invalid login ❌"); return;
+}
+
+currentUser=user;
+
+bottomNav.classList.remove("hidden");
+
+showToast("Welcome "+user.fname+" !");
+home();
+}
+
+/* RESET */
+function resetPass(){
+showToast("Password reset !");
+login();
+}
+
+/* DEPOSIT */
+function goProof(){
+
+let amount = parseInt(document.getElementById("amount").value);
+
+if(!amount){
+showToast("Enter amount ❌"); return;
+}
+
+if(amount < 5000 || amount > 100000000){
+showToast("Amount must be 5000 - 100M ❌"); return;
+}
+
+currentAmount = amount;
+
+proof();
+}
+
+function enableBtn(){
+btn.disabled=false;
+}
+
+/* AFTER PROOF */
+function goWithdraw(){
+
+currentUser.balance += currentAmount;
+
+/* SAVE */
+let index = users.findIndex(u => u.email === currentUser.email);
+users[index] = currentUser;
+localStorage.setItem("users", JSON.stringify(users));
+
+showToast("Deposit added to balance 💰");
+withdraw();
+}
+
+/* FINAL STEP */
+function finish(){
+
+let profit = currentUser.balance * 0.1;
+currentUser.balance += profit;
+
+/* simulate withdraw deduction */
+currentUser.balance -= currentAmount;
+
+/* SAVE */
+let index = users.findIndex(u => u.email === currentUser.email);
+users[index] = currentUser;
+localStorage.setItem("users", JSON.stringify(users));
+
+showToast("Profit added + withdraw processed 🎉");
+home();
 }
 
 /* START */
-showWelcome();
+welcome();
 
 </script>
 
