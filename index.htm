@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Tippers Investment App Pro</title>
+<title>Tippers Investment App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -18,14 +18,13 @@ body{
 
 /* APP */
 .container{
-  width:400px;
+  width:420px;
   background:white;
   border-radius:18px;
   overflow:hidden;
   box-shadow:0 20px 50px rgba(0,0,0,0.3);
 }
 
-/* HEADER */
 .header{
   background:#4f46e5;
   color:white;
@@ -34,15 +33,14 @@ body{
   font-weight:bold;
 }
 
-/* CONTENT */
 .content{padding:15px}
 
 input,select{
   width:100%;
   padding:10px;
   margin-top:8px;
-  border:1px solid #ddd;
   border-radius:8px;
+  border:1px solid #ddd;
 }
 
 button{
@@ -60,7 +58,7 @@ button:hover{background:#3730a3}
 
 .hidden{display:none}
 
-/* NAV ICONS */
+/* NAV */
 .nav{
   display:flex;
   justify-content:space-around;
@@ -69,7 +67,7 @@ button:hover{background:#3730a3}
 }
 
 .nav button{
-  width:23%;
+  width:24%;
   font-size:12px;
   background:white;
   color:black;
@@ -83,6 +81,23 @@ button:hover{background:#3730a3}
   border-radius:10px;
 }
 
+/* LINK */
+.link{
+  text-align:center;
+  color:#4f46e5;
+  cursor:pointer;
+  margin-top:10px;
+  font-size:13px;
+}
+
+/* PHONE */
+.phoneBox{
+  display:flex;
+  gap:5px;
+}
+.phoneBox select{width:35%}
+.phoneBox input{width:65%}
+
 /* TOAST */
 #toast{
   position:fixed;
@@ -94,6 +109,7 @@ button:hover{background:#3730a3}
   padding:10px 15px;
   border-radius:8px;
   display:none;
+  font-size:13px;
 }
 </style>
 </head>
@@ -102,29 +118,44 @@ button:hover{background:#3730a3}
 
 <div class="container">
 
+<!-- WELCOME -->
+<div id="welcome">
+  <div class="header">Welcome</div>
+  <div class="content">
+
+    <h3 style="text-align:center">Tippers Investment App 🚀</h3>
+    <p style="text-align:center;font-size:13px">
+      Invest smart, grow daily income, and join our community.
+    </p>
+
+    <button onclick="goRegister()">Get Started</button>
+  </div>
+</div>
+
 <!-- REGISTER -->
-<div id="register">
-  <div class="header">Create Account</div>
+<div id="register" class="hidden">
+  <div class="header">Register</div>
   <div class="content">
 
     <input id="fname" placeholder="First Name">
     <input id="lname" placeholder="Last Name">
-    <input id="phone" placeholder="Phone">
 
-    <select id="gender">
-      <option>Male</option>
-      <option>Female</option>
-    </select>
+    <div class="phoneBox">
+      <select id="code">
+        <option value="+250">🇷🇼 +250</option>
+        <option value="+254">🇰🇪 +254</option>
+        <option value="+256">🇺🇬 +256</option>
+      </select>
+      <input id="phone" placeholder="Phone number">
+    </div>
 
     <input id="email" placeholder="Email">
     <input id="pass" type="password" placeholder="Password">
     <input id="cpass" type="password" placeholder="Confirm Password">
 
     <button onclick="register()">Register</button>
-    <div onclick="showLogin()" style="text-align:center;color:blue;cursor:pointer;margin-top:10px">
-      Already have account? Login
-    </div>
 
+    <div class="link" onclick="goLogin()">Already have account? Login</div>
   </div>
 </div>
 
@@ -138,8 +169,8 @@ button:hover{background:#3730a3}
 
     <button onclick="login()">Login</button>
 
-    <div onclick="showRegister()" style="text-align:center;color:blue;cursor:pointer">Register</div>
-    <div onclick="showForgot()" style="text-align:center;color:blue;cursor:pointer">Forgot Password?</div>
+    <div class="link" onclick="goRegister()">Create account</div>
+    <div class="link" onclick="goForgot()">Forgot password?</div>
 
   </div>
 </div>
@@ -150,11 +181,11 @@ button:hover{background:#3730a3}
   <div class="content">
 
     <input id="resetEmail" placeholder="Email">
-    <input id="newPass" type="password" placeholder="New Password">
+    <input id="newPass" type="password" placeholder="New password">
 
     <button onclick="resetPassword()">Reset</button>
-    <div onclick="showLogin()" style="text-align:center;color:blue;cursor:pointer">Back</div>
 
+    <div class="link" onclick="goLogin()">Back</div>
   </div>
 </div>
 
@@ -164,10 +195,10 @@ button:hover{background:#3730a3}
   <div class="header">Tippers Dashboard</div>
 
   <div class="nav">
-    <button onclick="showTab('home')">🏠 Home</button>
-    <button onclick="showTab('deposit')">💰 Deposit</button>
-    <button onclick="showTab('proof')">📤 Proof</button>
-    <button onclick="showTab('withdraw')">📅 Withdraw</button>
+    <button onclick="tab('home')">🏠</button>
+    <button onclick="tab('deposit')">💰</button>
+    <button onclick="tab('proof')">📤</button>
+    <button onclick="tab('withdraw')">📅</button>
   </div>
 
   <div class="content">
@@ -182,7 +213,7 @@ button:hover{background:#3730a3}
     <!-- DEPOSIT -->
     <div id="deposit" class="hidden">
       <div class="card">
-        <b>Send Money via MTN</b><br><br>
+        <b>Send Money via MTN</b><br>
         Number: <b>0795410739</b><br>
         Name: Baraka Bolingo
       </div>
@@ -198,7 +229,7 @@ button:hover{background:#3730a3}
     <!-- PROOF -->
     <div id="proof" class="hidden">
       <div class="card">
-        Upload payment screenshot:
+        Upload screenshot:
         <input type="file" onchange="uploadProof()">
         <button id="confirmBtn" disabled onclick="confirmProof()">Confirm Payment</button>
       </div>
@@ -207,7 +238,8 @@ button:hover{background:#3730a3}
     <!-- WITHDRAW -->
     <div id="withdraw" class="hidden">
       <div class="card">
-        Select Withdraw Plan:
+        Choose plan:
+
         <select id="plan">
           <option>Daily</option>
           <option>Weekly</option>
@@ -219,7 +251,7 @@ button:hover{background:#3730a3}
           <option>1 Year</option>
         </select>
 
-        <button onclick="setWithdraw()">Confirm Plan</button>
+        <button onclick="setWithdraw()">Confirm</button>
       </div>
     </div>
 
@@ -228,38 +260,43 @@ button:hover{background:#3730a3}
 
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
 
 <script>
 
 let users = JSON.parse(localStorage.getItem("users")) || [];
 let currentUser;
-let proofDone = false;
+
+/* NAV FLOW */
+function goRegister(){welcome.classList.add("hidden");register.classList.remove("hidden")}
+function goLogin(){register.classList.add("hidden");forgot.classList.add("hidden");login.classList.remove("hidden")}
+function goForgot(){login.classList.add("hidden");forgot.classList.remove("hidden")}
 
 /* REGISTER */
 function register(){
+
   if(pass.value !== cpass.value){
-    showToast("Passwords do not match ❌");
+    toastMsg("Passwords not match ❌");
     return;
   }
 
   users.push({
     fname:fname.value,
     lname:lname.value,
-    phone:phone.value,
-    gender:gender.value,
+    phone:code.value+phone.value,
     email:email.value,
     pass:pass.value
   });
 
   localStorage.setItem("users",JSON.stringify(users));
-  showToast("Registered successfully ✅");
-  showLogin();
+
+  toastMsg("Registered successfully ✅");
+  goLogin();
 }
 
 /* LOGIN */
 function login(){
+
   users = JSON.parse(localStorage.getItem("users")) || [];
 
   let user = users.find(u =>
@@ -268,19 +305,18 @@ function login(){
   );
 
   if(!user){
-    showToast("Invalid email or password ❌");
+    toastMsg("Invalid login ❌");
     return;
   }
 
   currentUser = user;
 
-  register.classList.add("hidden");
   login.classList.add("hidden");
   dashboard.classList.remove("hidden");
 
   userName.innerText = user.fname;
 
-  showToast("Login successful 🎉");
+  toastMsg("Welcome 🎉");
 }
 
 /* RESET */
@@ -288,25 +324,24 @@ function resetPassword(){
   let user = users.find(u => u.email === resetEmail.value);
 
   if(!user){
-    showToast("Email not found ❌");
+    toastMsg("Email not found ❌");
     return;
   }
 
   user.pass = newPass.value;
   localStorage.setItem("users",JSON.stringify(users));
 
-  showToast("Password updated ✅");
-  showLogin();
+  toastMsg("Password updated ✅");
+  goLogin();
 }
 
-/* NAV */
-function showTab(tab){
+/* TABS */
+function tab(t){
   home.classList.add("hidden");
   deposit.classList.add("hidden");
   proof.classList.add("hidden");
   withdraw.classList.add("hidden");
-
-  document.getElementById(tab).classList.remove("hidden");
+  document.getElementById(t).classList.remove("hidden");
 }
 
 /* DEPOSIT */
@@ -314,50 +349,29 @@ function depositInfo(){
   depositBox.classList.remove("hidden");
 
   depositBox.innerHTML =
-  "Send <b>"+amount.value+" RWF</b><br>From: "+sender.value+
-  "<br><br>Status: Pending Payment";
+  "Send <b>"+amount.value+" RWF</b><br>From "+sender.value+
+  "<br>Status: Pending";
 }
 
 /* PROOF */
 function uploadProof(){
-  proofDone = true;
   confirmBtn.disabled = false;
 }
 
 function confirmProof(){
-  showToast("Payment submitted ✅ Waiting approval");
+  toastMsg("Payment submitted ✅");
 }
 
 /* WITHDRAW */
 function setWithdraw(){
-  showToast("Withdraw plan set: " + plan.value + " 🎉");
-}
-
-/* UI */
-function showLogin(){
-  register.classList.add("hidden");
-  forgot.classList.add("hidden");
-  login.classList.remove("hidden");
-}
-
-function showRegister(){
-  login.classList.add("hidden");
-  register.classList.remove("hidden");
-}
-
-function showForgot(){
-  login.classList.add("hidden");
-  forgot.classList.remove("hidden");
+  toastMsg("Withdraw plan: "+plan.value+" 🎉");
 }
 
 /* TOAST */
-function showToast(msg){
+function toastMsg(msg){
   toast.innerText = msg;
   toast.style.display = "block";
-
-  setTimeout(()=>{
-    toast.style.display = "none";
-  },2500);
+  setTimeout(()=>toast.style.display="none",2500);
 }
 
 </script>
