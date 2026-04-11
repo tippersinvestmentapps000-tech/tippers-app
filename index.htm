@@ -1,262 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Tippers Investment App</title>
+<title>Tippers App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
-  margin:0;
-  font-family:Arial;
-  background:linear-gradient(135deg,#4f46e5,#06b6d4);
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#4f46e5,#06b6d4);
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
 }
 
-/* APP */
-.container{
-  width:420px;
-  background:white;
-  border-radius:18px;
-  overflow:hidden;
-  box-shadow:0 20px 50px rgba(0,0,0,0.3);
+.app{
+width:400px;
+background:white;
+border-radius:15px;
+overflow:hidden;
+box-shadow:0 20px 40px rgba(0,0,0,0.3);
 }
 
 .header{
-  background:#4f46e5;
-  color:white;
-  padding:12px;
-  text-align:center;
-  font-weight:bold;
+background:#4f46e5;
+color:white;
+text-align:center;
+padding:10px;
 }
 
 .content{padding:15px}
 
 input,select{
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  border-radius:8px;
-  border:1px solid #ddd;
+width:100%;
+padding:10px;
+margin-top:8px;
+border-radius:8px;
+border:1px solid #ddd;
 }
 
 button{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border:none;
-  border-radius:8px;
-  background:#4f46e5;
-  color:white;
-  cursor:pointer;
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:8px;
+background:#4f46e5;
+color:white;
+cursor:pointer;
 }
-
-button:hover{background:#3730a3}
 
 .hidden{display:none}
 
-/* NAV */
 .nav{
-  display:flex;
-  justify-content:space-around;
-  background:#f3f4f6;
-  padding:8px;
+display:flex;
+justify-content:space-around;
+background:#eee;
+padding:8px;
 }
 
-.nav button{
-  width:24%;
-  font-size:12px;
-  background:white;
-  color:black;
-}
-
-/* CARD */
 .card{
-  background:#f3f4f6;
-  padding:10px;
-  margin-top:10px;
-  border-radius:10px;
+background:#f3f4f6;
+padding:10px;
+margin-top:10px;
+border-radius:10px;
 }
 
-/* LINK */
-.link{
-  text-align:center;
-  color:#4f46e5;
-  cursor:pointer;
-  margin-top:10px;
-  font-size:13px;
-}
-
-/* PHONE */
-.phoneBox{
-  display:flex;
-  gap:5px;
-}
-.phoneBox select{width:35%}
-.phoneBox input{width:65%}
-
-/* TOAST */
 #toast{
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:black;
-  color:white;
-  padding:10px 15px;
-  border-radius:8px;
-  display:none;
-  font-size:13px;
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:black;
+color:white;
+padding:10px;
+border-radius:8px;
+display:none;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="app">
 
-<!-- WELCOME -->
-<div id="welcome">
-  <div class="header">Welcome</div>
-  <div class="content">
+<div class="header">Tippers Investment</div>
 
-    <h3 style="text-align:center">Tippers Investment App 🚀</h3>
-    <p style="text-align:center;font-size:13px">
-      Invest smart, grow daily income, and join our community.
-    </p>
-
-    <button onclick="goRegister()">Get Started</button>
-  </div>
-</div>
-
-<!-- REGISTER -->
-<div id="register" class="hidden">
-  <div class="header">Register</div>
-  <div class="content">
-
-    <input id="fname" placeholder="First Name">
-    <input id="lname" placeholder="Last Name">
-
-    <div class="phoneBox">
-      <select id="code">
-        <option value="+250">🇷🇼 +250</option>
-        <option value="+254">🇰🇪 +254</option>
-        <option value="+256">🇺🇬 +256</option>
-      </select>
-      <input id="phone" placeholder="Phone number">
-    </div>
-
-    <input id="email" placeholder="Email">
-    <input id="pass" type="password" placeholder="Password">
-    <input id="cpass" type="password" placeholder="Confirm Password">
-
-    <button onclick="register()">Register</button>
-
-    <div class="link" onclick="goLogin()">Already have account? Login</div>
-  </div>
-</div>
-
-<!-- LOGIN -->
-<div id="login" class="hidden">
-  <div class="header">Login</div>
-  <div class="content">
-
-    <input id="logEmail" placeholder="Email">
-    <input id="logPass" type="password" placeholder="Password">
-
-    <button onclick="login()">Login</button>
-
-    <div class="link" onclick="goRegister()">Create account</div>
-    <div class="link" onclick="goForgot()">Forgot password?</div>
-
-  </div>
-</div>
-
-<!-- FORGOT -->
-<div id="forgot" class="hidden">
-  <div class="header">Reset Password</div>
-  <div class="content">
-
-    <input id="resetEmail" placeholder="Email">
-    <input id="newPass" type="password" placeholder="New password">
-
-    <button onclick="resetPassword()">Reset</button>
-
-    <div class="link" onclick="goLogin()">Back</div>
-  </div>
-</div>
-
-<!-- DASHBOARD -->
-<div id="dashboard" class="hidden">
-
-  <div class="header">Tippers Dashboard</div>
-
-  <div class="nav">
-    <button onclick="tab('home')">🏠</button>
-    <button onclick="tab('deposit')">💰</button>
-    <button onclick="tab('proof')">📤</button>
-    <button onclick="tab('withdraw')">📅</button>
-  </div>
-
-  <div class="content">
-
-    <!-- HOME -->
-    <div id="home">
-      <div class="card">
-        Welcome <b id="userName"></b> 🎉
-      </div>
-    </div>
-
-    <!-- DEPOSIT -->
-    <div id="deposit" class="hidden">
-      <div class="card">
-        <b>Send Money via MTN</b><br>
-        Number: <b>0795410739</b><br>
-        Name: Baraka Bolingo
-      </div>
-
-      <input id="amount" placeholder="Amount (RWF)">
-      <input id="sender" placeholder="Sender Name">
-
-      <button onclick="depositInfo()">Continue</button>
-
-      <div id="depositBox" class="card hidden"></div>
-    </div>
-
-    <!-- PROOF -->
-    <div id="proof" class="hidden">
-      <div class="card">
-        Upload screenshot:
-        <input type="file" onchange="uploadProof()">
-        <button id="confirmBtn" disabled onclick="confirmProof()">Confirm Payment</button>
-      </div>
-    </div>
-
-    <!-- WITHDRAW -->
-    <div id="withdraw" class="hidden">
-      <div class="card">
-        Choose plan:
-
-        <select id="plan">
-          <option>Daily</option>
-          <option>Weekly</option>
-          <option>Monthly</option>
-          <option>2 Months</option>
-          <option>3 Months</option>
-          <option>4 Months</option>
-          <option>6 Months</option>
-          <option>1 Year</option>
-        </select>
-
-        <button onclick="setWithdraw()">Confirm</button>
-      </div>
-    </div>
-
-  </div>
-</div>
+<div class="content" id="screen"></div>
 
 </div>
 
@@ -265,114 +97,188 @@ button:hover{background:#3730a3}
 <script>
 
 let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser;
+let currentUser = null;
+let step = "welcome";
 
-/* NAV FLOW */
-function goRegister(){welcome.classList.add("hidden");register.classList.remove("hidden")}
-function goLogin(){register.classList.add("hidden");forgot.classList.add("hidden");login.classList.remove("hidden")}
-function goForgot(){login.classList.add("hidden");forgot.classList.remove("hidden")}
+/* MAIN RENDER */
+function render(){
+
+if(step==="welcome"){
+screen.innerHTML=`
+<h3>Welcome 🚀</h3>
+<p>Grow your income with Tippers Investment App</p>
+<button onclick="step='register';render()">Get Started</button>
+`;
+}
 
 /* REGISTER */
-function register(){
+if(step==="register"){
+screen.innerHTML=`
+<h3>Register</h3>
 
-  if(pass.value !== cpass.value){
-    toastMsg("Passwords not match ❌");
-    return;
-  }
+<input id="fname" placeholder="First Name">
+<input id="lname" placeholder="Last Name">
 
-  users.push({
-    fname:fname.value,
-    lname:lname.value,
-    phone:code.value+phone.value,
-    email:email.value,
-    pass:pass.value
-  });
+<select id="code">
+<option>+250</option>
+<option>+254</option>
+</select>
 
-  localStorage.setItem("users",JSON.stringify(users));
+<input id="phone" placeholder="Phone">
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Password">
+<input id="cpass" type="password" placeholder="Confirm Password">
 
-  toastMsg("Registered successfully ✅");
-  goLogin();
+<button onclick="doRegister()">Register</button>
+<p onclick="step='login';render()" style="color:blue;cursor:pointer">Login</p>
+`;
 }
 
 /* LOGIN */
-function login(){
+if(step==="login"){
+screen.innerHTML=`
+<h3>Login</h3>
 
-  users = JSON.parse(localStorage.getItem("users")) || [];
+<input id="logEmail" placeholder="Email">
+<input id="logPass" type="password" placeholder="Password">
 
-  let user = users.find(u =>
-    u.email === logEmail.value &&
-    u.pass === logPass.value
-  );
-
-  if(!user){
-    toastMsg("Invalid login ❌");
-    return;
-  }
-
-  currentUser = user;
-
-  login.classList.add("hidden");
-  dashboard.classList.remove("hidden");
-
-  userName.innerText = user.fname;
-
-  toastMsg("Welcome 🎉");
+<button onclick="doLogin()">Login</button>
+<p onclick="step='register';render()" style="color:blue;cursor:pointer">Create account</p>
+`;
 }
 
-/* RESET */
-function resetPassword(){
-  let user = users.find(u => u.email === resetEmail.value);
+/* DASHBOARD */
+if(step==="dashboard"){
+screen.innerHTML=`
+<div class="nav">
+<button onclick="tab('home')">🏠</button>
+<button onclick="tab('deposit')">💰</button>
+<button onclick="tab('proof')">📤</button>
+<button onclick="tab('withdraw')">📅</button>
+</div>
 
-  if(!user){
-    toastMsg("Email not found ❌");
-    return;
-  }
+<div id="tabContent"></div>
+`;
 
-  user.pass = newPass.value;
-  localStorage.setItem("users",JSON.stringify(users));
+tab("home");
+}
 
-  toastMsg("Password updated ✅");
-  goLogin();
+}
+
+/* REGISTER FUNCTION */
+function doRegister(){
+if(pass.value!==cpass.value){
+toast("Passwords not match ❌");return;
+}
+
+users.push({
+fname:fname.value,
+email:email.value,
+pass:pass.value
+});
+
+localStorage.setItem("users",JSON.stringify(users));
+
+toast("Registered! Login now ✅");
+step="login";
+render();
+}
+
+/* LOGIN */
+function doLogin(){
+let user = users.find(u =>
+u.email===logEmail.value &&
+u.pass===logPass.value
+);
+
+if(!user){
+toast("Invalid login ❌");return;
+}
+
+currentUser=user;
+step="dashboard";
+render();
+toast("Welcome "+user.fname+" 🎉");
 }
 
 /* TABS */
-function tab(t){
-  home.classList.add("hidden");
-  deposit.classList.add("hidden");
-  proof.classList.add("hidden");
-  withdraw.classList.add("hidden");
-  document.getElementById(t).classList.remove("hidden");
+function tab(name){
+
+if(name==="home"){
+tabContent.innerHTML=`
+<div class="card">Welcome ${currentUser.fname}</div>
+`;
 }
 
-/* DEPOSIT */
-function depositInfo(){
-  depositBox.classList.remove("hidden");
+if(name==="deposit"){
+tabContent.innerHTML=`
+<div class="card">
+Number: <b>0795410739</b><br>
+Name: Baraka Bolingo
+</div>
 
-  depositBox.innerHTML =
-  "Send <b>"+amount.value+" RWF</b><br>From "+sender.value+
-  "<br>Status: Pending";
+<input id="amount" placeholder="Amount">
+<input id="sender" placeholder="Sender">
+
+<button onclick="nextDeposit()">Continue</button>
+`;
 }
 
-/* PROOF */
-function uploadProof(){
-  confirmBtn.disabled = false;
+if(name==="proof"){
+tabContent.innerHTML=`
+<div class="card">
+Upload proof:
+<input type="file" onchange="enableProof()">
+<button id="btn" disabled onclick="submitProof()">Submit</button>
+</div>
+`;
 }
 
-function confirmProof(){
-  toastMsg("Payment submitted ✅");
+if(name==="withdraw"){
+tabContent.innerHTML=`
+<div class="card">
+<select id="plan">
+<option>Daily</option>
+<option>Weekly</option>
+<option>Monthly</option>
+<option>1 Year</option>
+</select>
+
+<button onclick="finish()">Confirm</button>
+</div>
+`;
 }
 
-/* WITHDRAW */
-function setWithdraw(){
-  toastMsg("Withdraw plan: "+plan.value+" 🎉");
+}
+
+/* FLOW */
+function nextDeposit(){
+toast("Payment initiated 💰");
+tab("proof");
+}
+
+function enableProof(){
+btn.disabled=false;
+}
+
+function submitProof(){
+toast("Proof submitted ✅");
+tab("withdraw");
+}
+
+function finish(){
+toast("Success! Investment activated 🎉");
+tab("home");
 }
 
 /* TOAST */
-function toastMsg(msg){
-  toast.innerText = msg;
-  toast.style.display = "block";
-  setTimeout(()=>toast.style.display="none",2500);
+function toast(msg){
+toast.innerText=msg;
+toast.style.display="block";
+setTimeout(()=>toast.style.display="none",2500);
 }
+
+render();
 
 </script>
 
