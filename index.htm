@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tippers Investment App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 400px;
+      margin: auto;
+      margin-top: 50px;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    button {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: gray;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .hidden { display: none; }
+    .success {
+      background: #d1fae5;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container" id="register">
+  <h2>Register</h2>
+  <input id="regName" placeholder="Enter your name">
+  <input id="regPass" type="password" placeholder="Enter password">
+  <button onclick="register()">Register</button>
+</div>
+
+<div class="container hidden" id="login">
+  <h2>Login</h2>
+  <input id="loginName" placeholder="Enter name">
+  <input id="loginPass" type="password" placeholder="Enter password">
+  <button onclick="login()">Login</button>
+</div>
+
+<div class="container hidden" id="dashboard">
+  <div id="welcomeBox" class="success">Welcome 🎉</div>
+
+  <div class="grid">
+    <button onclick="showSection('home')">Home</button>
+    <button onclick="showSection('deposit')">Deposit</button>
+    <button disabled>Withdraw</button>
+    <button disabled>More</button>
+  </div>
+
+  <div id="home">
+    <h3>Home</h3>
+    <p>Welcome to Tippers Investment App</p>
+  </div>
+
+  <div id="deposit" class="hidden">
+    <h3>Deposit</h3>
+    <input id="amount" placeholder="Amount (RWF)">
+    <small>Minimum: 5000 RWF</small>
+    <input id="sender" placeholder="Sender name e.g Mugabo John">
+    <button onclick="goPayment()">Continue</button>
+  </div>
+
+  <div id="payment" class="hidden">
+    <h3 id="userName"></h3>
+    <p>Follow steps to complete payment</p>
+
+    <p><b>MTN Mobile Money</b></p>
+    <p id="senderText"></p>
+    <p id="amountText"></p>
+
+    <div>
+      <span id="phone">0795410739</span>
+      <button onclick="copyNumber()">Copy</button>
+    </div>
+
+    <p>Name: Baraka Bolingo</p>
+
+    <p id="ussd"></p>
+
+    <h4>Upload Proof</h4>
+    <input type="file" onchange="setProof(event)">
+    <button id="confirmBtn" disabled onclick="confirmPayment()">Confirm Payment</button>
+  </div>
+</div>
+
+<script>
+let user = {};
+let proof = false;
+
+function register() {
+  user.name = document.getElementById("regName").value;
+  user.pass = document.getElementById("regPass").value;
+
+  localStorage.setItem("user", JSON.stringify(user));
+
+  document.getElementById("register").classList.add("hidden");
+  document.getElementById("login").classList.remove("hidden");
+}
+
+function login() {
+  let saved = JSON.parse(localStorage.getItem("user"));
+  let name = document.getElementById("loginName").value;
+  let pass = document.getElementById("loginPass").value;
+
+  if (name === saved.name && pass === saved.pass) {
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
+
+    document.getElementById("welcomeBox").innerText =
+      "Welcome to Tippers Investment App 🎉";
+  } else {
+    alert("Wrong credentials");
+  }
+}
+
+function showSection(section) {
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("deposit").classList.add("hidden");
+  document.getElementById("payment").classList.add("hidden");
+
+  document.getElementById(section).classList.remove("hidden");
+}
+
+function goPayment() {
+  let amount = document.getElementById("amount").value;
+  let sender = document.getElementById("sender").value;
+
+  if (amount < 5000) {
+    alert("Minimum is 5000 RWF");
+    return;
+  }
+
+  document.getElementById("deposit").classList.add("hidden");
+  document.getElementById("payment").classList.remove("hidden");
+
+  document.getElementById("userName").innerText = user.name;
+  document.getElementById("senderText").innerText = "Sender: " + sender;
+  document.getElementById("amountText").innerText = "Send exactly " + amount + " RWF";
+  document.getElementById("ussd").innerText =
+    "*182*1*1*0795410739*" + amount + "#";
+}
+
+function copyNumber() {
+  navigator.clipboard.writeText("0795410739");
+  alert("Copied!");
+}
+
+function setProof(e) {
+  proof = true;
+  document.getElementById("confirmBtn").disabled = false;
+}
+
+function confirmPayment() {
+  alert("Payment submitted successfully!");
+}
+</script>
+
+</body>
+</html>
