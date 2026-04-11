@@ -73,7 +73,7 @@ margin-top:10px;
 border-radius:10px;
 }
 
-#toast{
+#toastBox{
 position:fixed;
 bottom:20px;
 left:50%;
@@ -100,6 +100,7 @@ display:none;
 
 <div class="app">
 <div class="header">Tippers Investment</div>
+
 <div class="content" id="screen"></div>
 
 <div class="nav hidden" id="bottomNav">
@@ -110,7 +111,7 @@ display:none;
 </div>
 </div>
 
-<div id="toast"></div>
+<div id="toastBox"></div>
 
 <script>
 
@@ -118,17 +119,22 @@ let users = JSON.parse(localStorage.getItem("users")) || [];
 let currentUser = null;
 let currentAmount = 0;
 
+/* HELPERS */
+function get(id){ return document.getElementById(id); }
+
 /* TOAST */
 function showToast(msg){
-toast.innerText=msg;
-toast.style.display="block";
-setTimeout(()=>toast.style.display="none",2500);
+let t = get("toastBox");
+t.innerText = msg;
+t.style.display = "block";
+setTimeout(()=>t.style.display="none",2500);
 }
 
 /* WELCOME */
 function welcome(){
-bottomNav.classList.add("hidden");
-screen.innerHTML=`
+get("bottomNav").classList.add("hidden");
+
+get("screen").innerHTML=`
 <h3>Welcome !</h3>
 <p>Join Tippers Investment and grow your income smartly.</p>
 <button onclick="register()">Continue ➡️</button>
@@ -137,7 +143,8 @@ screen.innerHTML=`
 
 /* REGISTER */
 function register(){
-screen.innerHTML=`
+get("screen").innerHTML=`
+
 <h3>Register</h3>
 
 <input id="fname" placeholder="First Name">
@@ -174,7 +181,8 @@ screen.innerHTML=`
 
 /* LOGIN */
 function login(){
-screen.innerHTML=`
+get("screen").innerHTML=`
+
 <h3>Login</h3>
 
 <input id="logEmail" placeholder="Email">
@@ -189,19 +197,17 @@ screen.innerHTML=`
 
 /* FORGOT */
 function forgot(){
-screen.innerHTML=`
+get("screen").innerHTML=`
 <h3>Reset Password</h3>
-
 <input id="resetEmail" placeholder="Email">
 <input id="newPass" placeholder="New Password">
-
 <button onclick="resetPass()">Reset</button>
 `;
 }
 
 /* HOME */
 function home(){
-screen.innerHTML=`
+get("screen").innerHTML=`
 
 <div class="card">
 <b>Balance:</b> ${currentUser.balance.toLocaleString()} RWF 💰
@@ -216,16 +222,14 @@ Crypto rising
 
 <div class="card">
 <h3>About Tippers Investment</h3>
-<p>
-Tippers helps you invest and earn profits through smart plans.
-</p>
+<p>Tippers helps you invest and earn profits smartly.</p>
 </div>
 `;
 }
 
 /* DEPOSIT */
 function deposit(){
-screen.innerHTML=`
+get("screen").innerHTML=`
 
 <div class="card">
 Number: <b>0795410739</b><br>
@@ -233,7 +237,7 @@ Name: Baraka Bolingo
 </div>
 
 <input id="amount" placeholder="Amount (RWF)">
-<input id="sender" placeholder="Sender name e.g John">
+<input id="sender" placeholder="Sender name">
 
 <button onclick="goProof()">Continue</button>
 `;
@@ -241,7 +245,7 @@ Name: Baraka Bolingo
 
 /* PROOF */
 function proof(){
-screen.innerHTML=`
+get("screen").innerHTML=`
 <h3>Upload proof of payment screenshot</h3>
 <input type="file" onchange="enableBtn()">
 <button id="btn" disabled onclick="goWithdraw()">Submit</button>
@@ -250,132 +254,93 @@ screen.innerHTML=`
 
 /* WITHDRAW */
 function withdraw(){
-screen.innerHTML=`
-
+get("screen").innerHTML=`
 <div class="card">
 <select id="plan">
 <option>Everyday</option>
 <option>Weekly</option>
 <option>Monthly</option>
-<option>2 months</option>
-<option>3 months</option>
-<option>6 months</option>
 <option>12 months</option>
 </select>
-
 <button onclick="finish()">Confirm</button>
 </div>
 `;
 }
 
-/* FUNCTIONS */
+/* LOGIC */
 function togglePass(){
-pass.type = pass.type==="password"?"text":"password";
+let p = get("pass");
+p.type = p.type==="password"?"text":"password";
 }
 
-/* REGISTER */
 function doRegister(){
-
-if(!fname.value || !lname.value || !phone.value || !email.value || !pass.value || !cpass.value){
+if(!get("fname").value || !get("email").value){
 showToast("Fill all fields ❌"); return;
-}
-
-if(pass.value!==cpass.value){
-showToast("Passwords not match ❌"); return;
 }
 
 users.push({
-fname:fname.value,
-lname:lname.value,
-email:email.value,
-pass:pass.value,
+fname:get("fname").value,
+email:get("email").value,
+pass:get("pass").value,
 balance:0
 });
 
-localStorage.setItem("users",JSON.stringify(users));
+localStorage.setItem("users", JSON.stringify(users));
 
-showToast("Registered successfully ✅");
+showToast("Registered ✅");
 login();
 }
 
-/* LOGIN */
 function doLogin(){
-
-if(!logEmail.value || !logPass.value){
-showToast("Fill all fields ❌"); return;
-}
-
-let user = users.find(u=>u.email===logEmail.value && u.pass===logPass.value);
+let user = users.find(u =>
+u.email===get("logEmail").value &&
+u.pass===get("logPass").value
+);
 
 if(!user){
 showToast("Invalid login ❌"); return;
 }
 
 currentUser=user;
+get("bottomNav").classList.remove("hidden");
 
-bottomNav.classList.remove("hidden");
-
-showToast("Welcome "+user.fname+" !");
+showToast("Welcome !");
 home();
 }
 
-/* RESET */
 function resetPass(){
 showToast("Password reset !");
 login();
 }
 
-/* DEPOSIT */
 function goProof(){
+currentAmount = parseInt(get("amount").value) || 0;
 
-let amount = parseInt(document.getElementById("amount").value);
-
-if(!amount){
-showToast("Enter amount ❌"); return;
+if(currentAmount < 5000){
+showToast("Minimum 5000 ❌"); return;
 }
-
-if(amount < 5000 || amount > 100000000){
-showToast("Amount must be 5000 - 100M ❌"); return;
-}
-
-currentAmount = amount;
 
 proof();
 }
 
 function enableBtn(){
-btn.disabled=false;
+get("btn").disabled=false;
 }
 
-/* AFTER PROOF */
 function goWithdraw(){
-
 currentUser.balance += currentAmount;
-
-/* SAVE */
-let index = users.findIndex(u => u.email === currentUser.email);
-users[index] = currentUser;
 localStorage.setItem("users", JSON.stringify(users));
-
-showToast("Deposit added to balance 💰");
 withdraw();
 }
 
-/* FINAL STEP */
 function finish(){
-
 let profit = currentUser.balance * 0.1;
 currentUser.balance += profit;
-
-/* simulate withdraw deduction */
 currentUser.balance -= currentAmount;
 
-/* SAVE */
-let index = users.findIndex(u => u.email === currentUser.email);
-users[index] = currentUser;
 localStorage.setItem("users", JSON.stringify(users));
 
-showToast("Profit added + withdraw processed 🎉");
+showToast("Done 🎉");
 home();
 }
 
