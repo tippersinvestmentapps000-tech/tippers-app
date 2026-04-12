@@ -38,7 +38,6 @@ height:520px;
 overflow-y:auto;
 }
 
-/* COLORS */
 .yellow{color:#facc15}
 
 /* INPUT */
@@ -49,7 +48,11 @@ margin-top:6px;
 border-radius:8px;
 border:none;
 outline:none;
+background:#1f2937;
+color:white;
 }
+
+input::placeholder{color:#9ca3af}
 
 button{
 width:100%;
@@ -60,15 +63,19 @@ border-radius:10px;
 background:#facc15;
 font-weight:bold;
 cursor:pointer;
+color:black;
 }
 
+/* CARDS */
 .card{
 background:#1f2937;
 padding:15px;
 margin-bottom:10px;
 border-radius:12px;
+cursor:pointer;
 }
 
+/* BOX */
 .box{
 background:#1f2937;
 padding:12px;
@@ -76,39 +83,16 @@ border-radius:10px;
 margin-top:10px;
 }
 
-.inputBox{
+/* INPUT ROW */
+.row{
 display:flex;
-background:#facc15;
-border-radius:10px;
-overflow:hidden;
+gap:8px;
+margin-top:6px;
 }
 
-.inputBox span{
-padding:10px;
-background:#f59e0b;
-font-weight:bold;
-}
-
-.inputBox input{
+.row select,.row input{
 flex:1;
-border:none;
-padding:10px;
-color:white;
-background:#111827;
-}
-
-/* PLACEHOLDER BLACK STYLE */
-input::placeholder{
-color:#d1d5db;
-}
-
-.passBox{position:relative}
-.eye{
-position:absolute;
-right:10px;
-top:12px;
-cursor:pointer;
-color:black;
+margin-top:0;
 }
 
 /* NAV */
@@ -119,11 +103,20 @@ background:black;
 padding:10px;
 }
 
-.nav div{text-align:center;font-size:12px;cursor:pointer}
-.nav i{font-size:22px;display:block}
+.nav div{
+text-align:center;
+font-size:12px;
+cursor:pointer;
+}
+
+.nav i{
+font-size:22px;
+display:block;
+}
 
 .hidden{display:none}
 
+/* TOAST */
 #toastBox{
 position:fixed;
 bottom:20px;
@@ -142,14 +135,18 @@ display:none;
 <body>
 
 <div class="app">
+
 <div class="header">Tippers Investment</div>
+
 <div class="content" id="screen"></div>
 
+<!-- DASHBOARD ICONS (RESTORED) -->
 <div class="nav hidden" id="bottomNav">
 <div onclick="home()"><i>🏠</i>HOME</div>
 <div onclick="deposit()"><i>💰</i>DEPOSIT</div>
 <div onclick="withdrawUI()"><i>📤</i>WITHDRAW</div>
 </div>
+
 </div>
 
 <div id="toastBox"></div>
@@ -158,80 +155,67 @@ display:none;
 
 let users=JSON.parse(localStorage.getItem("users"))||[];
 let currentUser=null;
-let currentAmount=0;
-let senderName="";
+let amount=0;
 let depositDone=false;
 
-/* COUNTRIES (20+) */
-let countries=[
-"+250 Rwanda","+254 Kenya","+256 Uganda","+255 Tanzania",
-"+257 Burundi","+251 Ethiopia","+234 Nigeria","+27 South Africa",
-"+212 Morocco","+91 India","+1 USA","+44 UK",
-"+33 France","+49 Germany","+86 China","+81 Japan",
-"+61 Australia","+971 UAE","+82 Korea","+351 Portugal"
-];
-
-function get(id){return document.getElementById(id);}
-
+/* TOAST */
 function toast(msg){
-let t=get("toastBox");
+let t=document.getElementById("toastBox");
 t.innerText=msg;
 t.style.display="block";
 setTimeout(()=>t.style.display="none",2000);
 }
 
-/* WELCOME */
-function welcome(){
-get("screen").innerHTML=`
-<h2 class="yellow">Welcome to Tippers</h2>
-<button onclick="register()">Register</button>
-<button onclick="login()">Login</button>
-`;
-}
-
 /* REGISTER */
 function register(){
 
-let countryOptions=countries.map(c=>`<option>${c}</option>`).join("");
-
 get("screen").innerHTML=`
 
-<p class="yellow"><b>Most welcome to Tippers investment!</b></p>
+<h3 class="yellow">REGISTER</h3>
 
-<h3>Register</h3>
+FIRST NAME:
+<input placeholder="John">
 
-<label>FIRST NAME</label>
-<input id="fname" placeholder="e.g: John">
+LAST NAME:
+<input placeholder="Doe">
 
-<label>LAST NAME</label>
-<input id="lname" placeholder="e.g: Doe">
+GENDER (required):
+<select id="gender">
+<option value="">Select gender</option>
+<option>Male</option>
+<option>Female</option>
+</select>
 
-<label>GENDER</label>
-<div>
-<label><input type="checkbox"> Male</label>
-<label><input type="checkbox"> Female</label>
+EMAIL:
+<input id="email" placeholder="example@gmail.com">
+
+PASSWORD:
+<input id="pass" type="password">
+
+CONFIRM PASSWORD:
+<input id="cpass" type="password">
+
+PHONE:
+<div class="row">
+<select>
+<option>RWA +250</option>
+<option>KEN +254</option>
+<option>UGA +256</option>
+<option>TZA +255</option>
+<option>USA +1</option>
+<option>UK +44</option>
+<option>IND +91</option>
+<option>SA +27</option>
+<option>NIG +234</option>
+<option>FR +33</option>
+</select>
+
+<input placeholder="078xxxxxxx">
 </div>
 
-<label>EMAIL</label>
-<input id="email" placeholder="e.g: john@gmail.com">
+<button onclick="doRegister()">REGISTER</button>
 
-<label>PHONE</label>
-<select id="country">${countryOptions}</select>
-<input id="phone" placeholder="078xxxxxxx">
-
-<label>PASSWORD</label>
-<div class="passBox">
-<input id="pass" type="password" placeholder="Enter password">
-</div>
-
-<label>CONFIRM PASSWORD</label>
-<div class="passBox">
-<input id="cpass" type="password" placeholder="Confirm password">
-</div>
-
-<button onclick="doRegister()">Register</button>
-
-<p onclick="login()" style="color:#facc15;cursor:pointer">Login</p>
+<p onclick="login()" style="color:#facc15;cursor:pointer">Already have account?</p>
 `;
 }
 
@@ -239,52 +223,58 @@ get("screen").innerHTML=`
 function login(){
 get("screen").innerHTML=`
 
-<h3>Login</h3>
+<h3 class="yellow">LOGIN</h3>
 
-<input id="logEmail" placeholder="Enter email">
-<input id="logPass" type="password" placeholder="Enter password">
+<input id="logEmail" placeholder="Email">
+<input id="logPass" type="password" placeholder="Password">
 
-<button onclick="doLogin()">Login</button>
+<button onclick="doLogin()">LOGIN</button>
 
 <p onclick="register()" style="color:#facc15;cursor:pointer">Create account</p>
 `;
 }
 
-/* REGISTER VALIDATION */
+/* REGISTER VALIDATION (STRICT) */
 function doRegister(){
-let f=get("fname").value;
-let l=get("lname").value;
-let e=get("email").value;
-let p=get("pass").value;
-let c=get("cpass").value;
 
-if(!f||!l||!e||!p||!c){
-toast("Fill all fields ❌");return;
+let email=get("email").value;
+let pass=get("pass").value;
+let cpass=get("cpass").value;
+let gender=get("gender").value;
+
+if(!email || !pass || !cpass || !gender){
+toast("Fill all fields ❌");
+return;
 }
 
-if(p!==c){
-toast("Passwords not match ❌");return;
+if(pass!==cpass){
+toast("Passwords not match ❌");
+return;
 }
 
-users.push({email:e,pass:p,balance:0});
+users.push({email,pass,balance:0});
 localStorage.setItem("users",JSON.stringify(users));
 
 toast("Registered ✔");
 login();
 }
 
-/* LOGIN VALIDATION */
+/* LOGIN VALIDATION (STRICT) */
 function doLogin(){
+
 let e=get("logEmail").value;
 let p=get("logPass").value;
 
-if(!e||!p){
-toast("Fill all fields ❌");return;
+if(!e || !p){
+toast("Fill all fields ❌");
+return;
 }
 
 let u=users.find(x=>x.email===e && x.pass===p);
+
 if(!u){
-toast("Invalid account ❌");return;
+toast("Invalid account ❌");
+return;
 }
 
 currentUser=u;
@@ -293,8 +283,9 @@ get("bottomNav").classList.remove("hidden");
 deposit(); // FORCE FLOW
 }
 
-/* HOME (FULL CONTENT) */
+/* HOME */
 function home(){
+
 if(!depositDone){
 toast("Complete deposit first ❌");
 deposit();
@@ -302,13 +293,12 @@ return;
 }
 
 get("screen").innerHTML=`
-<div class="card">💰 Finance Tips: Save 20% of income daily</div>
-<div class="card">📊 Investment: Diversify your portfolio</div>
-<div class="card">📈 Market: Crypto is rising</div>
-<div class="card">💡 Advice: Never invest all money at once</div>
-<div class="card">🔥 Success story: Users earning daily profit</div>
-<div class="card">📢 News: New investment plan coming soon</div>
-<div class="card">💼 Business: Passive income strategies</div>
+
+<div class="card">💰 Balance: ${currentUser.balance} RWF</div>
+<div class="card">📊 Investment Tips</div>
+<div class="card">📈 Market News</div>
+<div class="card">🔥 Passive income guide</div>
+<div class="card">💡 Financial education</div>
 `;
 }
 
@@ -318,86 +308,62 @@ get("screen").innerHTML=`
 
 <h3 class="yellow">DEPOSIT BALANCE</h3>
 
-<p>Add funds using MTN Mobile Money</p>
+AMOUNT TO DEPOSIT (RWF):
+<input placeholder="100,000">
 
-<p class="yellow">AMOUNT TO DEPOSIT (RWF)</p>
+MINIMUM: 5,000 RWF
 
-<div class="inputBox">
-<span>RWF</span>
-<input id="amount" placeholder="e.g: 100,000">
-</div>
+SENDER NAME:
+<input placeholder="MUGABO">
 
-<p>Minimum: 5,000 RWF</p>
-
-<p class="yellow">SENDER NAME:</p>
-<input id="sender" placeholder="e.g: MUGABO">
-
-<button onclick="payment()">Continue ➜</button>
+<button onclick="payment()">CONTINUE</button>
 `;
 }
 
 /* PAYMENT */
 function payment(){
-currentAmount=parseInt(get("amount").value)||0;
-senderName=get("sender").value;
-
-if(currentAmount<5000||!senderName){
-toast("Fill correctly ❌");return;
-}
-
 get("screen").innerHTML=`
 
 <h3 class="yellow">PAYMENT INFORMATION</h3>
 
-<p>Follow steps below</p>
+Send money to:
 
 <div class="box">
-Sender: ${senderName}
-</div>
-
-<div class="box">
-Send ${currentAmount} RWF to:
-<br><br>
 0795410739
-<br>
-<span class="yellow">BARAKA BOLINGO</span>
+
+<br><br>
+
+BARAKA BOLINGO
 </div>
 
-<button onclick="dial()">Dial & Pay</button>
+<button onclick="dial()">CONTINUE</button>
 `;
 }
 
-/* DIAL + PROOF */
+/* DIAL */
 function dial(){
 get("screen").innerHTML=`
 
-<p class="yellow">UPLOAD PROOF OF PAYMENT SCREENSHOT</p>
+<div class="box">*182*1*1*0795410739#</div>
 
-<p>Make sure screenshot is clear</p>
+<input type="file" onchange="enable()">
 
-<div class="box">
-USSD:
-<br><br>
-*182*1*1*0795410739#
-</div>
-
-<input type="file" onchange="enableBtn()">
-
-<button id="btn" disabled onclick="proof()">Submit</button>
+<button id="btn" disabled onclick="proof()">SUBMIT</button>
 `;
 }
 
-function enableBtn(){get("btn").disabled=false;}
+function enable(){
+document.getElementById("btn").disabled=false;
+}
 
 /* PROOF */
 function proof(){
-currentUser.balance+=currentAmount;
-localStorage.setItem("users",JSON.stringify(users));
+currentUser.balance+=10000;
 depositDone=true;
 withdrawStep();
 }
 
-/* WITHDRAW */
+/* WITHDRAW STEP */
 function withdrawStep(){
 get("screen").innerHTML=`
 
@@ -407,62 +373,61 @@ get("screen").innerHTML=`
 <option>1 Day</option>
 <option>1 Week</option>
 <option>1 Month</option>
+<option>2 Months</option>
 <option>3 Months</option>
+<option>4 Months</option>
+<option>5 Months</option>
 <option>6 Months</option>
+<option>7 Months</option>
+<option>8 Months</option>
+<option>9 Months</option>
+<option>10 Months</option>
+<option>11 Months</option>
 <option>12 Months</option>
 </select>
 
-<button onclick="home()">Finish</button>
+<button onclick="home()">FINISH</button>
 `;
 }
 
-/* WITHDRAW UI */
+/* WITHDRAW */
 function withdrawUI(){
 
-if(!depositDone){
-toast("Complete deposit first ❌");return;
+let amountInput=prompt("Enter amount to withdraw:");
+
+if(!amountInput || amountInput<7500){
+toast("INVALID INPUT ❌");
+return;
 }
 
 get("screen").innerHTML=`
 
 <h3 class="yellow">WITHDRAW</h3>
 
-<p>Amount to withdraw:</p>
+<div class="box">Amount: ${amountInput} RWF</div>
 
-<div class="inputBox">
-<span>RWF</span>
-<input placeholder="0 RWF">
-</div>
-
-<p>Minimum: 7500 RWF</p>
-
-<p>Telephone:</p>
-
+<div class="row">
 <select>
-<option>+250 Rwanda</option>
-<option>+254 Kenya</option>
-<option>+256 Uganda</option>
-<option>+255 Tanzania</option>
-<option>+257 Burundi</option>
-<option>+1 USA</option>
-<option>+44 UK</option>
-<option>+91 India</option>
-<option>+27 South Africa</option>
-<option>+33 France</option>
+<option>RWA +250</option>
+<option>KEN +254</option>
+<option>UGA +256</option>
+<option>TZA +255</option>
+<option>USA +1</option>
+<option>UK +44</option>
 </select>
 
 <input placeholder="078xxxxxxx">
+</div>
 
-<button onclick="withdrawAction()">Withdraw</button>
+<button onclick="toast('Withdraw request sent ✔')">WITHDRAW</button>
 `;
 }
 
-function withdrawAction(){
-toast("Not allowed before schedule ❌");
-}
+/* HELP */
+function get(id){return document.getElementById(id);}
 
 /* START */
-welcome();
+register();
 
 </script>
 
