@@ -33,7 +33,7 @@ flex-direction:column;
 padding:20px;
 height:520px;
 overflow-y:auto;
-animation:fade 0.4s;
+animation:fade 0.4s ease;
 }
 
 @keyframes fade{
@@ -41,15 +41,10 @@ from{opacity:0;transform:translateY(10px);}
 to{opacity:1;}
 }
 
-.title{
-color:#f59e0b;
-text-align:center;
-font-weight:bold;
-}
+.title{color:#f59e0b;text-align:center;font-weight:bold;}
+.desc{text-align:center;margin-top:10px;}
 
-.desc{text-align:center;margin-top:10px}
-
-label{margin-top:10px;display:block}
+label{margin-top:10px;display:block;}
 
 input,select{
 width:100%;
@@ -72,7 +67,7 @@ font-weight:bold;
 cursor:pointer;
 }
 
-.row{display:flex;gap:5px}
+.row{display:flex;gap:5px;}
 
 .nav{
 display:flex;
@@ -81,15 +76,15 @@ background:#020617;
 padding:10px;
 }
 
-.nav div{text-align:center;cursor:pointer}
-.nav i{display:block;font-size:20px}
+.nav div{text-align:center;cursor:pointer;}
+.nav i{display:block;font-size:20px;}
 
 #toast{
 position:fixed;
 bottom:20px;
 left:50%;
 transform:translateX(-50%);
-background:black;
+background:red;
 color:white;
 padding:10px;
 border-radius:8px;
@@ -104,7 +99,7 @@ display:none;
 <div class="app">
 <div class="content" id="screen"></div>
 
-<div class="nav hidden" id="nav">
+<div class="nav" id="nav" style="display:none">
 <div onclick="home()"><i class="fa fa-home"></i>HOME</div>
 <div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
 <div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
@@ -119,23 +114,30 @@ display:none;
 const screen=document.getElementById("screen");
 const nav=document.getElementById("nav");
 
-let user=null;
-let depositDone=false;
+let user=JSON.parse(localStorage.getItem("user")) || null;
 let amount=0;
+let depositDone=false;
+let selectedPeriod="";
 
 /* TOAST */
 function toast(msg){
-toastBox.innerText=msg;
-toastBox.style.display="block";
-setTimeout(()=>toastBox.style.display="none",2500);
+let t=document.getElementById("toast");
+t.innerText=msg;
+t.style.display="block";
+setTimeout(()=>t.style.display="none",2500);
 }
 
 /* START */
 function start(){
-nav.classList.add("hidden");
+if(user){
+nav.style.display="flex";
+deposit();
+return;
+}
+
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
-<p class="desc">Start now and grow your income smartly in tippers earning every time.</p>
+<p class="desc">Start now and grow your income smartly</p>
 <button onclick="register()">START</button>
 `;
 }
@@ -146,9 +148,36 @@ screen.innerHTML=`
 
 <h3 class="title">REGISTER</h3>
 
-<input id="email" placeholder="enter your email">
-<input id="pass" placeholder="6 digit password">
-<input id="cpass" placeholder="confirm password">
+<label>First Name</label>
+<input id="f">
+
+<label>Last Name</label>
+<input id="l">
+
+<label>Gender</label>
+<select id="g">
+<option value="">Select</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+
+<label>Phone</label>
+<div class="row">
+<select id="code">
+<option value="+250">RWA +250</option>
+<option value="+254">KEN +254</option>
+</select>
+<input id="phone">
+</div>
+
+<label>Email</label>
+<input id="email">
+
+<label>Password</label>
+<input id="pass">
+
+<label>Confirm Password</label>
+<input id="cpass">
 
 <button onclick="doRegister()">REGISTER</button>
 `;
@@ -156,27 +185,25 @@ screen.innerHTML=`
 
 function doRegister(){
 
-let e=email.value;
-let p=pass.value;
-let c=cpass.value;
-
-if(!e||!p||!c){
+if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
 toast("Fill all fields ❌");return;
 }
 
-if(!e.endsWith("@gmail.com")){
+if(!email.value.endsWith("@gmail.com")){
 toast("Invalid email ❌");return;
 }
 
-if(!/^[0-9]{6}$/.test(p)){
+if(!/^[0-9]{6}$/.test(pass.value)){
 toast("Password must be 6 digits ❌");return;
 }
 
-if(p!==c){
+if(pass.value!==cpass.value){
 toast("Passwords not match ❌");return;
 }
 
-user={email:e,pass:p};
+user={email:email.value,pass:pass.value};
+localStorage.setItem("user",JSON.stringify(user));
+
 toast("Registered ✔");
 login();
 }
@@ -185,15 +212,10 @@ login();
 function login(){
 screen.innerHTML=`
 
-<h3 class="title">Login to continue</h3>
+<h3 class="title">Login</h3>
 
-<input id="le" placeholder="enter your email">
+<input id="le" placeholder="email">
 <input id="lp" placeholder="password">
-
-<div style="display:flex;justify-content:space-between">
-<span onclick="forgot()" style="color:#f59e0b;cursor:pointer">Forgot password</span>
-<span onclick="register()" style="color:#f59e0b;cursor:pointer">Create account</span>
-</div>
 
 <button onclick="doLogin()">LOGIN</button>
 `;
@@ -201,56 +223,20 @@ screen.innerHTML=`
 
 function doLogin(){
 
-if(!le.value||!lp.value){
-toast("Fill all fields ❌");return;
+if(le.value!==user.email || lp.value!==user.pass){
+toast("Invalid login ❌");return;
 }
 
-if(le.value!==user.email){
-toast("Invalid email ❌");return;
-}
-
-if(lp.value!==user.pass){
-toast("Invalid password ❌");return;
-}
-
-nav.classList.remove("hidden");
-deposit(); // force deposit
-}
-
-/* FORGOT */
-function forgot(){
-screen.innerHTML=`
-
-<h3 class="title">Reset Password</h3>
-
-<input id="fe" placeholder="enter your email">
-<input id="np" placeholder="new password">
-
-<button onclick="reset()">RESET</button>
-`;
-}
-
-function reset(){
-if(fe.value!==user.email){
-toast("Email not found ❌");return;
-}
-
-if(!/^[0-9]{6}$/.test(np.value)){
-toast("Password must be 6 digits ❌");return;
-}
-
-user.pass=np.value;
-toast("Password updated ✔");
-login();
+nav.style.display="flex";
+deposit();
 }
 
 /* HOME */
 function home(){
 if(!depositDone){
-toast("To activate other services, you must finish deposit and get license.");
-return;
+toast("Finish deposit first ❌");return;
 }
-toast("Wait for withdraw time.");
+screen.innerHTML=`<h3 class="title">Balance: ${amount}</h3>`;
 }
 
 /* DEPOSIT */
@@ -260,19 +246,22 @@ screen.innerHTML=`
 <h3 class="title">DEPOSIT BALANCE</h3>
 
 <input id="amt" placeholder="amount">
+
 <p>Minimum 5000 RWF</p>
 
-<input id="sender" placeholder="sender name">
+<input id="sender" placeholder="sender">
 
-<button onclick="pay()">CONTINUE</button>
+<button onclick="goPayment()">CONTINUE</button>
 `;
 }
 
-function pay(){
+function goPayment(){
 let a=parseInt(amt.value);
+
 if(!a||a<5000||!sender.value){
 toast("Invalid input ❌");return;
 }
+
 amount=a;
 payment();
 }
@@ -281,7 +270,7 @@ payment();
 function payment(){
 screen.innerHTML=`
 <h3 class="title">PAYMENT</h3>
-<div>0795410739<br>BARAKA</div>
+<div>0795410739<br><br>BARAKA BOLINGO</div>
 <button onclick="dial()">DIAL & PAY</button>
 `;
 }
@@ -307,28 +296,32 @@ function withdrawPeriod(){
 screen.innerHTML=`
 
 <select id="period">
-<option>1day</option>
-<option>7days</option>
-<option>14days</option>
-<option>45days</option>
-<option>3month</option>
-<option>4month</option>
+<option value="1">1day</option>
+<option value="7">7days</option>
+<option value="14">14days</option>
+<option value="45">45days</option>
+<option value="90">3month</option>
+<option value="120">4month</option>
 </select>
 
-<button onclick="confirm()">SEND & CONFIRM</button>
+<button onclick="finish()">CONFIRM</button>
 `;
 }
 
-function confirm(){
-depositDone=true;
-dashboard();
+/* PROFIT CALCULATOR */
+function calculateProfit(a,p){
+return Math.floor(a * (p/10)); // simple scaling
 }
 
-/* DASHBOARD */
-function dashboard(){
+function finish(){
+selectedPeriod=period.value;
+depositDone=true;
+
+let profit=calculateProfit(amount,selectedPeriod);
+
 screen.innerHTML=`
-<h3 class="title">Balance: ${amount} RWF</h3>
-<p class="desc">Withdraw available only after selected period</p>
+<h3 class="title">Final Balance</h3>
+<p>${profit} RWF</p>
 `;
 }
 
@@ -339,13 +332,7 @@ if(!depositDone){
 toast("Finish deposit first ❌");return;
 }
 
-let w=prompt("Enter amount");
-
-if(!w||w<7500){
-toast("INVALID INPUT ❌");return;
-}
-
-toast("You're not allowed to withdraw before the locked schedule.");
+toast("You're not allowed to withdraw before schedule.");
 }
 
 /* START */
