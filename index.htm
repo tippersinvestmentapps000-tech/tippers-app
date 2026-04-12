@@ -38,8 +38,10 @@ height:520px;
 overflow-y:auto;
 }
 
+/* COLORS */
 .yellow{color:#facc15}
 
+/* INPUT */
 input,select{
 width:100%;
 padding:10px;
@@ -47,11 +49,7 @@ margin-top:6px;
 border-radius:8px;
 border:none;
 outline:none;
-background:#1f2937;
-color:white;
 }
-
-input::placeholder{color:#9ca3af}
 
 button{
 width:100%;
@@ -62,25 +60,15 @@ border-radius:10px;
 background:#facc15;
 font-weight:bold;
 cursor:pointer;
-color:black;
 }
 
-/* BOX */
-.box{
+/* CARDS */
+.card{
 background:#1f2937;
-padding:12px;
-border-radius:10px;
-margin-top:10px;
-}
-
-.row{
-display:flex;
-gap:8px;
-}
-
-.row select,.row input{
-flex:1;
-margin-top:6px;
+padding:15px;
+margin-bottom:10px;
+border-radius:12px;
+cursor:pointer;
 }
 
 /* NAV */
@@ -91,15 +79,50 @@ background:black;
 padding:10px;
 }
 
-.nav div{
-text-align:center;
-font-size:12px;
-cursor:pointer;
+.nav div{text-align:center;font-size:12px;cursor:pointer}
+.nav i{font-size:22px;display:block}
+
+/* BOX */
+.box{
+background:#1f2937;
+padding:12px;
+border-radius:10px;
+margin-top:10px;
 }
 
-.nav i{
-font-size:22px;
-display:block;
+.inputBox{
+display:flex;
+background:#facc15;
+border-radius:10px;
+overflow:hidden;
+}
+
+.inputBox span{
+padding:10px;
+background:#f59e0b;
+}
+
+.inputBox input{
+flex:1;
+border:none;
+padding:10px;
+}
+
+.copy{
+background:#facc15;
+padding:5px 10px;
+border-radius:6px;
+cursor:pointer;
+margin-left:10px;
+}
+
+.passBox{position:relative}
+.eye{
+position:absolute;
+right:10px;
+top:12px;
+cursor:pointer;
+color:black;
 }
 
 .hidden{display:none}
@@ -136,149 +159,106 @@ display:none;
 
 <script>
 
-let users=[];
+let users=JSON.parse(localStorage.getItem("users"))||[];
 let currentUser=null;
-let depositDone=false;
+let currentAmount=0;
+let senderName="";
 
-/* TOAST */
+function get(id){return document.getElementById(id);}
+
 function toast(msg){
-let t=document.getElementById("toastBox");
+let t=get("toastBox");
 t.innerText=msg;
 t.style.display="block";
 setTimeout(()=>t.style.display="none",2000);
+}
+
+/* WELCOME */
+function welcome(){
+get("screen").innerHTML=`
+<h2 class="yellow">Welcome to Tippers</h2>
+<p>Grow your income smartly</p>
+<button onclick="login()">Start</button>
+`;
 }
 
 /* REGISTER */
 function register(){
 get("screen").innerHTML=`
 
-<h3 class="yellow">REGISTER</h3>
+<p class="yellow"><b>Most welcome to Tippers investment!</b></p>
 
-FIRST NAME:
-<input id="fname" placeholder="John">
+<h3>Register</h3>
 
-LAST NAME:
-<input id="lname" placeholder="Doe">
+<label>FIRST NAME</label>
+<input id="fname">
 
-GENDER (required):
-<select id="gender">
-<option value="">Select gender</option>
-<option>Male</option>
-<option>Female</option>
-</select>
+<label>EMAIL</label>
+<input id="email" placeholder="Enter your email">
 
-EMAIL:
-<input id="email" placeholder="example@gmail.com">
-
-PASSWORD (6 digits only):
-<input id="pass" placeholder="123456">
-
-CONFIRM PASSWORD:
-<input id="cpass" placeholder="123456">
-
-PHONE:
-<div class="row">
-<select id="code">
-<option value="+250">RWA +250</option>
-<option value="+254">KEN +254</option>
-<option value="+256">UGA +256</option>
-<option value="+255">TZA +255</option>
-<option value="+1">USA +1</option>
-<option value="+44">UK +44</option>
-</select>
-
-<input id="phone" placeholder="078xxxxxxx">
+<label>PASSWORD</label>
+<div class="passBox">
+<input id="pass" type="password">
+<span class="eye" onclick="toggle('pass')">👁</span>
 </div>
 
-<button onclick="doRegister()">REGISTER</button>
+<label>CONFIRM PASSWORD</label>
+<div class="passBox">
+<input id="cpass" type="password">
+<span class="eye" onclick="toggle('cpass')">👁</span>
+</div>
+
+<button onclick="doRegister()">Register</button>
+
+<p onclick="login()" style="color:#facc15;cursor:pointer">Login</p>
 `;
-}
-
-/* REGISTER VALIDATION */
-function doRegister(){
-
-let f=get("fname").value;
-let l=get("lname").value;
-let g=get("gender").value;
-let e=get("email").value;
-let p=get("pass").value;
-let c=get("cpass").value;
-let phone=get("phone").value;
-let code=get("code").value;
-
-/* REQUIRED CHECK */
-if(!f||!l||!g||!e||!p||!c||!phone){
-toast("Fill all fields ❌");
-return;
-}
-
-/* PASSWORD RULE */
-if(!/^[0-9]{6}$/.test(p)){
-toast("INVALID PASSWORD ❌ (6 digits only)");
-return;
-}
-
-if(p!==c){
-toast("Passwords not match ❌");
-return;
-}
-
-currentUser={email:e,pass:p,balance:0};
-toast("Registered ✔");
-login();
 }
 
 /* LOGIN */
 function login(){
 get("screen").innerHTML=`
 
-<h3 class="yellow">LOGIN</h3>
+<h3>Login</h3>
 
-<input id="logEmail" placeholder="Email">
-<input id="logPass" placeholder="Password (6 digits)">
+<input id="logEmail" required placeholder="Enter email">
+<input id="logPass" required type="password" placeholder="Enter password">
 
-<button onclick="doLogin()">LOGIN</button>
+<div class="passBox">
+<span class="eye" onclick="toggle('logPass')">👁</span>
+</div>
+
+<button onclick="doLogin()">Login</button>
+
+<p onclick="register()" style="color:#facc15;cursor:pointer">Create account</p>
 `;
-}
-
-/* LOGIN VALIDATION */
-function doLogin(){
-
-let e=get("logEmail").value;
-let p=get("logPass").value;
-
-if(!e||!p){
-toast("Fill all fields ❌");
-return;
-}
-
-/* PASSWORD RULE */
-if(!/^[0-9]{6}$/.test(p)){
-toast("INVALID PASSWORD ❌");
-return;
-}
-
-currentUser={email:e,balance:0};
-
-get("bottomNav").classList.remove("hidden");
-
-deposit(); // FORCE FLOW
 }
 
 /* HOME */
 function home(){
-if(!depositDone){
-toast("Complete deposit first ❌");
-deposit();
-return;
+get("screen").innerHTML=`
+
+<div class="card" onclick="openCard('balance')">💰 Balance: ${currentUser.balance} RWF</div>
+<div class="card" onclick="openCard('plans')">📊 Investment Plans</div>
+<div class="card" onclick="openCard('tips')">💡 Tips</div>
+<div class="card" onclick="openCard('news')">📢 News</div>
+
+`;
 }
 
-get("screen").innerHTML=`
-<div class="box">💰 Balance: ${currentUser.balance||0} RWF</div>
-<div class="box">📊 Tips & Finance Guide</div>
-<div class="box">📈 Market Insights</div>
-<div class="box">🔥 Investment Growth Plan</div>
-`;
+/* OPEN CARDS */
+function openCard(type){
+if(type==="balance"){
+get("screen").innerHTML=`<div class="box">Your balance is ${currentUser.balance} RWF</div>`;
+}
+if(type==="plans"){
+get("screen").innerHTML=`<div class="box">Plans: Daily, Weekly, Monthly profits</div>`;
+}
+if(type==="tips"){
+get("screen").innerHTML=`<div class="box">Tip: Invest wisely to grow faster</div>`;
+}
+if(type==="news"){
+get("screen").innerHTML=`<div class="box">New bonuses coming soon!</div>`;
+}
 }
 
 /* DEPOSIT */
@@ -287,42 +267,57 @@ get("screen").innerHTML=`
 
 <h3 class="yellow">DEPOSIT BALANCE</h3>
 
-AMOUNT (RWF):
-<input id="amount" placeholder="100000">
+<p>Add funds using MTN Mobile Money</p>
 
-<p>Minimum: 5,000 RWF</p>
+<p class="yellow">AMOUNT TO DEPOSIT (RWF)</p>
 
-SENDER NAME:
-<input id="sender" placeholder="MUGABO">
+<div class="inputBox">
+<span>RWF</span>
+<input id="amount" placeholder="100,000">
+</div>
 
-<button onclick="payment()">CONTINUE</button>
+<p>Minimum: 5,000</p>
+
+<p class="yellow">SENDER MOBILE NAME</p>
+<input id="sender" placeholder="mugabo jean paul">
+
+<button onclick="payment()">Continue ➜</button>
 `;
 }
 
 /* PAYMENT */
 function payment(){
-let amount=parseInt(get("amount").value);
-let sender=get("sender").value;
+currentAmount=parseInt(get("amount").value)||0;
+senderName=get("sender").value;
 
-if(!amount||amount<5000||!sender){
-toast("Fill correctly ❌");
-return;
+if(currentAmount<5000){
+toast("Minimum 5000");return;
 }
 
 get("screen").innerHTML=`
 
-<h3 class="yellow">PAYMENT INFO</h3>
+<h3 class="yellow">PAYMENT INFORMATIONS</h3>
+
+<p>Follow steps to complete payment</p>
+
+<div class="box">Sender: ${senderName}</div>
+
+<p>Send ${currentAmount} RWF to:</p>
 
 <div class="box">
-Send money to:
-<br><br>
-0795410739
-<br><br>
-BARAKA BOLINGO
+0795410739 
+<span class="copy" onclick="copy()">Copy</span><br><br>
+<span class="yellow">BARAKA Bolingo</span>
 </div>
 
-<button onclick="dial()">CONTINUE</button>
+<button onclick="dial()">Dial & Pay</button>
 `;
+}
+
+/* COPY */
+function copy(){
+navigator.clipboard.writeText("0795410739");
+toast("Copied");
 }
 
 /* DIAL */
@@ -331,61 +326,86 @@ get("screen").innerHTML=`
 
 <div class="box">*182*1*1*0795410739#</div>
 
-<input type="file" onchange="enable()">
+<input type="file" onchange="enableBtn()">
 
-<button id="btn" disabled onclick="proof()">SUBMIT</button>
+<button id="btn" disabled onclick="proof()">Submit</button>
 `;
 }
 
-function enable(){
-document.getElementById("btn").disabled=false;
-}
+function enableBtn(){get("btn").disabled=false;}
 
 /* PROOF */
 function proof(){
-currentUser.balance+=10000;
-depositDone=true;
+currentUser.balance+=currentAmount;
+localStorage.setItem("users",JSON.stringify(users));
 withdrawStep();
+}
+
+/* WITHDRAW PERIOD */
+function withdrawStep(){
+get("screen").innerHTML=`
+
+<h3>Select Withdraw Period</h3>
+
+<select>
+<option>1 Day</option>
+<option>1 Week</option>
+<option>1 Month</option>
+<option>3 Months</option>
+<option>6 Months</option>
+<option>12 Months</option>
+</select>
+
+<button onclick="home()">Finish</button>
+`;
 }
 
 /* WITHDRAW */
 function withdrawUI(){
-
-let amt=prompt("Enter withdraw amount:");
-
-if(!amt || amt<7500){
-toast("INVALID INPUT ❌");
-return;
-}
-
 get("screen").innerHTML=`
 
-<h3 class="yellow">WITHDRAW</h3>
+<h3>Withdraw</h3>
 
-<div class="box">Amount: ${amt} RWF</div>
-
-<div class="row">
-<select id="code">
-<option value="+250">RWA +250</option>
-<option value="+254">KEN +254</option>
-<option value="+256">UGA +256</option>
-<option value="+255">TZA +255</option>
-<option value="+1">USA +1</option>
-<option value="+44">UK +44</option>
-</select>
-
-<input id="wphone" placeholder="078xxxxxxx">
+<div class="inputBox">
+<span>+250</span>
+<input placeholder="078xxxxxxx">
 </div>
 
-<button onclick="toast('Withdraw sent ✔')">WITHDRAW</button>
+<button onclick="withdrawAction()">Withdraw</button>
 `;
 }
 
-/* HELP */
-function get(id){return document.getElementById(id);}
+function withdrawAction(){
+toast("You're not allowed before schedule");
+}
+
+/* LOGIC */
+function toggle(id){
+let p=get(id);
+p.type=p.type==="password"?"text":"password";
+}
+
+function doRegister(){
+users.push({
+email:get("email").value,
+pass:get("pass").value,
+balance:0
+});
+localStorage.setItem("users",JSON.stringify(users));
+toast("Registered");
+login();
+}
+
+function doLogin(){
+let u=users.find(x=>x.email===get("logEmail").value && x.pass===get("logPass").value);
+if(!u){toast("Invalid");return;}
+currentUser=u;
+get("bottomNav").classList.remove("hidden");
+home();
+}
 
 /* START */
-register();
+welcome();
 
 </script>
 
