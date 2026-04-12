@@ -2,40 +2,42 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tippers Investment App</title>
+<title>Tippers Investment</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+
 body{
 margin:0;
-font-family:Arial;
-background:linear-gradient(135deg,#4f46e5,#06b6d4);
+font-family:Segoe UI;
+background:linear-gradient(135deg,#0f172a,#1e293b);
 display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
+color:#111;
 }
 
 .app{
-width:420px;
+width:400px;
 background:white;
-border-radius:15px;
+border-radius:20px;
 overflow:hidden;
-box-shadow:0 20px 50px rgba(0,0,0,0.3);
+box-shadow:0 20px 60px rgba(0,0,0,0.5);
 display:flex;
 flex-direction:column;
 }
 
 .header{
-background:#4f46e5;
+background:#111827;
 color:white;
-padding:10px;
+padding:12px;
 text-align:center;
 font-weight:bold;
 }
 
 .content{
-padding:15px;
+padding:20px;
 height:500px;
 overflow-y:auto;
 }
@@ -43,35 +45,86 @@ overflow-y:auto;
 input,select{
 width:100%;
 padding:10px;
-margin-top:8px;
+margin-top:6px;
 border-radius:8px;
-border:1px solid #ddd;
+border:1px solid #ccc;
 }
 
 button{
 width:100%;
-padding:10px;
-margin-top:10px;
+padding:12px;
+margin-top:12px;
 border:none;
-border-radius:8px;
-background:#4f46e5;
+border-radius:10px;
+background:#111827;
 color:white;
 cursor:pointer;
+font-weight:bold;
 }
 
 .nav{
 display:flex;
 justify-content:space-around;
-background:#f3f4f6;
-padding:8px;
+background:#f1f5f9;
+padding:10px;
+}
+
+.nav div{
+text-align:center;
+font-size:12px;
+cursor:pointer;
+}
+
+.nav i{
+font-size:22px;
+display:block;
 }
 
 .card{
-background:#f3f4f6;
-padding:10px;
-margin-top:10px;
+background:#f1f5f9;
+padding:12px;
+margin-top:12px;
 border-radius:10px;
 }
+
+.center{
+text-align:center;
+margin-top:120px;
+}
+
+.arrow{
+display:inline-block;
+margin-top:20px;
+width:40px;
+height:40px;
+border-radius:50%;
+background:#111827;
+color:white;
+line-height:40px;
+font-size:20px;
+cursor:pointer;
+}
+
+.passBox{position:relative}
+.eye{
+position:absolute;
+right:10px;
+top:12px;
+cursor:pointer;
+color:black;
+}
+
+.phoneBox{display:flex;gap:5px}
+.phoneBox select{width:40%}
+.phoneBox input{width:60%}
+
+.gender{
+display:flex;
+justify-content:space-between;
+margin-top:10px;
+}
+
+.hidden{display:none}
 
 #toastBox{
 position:fixed;
@@ -85,30 +138,23 @@ border-radius:8px;
 display:none;
 }
 
-.passBox{position:relative}
-.eye{position:absolute;right:10px;top:15px;cursor:pointer}
-
-.phoneBox{display:flex;gap:5px}
-.phoneBox select{width:35%}
-.phoneBox input{width:65%}
-
-.hidden{display:none}
 </style>
 </head>
 
 <body>
 
 <div class="app">
+
 <div class="header">Tippers Investment</div>
 
 <div class="content" id="screen"></div>
 
 <div class="nav hidden" id="bottomNav">
-<button onclick="home()">🏠</button>
-<button onclick="deposit()">💰</button>
-<button onclick="proof()">📤</button>
-<button onclick="withdraw()">📅</button>
+<div onclick="home()"><i>🏠</i>HOME</div>
+<div onclick="deposit()"><i>💰</i>DEPOSIT</div>
+<div onclick="withdrawUI()"><i>📤</i>WITHDRAW</div>
 </div>
+
 </div>
 
 <div id="toastBox"></div>
@@ -118,15 +164,14 @@ display:none;
 let users = JSON.parse(localStorage.getItem("users")) || [];
 let currentUser = null;
 let currentAmount = 0;
+let paid = false;
 
-/* HELPERS */
-function get(id){ return document.getElementById(id); }
+function get(id){return document.getElementById(id);}
 
-/* TOAST */
 function showToast(msg){
-let t = get("toastBox");
-t.innerText = msg;
-t.style.display = "block";
+let t=get("toastBox");
+t.innerText=msg;
+t.style.display="block";
 setTimeout(()=>t.style.display="none",2500);
 }
 
@@ -135,9 +180,11 @@ function welcome(){
 get("bottomNav").classList.add("hidden");
 
 get("screen").innerHTML=`
-<h3>Welcome !</h3>
-<p>Join Tippers Investment and grow your income smartly.</p>
-<button onclick="register()">Continue ➡️</button>
+<div class="center">
+<h2>Welcome to Tippers</h2>
+<p>Grow your income smartly</p>
+<div class="arrow" onclick="register()">➜</div>
+</div>
 `;
 }
 
@@ -145,37 +192,49 @@ get("screen").innerHTML=`
 function register(){
 get("screen").innerHTML=`
 
+<p><b>Most welcome to Tippers investment!</b></p>
+
 <h3>Register</h3>
 
-<input id="fname" placeholder="First Name">
-<input id="lname" placeholder="Last Name">
+<label>FIRST NAME:</label>
+<input id="fname" placeholder="Enter your first name">
 
+<label>LAST NAME:</label>
+<input id="lname" placeholder="Enter your last name">
+
+<label>PHONE:</label>
 <div class="phoneBox">
 <select id="code">
-<option>+250</option>
-<option>+254</option>
+<option value="+250">Rwanda (+250)</option>
+<option value="+254">Kenya (+254)</option>
+<option value="+256">Uganda (+256)</option>
 </select>
-<input id="phone" placeholder="Phone number">
+<input id="phone" placeholder="Enter phone number">
 </div>
 
-<div>
-<label><input type="checkbox" id="male"> Male</label>
-<label><input type="checkbox" id="female"> Female</label>
+<div class="gender">
+<label><input type="radio" name="g"> Male</label>
+<label><input type="radio" name="g"> Female</label>
 </div>
 
-<input id="email" placeholder="Email">
+<label>EMAIL:</label>
+<input id="email" placeholder="Enter your email address">
 
+<label>PASSWORD:</label>
 <div class="passBox">
-<input id="pass" type="password" placeholder="Password">
-<span class="eye" onclick="togglePass()">👁️</span>
+<input id="pass" type="password" placeholder="Enter your password">
+<span class="eye" onclick="togglePass('pass')">👁</span>
 </div>
 
-<input id="cpass" type="password" placeholder="Confirm Password">
+<label>CONFIRM PASSWORD:</label>
+<div class="passBox">
+<input id="cpass" type="password" placeholder="Confirm password">
+<span class="eye" onclick="togglePass('cpass')">👁</span>
+</div>
 
 <button onclick="doRegister()">Register</button>
 
 <p onclick="login()" style="color:blue;cursor:pointer">Login</p>
-<p onclick="forgot()" style="color:blue;cursor:pointer">Forgot password?</p>
 `;
 }
 
@@ -185,23 +244,14 @@ get("screen").innerHTML=`
 
 <h3>Login</h3>
 
-<input id="logEmail" placeholder="Email">
-<input id="logPass" type="password" placeholder="Password">
+<input id="logEmail" required placeholder="Enter your email address">
+<input id="logPass" required type="password" placeholder="Enter your password">
+
+<div class="passBox">
+<span class="eye" onclick="togglePass('logPass')">👁</span>
+</div>
 
 <button onclick="doLogin()">Login</button>
-
-<p onclick="register()" style="color:blue;cursor:pointer">Create account</p>
-<p onclick="forgot()" style="color:blue;cursor:pointer">Forgot password?</p>
-`;
-}
-
-/* FORGOT */
-function forgot(){
-get("screen").innerHTML=`
-<h3>Reset Password</h3>
-<input id="resetEmail" placeholder="Email">
-<input id="newPass" placeholder="New Password">
-<button onclick="resetPass()">Reset</button>
 `;
 }
 
@@ -210,19 +260,11 @@ function home(){
 get("screen").innerHTML=`
 
 <div class="card">
-<b>Balance:</b> ${currentUser.balance.toLocaleString()} RWF 💰
+Balance: ${currentUser.balance} RWF
 </div>
 
 <div class="card">
-<b>Market Updates</b><br>
-1$ = 1300 RWF<br>
-1€ = 1400 RWF<br>
-Crypto rising
-</div>
-
-<div class="card">
-<h3>About Tippers Investment</h3>
-<p>Tippers helps you invest and earn profits smartly.</p>
+Market: Crypto rising 📈
 </div>
 `;
 }
@@ -232,115 +274,95 @@ function deposit(){
 get("screen").innerHTML=`
 
 <div class="card">
-Number: <b>0795410739</b><br>
-Name: Baraka Bolingo
+Send to: 0795410739<br>
+Name: Baraka
 </div>
 
-<input id="amount" placeholder="Amount (RWF)">
-<input id="sender" placeholder="Sender name">
+<input id="amount" placeholder="Enter amount">
 
 <button onclick="goProof()">Continue</button>
 `;
 }
 
-/* PROOF */
-function proof(){
+/* AUTO FLOW */
+function goProof(){
+currentAmount=parseInt(get("amount").value)||0;
+
+if(currentAmount<5000){
+showToast("Minimum 5000");return;
+}
+
+currentUser.balance+=currentAmount;
+paid=true;
+
+localStorage.setItem("users",JSON.stringify(users));
+
+withdrawStep();
+}
+
+/* WITHDRAW PLAN */
+function withdrawStep(){
 get("screen").innerHTML=`
-<h3>Upload proof of payment screenshot</h3>
-<input type="file" onchange="enableBtn()">
-<button id="btn" disabled onclick="goWithdraw()">Submit</button>
+<h3>Select withdraw schedule</h3>
+
+<select>
+<option>Daily</option>
+<option>Weekly</option>
+<option>Monthly</option>
+</select>
+
+<button onclick="home()">Continue</button>
 `;
 }
 
-/* WITHDRAW */
-function withdraw(){
+/* WITHDRAW UI */
+function withdrawUI(){
+if(!paid){
+showToast("Pay first ❌");return;
+}
+
 get("screen").innerHTML=`
-<div class="card">
-<select id="plan">
-<option>Everyday</option>
-<option>Weekly</option>
-<option>Monthly</option>
-<option>12 months</option>
+
+<h3>Withdraw Money</h3>
+
+<div class="phoneBox">
+<select>
+<option>+250</option>
 </select>
-<button onclick="finish()">Confirm</button>
+<input placeholder="078xxxxxxx">
 </div>
+
+<button onclick="withdrawAction()">Withdraw</button>
 `;
+}
+
+function withdrawAction(){
+showToast("You're not allowed before locked schedule");
 }
 
 /* LOGIC */
-function togglePass(){
-let p = get("pass");
-p.type = p.type==="password"?"text":"password";
+function togglePass(id){
+let p=get(id);
+p.type=p.type==="password"?"text":"password";
 }
 
 function doRegister(){
-if(!get("fname").value || !get("email").value){
-showToast("Fill all fields ❌"); return;
-}
-
 users.push({
 fname:get("fname").value,
 email:get("email").value,
 pass:get("pass").value,
 balance:0
 });
-
-localStorage.setItem("users", JSON.stringify(users));
-
-showToast("Registered ✅");
+localStorage.setItem("users",JSON.stringify(users));
+showToast("Registered");
 login();
 }
 
 function doLogin(){
-let user = users.find(u =>
-u.email===get("logEmail").value &&
-u.pass===get("logPass").value
-);
-
-if(!user){
-showToast("Invalid login ❌"); return;
-}
-
-currentUser=user;
+let u=users.find(x=>x.email===get("logEmail").value && x.pass===get("logPass").value);
+if(!u){showToast("Invalid");return;}
+currentUser=u;
 get("bottomNav").classList.remove("hidden");
-
-showToast("Welcome !");
-home();
-}
-
-function resetPass(){
-showToast("Password reset !");
-login();
-}
-
-function goProof(){
-currentAmount = parseInt(get("amount").value) || 0;
-
-if(currentAmount < 5000){
-showToast("Minimum 5000 ❌"); return;
-}
-
-proof();
-}
-
-function enableBtn(){
-get("btn").disabled=false;
-}
-
-function goWithdraw(){
-currentUser.balance += currentAmount;
-localStorage.setItem("users", JSON.stringify(users));
-withdraw();
-}
-
-function finish(){
-let profit = currentUser.balance * 0.1;
-currentUser.balance += profit;
-currentUser.balance -= currentAmount;
-
-localStorage.setItem("users", JSON.stringify(users));
-
-showToast("Done 🎉");
 home();
 }
 
