@@ -5,6 +5,9 @@
 <title>Tippers Investment</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- ICONS (Font Awesome) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <style>
 
 body{
@@ -17,13 +20,29 @@ align-items:center;
 height:100vh;
 }
 
+/* APP */
 .app{
 width:380px;
 background:#000;
 border-radius:20px;
 overflow:hidden;
 color:white;
+display:flex;
+flex-direction:column;
+}
+
+/* CONTENT */
+.content{
 padding:20px;
+height:520px;
+overflow-y:auto;
+animation:fade 0.4s ease;
+}
+
+/* ANIMATION */
+@keyframes fade{
+from{opacity:0; transform:translateY(10px);}
+to{opacity:1; transform:translateY(0);}
 }
 
 .title{
@@ -42,6 +61,7 @@ margin-top:10px;
 display:block;
 }
 
+/* INPUT */
 input,select{
 width:100%;
 padding:10px;
@@ -50,8 +70,15 @@ border-radius:8px;
 border:none;
 background:#0f172a;
 color:white;
+transition:0.3s;
 }
 
+input:focus{
+outline:none;
+box-shadow:0 0 5px #f59e0b;
+}
+
+/* BUTTON */
 button{
 width:100%;
 padding:12px;
@@ -61,10 +88,47 @@ border-radius:10px;
 background:#f59e0b;
 font-weight:bold;
 cursor:pointer;
+transition:0.3s;
 }
 
-.row{display:flex;gap:5px}
+button:hover{
+transform:scale(1.03);
+background:#f97316;
+}
 
+/* ROW */
+.row{
+display:flex;
+gap:5px;
+}
+
+/* NAVBAR */
+.nav{
+display:flex;
+justify-content:space-around;
+background:#020617;
+padding:10px;
+border-top:1px solid #111;
+}
+
+.nav div{
+text-align:center;
+cursor:pointer;
+transition:0.3s;
+}
+
+.nav i{
+font-size:20px;
+display:block;
+margin-bottom:3px;
+}
+
+.nav div:hover{
+color:#f59e0b;
+transform:scale(1.1);
+}
+
+/* TOAST */
 #toast{
 position:fixed;
 bottom:20px;
@@ -83,14 +147,30 @@ display:none;
 <body>
 
 <div class="app">
-<div id="screen"></div>
+
+<div class="content" id="screen"></div>
+
+<!-- DASHBOARD NAV -->
+<div class="nav" id="nav" style="display:none">
+<div onclick="home()">
+<i class="fa-solid fa-house"></i>
+HOME
+</div>
+
+<div onclick="withdraw()">
+<i class="fa-solid fa-money-bill-transfer"></i>
+WITHDRAW
+</div>
+</div>
+
 </div>
 
 <div id="toast"></div>
 
 <script>
 
-const screen = document.getElementById("screen");
+const screen=document.getElementById("screen");
+const nav=document.getElementById("nav");
 
 let amount=0;
 let paid=false;
@@ -103,8 +183,10 @@ t.style.display="block";
 setTimeout(()=>t.style.display="none",2000);
 }
 
-/* START PAGE */
+/* START */
 function start(){
+nav.style.display="none";
+
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
 <p class="desc">Start now and grow your income smartly in tippers earning every time.</p>
@@ -156,36 +238,22 @@ screen.innerHTML=`
 /* REGISTER VALIDATION */
 function doRegister(){
 
-let f=document.getElementById("f").value;
-let l=document.getElementById("l").value;
-let g=document.getElementById("g").value;
-let phone=document.getElementById("phone").value;
-let email=document.getElementById("email").value;
-let pass=document.getElementById("pass").value;
-let cpass=document.getElementById("cpass").value;
-let code=document.getElementById("code").value;
-
-if(!f||!l||!g||!phone||!email||!pass||!cpass){
+if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
 toast("Fill all fields ❌"); return;
 }
 
-if(!email.endsWith("@gmail.com")){
+if(!email.value.endsWith("@gmail.com")){
 toast("Invalid email ❌"); return;
 }
 
-if(!/^[0-9]{6}$/.test(pass)){
+if(!/^[0-9]{6}$/.test(pass.value)){
 toast("Password must be 6 digits ❌"); return;
 }
 
-if(pass!==cpass){
+if(pass.value!==cpass.value){
 toast("Passwords not match ❌"); return;
 }
 
-if(code==="+250" && !phone.startsWith("07")){
-toast("Invalid Rwanda number ❌"); return;
-}
-
-toast("Registered ✔");
 login();
 }
 
@@ -210,17 +278,14 @@ screen.innerHTML=`
 `;
 }
 
-/* LOGIN VALIDATION */
+/* LOGIN */
 function doLogin(){
 
-let e=document.getElementById("le").value;
-let p=document.getElementById("lp").value;
-
-if(!e||!p){
+if(!le.value||!lp.value){
 toast("Fill all fields ❌"); return;
 }
 
-if(!/^[0-9]{6}$/.test(p)){
+if(!/^[0-9]{6}$/.test(lp.value)){
 toast("Invalid password ❌"); return;
 }
 
@@ -248,14 +313,13 @@ screen.innerHTML=`
 
 function goPayment(){
 
-let amt=parseInt(document.getElementById("amt").value);
-let sender=document.getElementById("sender").value;
+let a=parseInt(amt.value);
 
-if(!amt||amt<5000||!sender){
+if(!a||a<5000||!sender.value){
 toast("Invalid input ❌"); return;
 }
 
-amount=amt;
+amount=a;
 payment();
 }
 
@@ -288,9 +352,8 @@ screen.innerHTML=`
 }
 
 function submitProof(){
-let file=document.getElementById("file").value;
 
-if(!file){
+if(!file.value){
 toast("Upload proof ❌"); return;
 }
 
@@ -304,7 +367,7 @@ screen.innerHTML=`
 
 <h3 class="title">WITHDRAW PERIOD</h3>
 
-<select id="period">
+<select>
 <option>1 Day</option>
 <option>1 Week</option>
 <option>1 Month</option>
@@ -321,17 +384,25 @@ screen.innerHTML=`<button onclick="dashboard()">CONFIRM</button>`;
 
 /* DASHBOARD */
 function dashboard(){
-screen.innerHTML=`
+nav.style.display="flex";
 
+screen.innerHTML=`
 <h3 class="title">Balance: ${amount} RWF</h3>
 <p class="desc">Wait until your withdraw schedule is reached.</p>
-
-<button onclick="withdraw()">WITHDRAW</button>
 `;
+}
+
+/* HOME */
+function home(){
+toast("Wait until your schedule is reached.");
 }
 
 /* WITHDRAW */
 function withdraw(){
+
+if(!paid){
+toast("Complete deposit first ❌"); return;
+}
 
 let w=prompt("Enter amount");
 
