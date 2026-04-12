@@ -1,16 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tippers Investment</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:#0b1120;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.app{
+width:380px;
+background:#000;
+border-radius:20px;
+overflow:hidden;
+color:white;
+display:flex;
+flex-direction:column;
+}
+
+.content{
+padding:20px;
+height:520px;
+overflow-y:auto;
+}
+
+.title{color:#f59e0b;text-align:center;font-weight:bold;}
+.desc{text-align:center;margin-top:10px;}
+
+label{margin-top:10px;display:block;}
+
+input,select{
+width:100%;
+padding:10px;
+margin-top:5px;
+border-radius:8px;
+border:none;
+background:#0f172a;
+color:white;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+background:#f59e0b;
+font-weight:bold;
+cursor:pointer;
+}
+
+.row{display:flex;gap:5px;}
+
+.nav{
+display:flex;
+justify-content:space-around;
+background:#020617;
+padding:10px;
+}
+
+.nav div{text-align:center;cursor:pointer;}
+.nav i{display:block;font-size:20px;}
+
+#toast{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:red;
+color:white;
+padding:10px;
+border-radius:8px;
+display:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="content" id="screen"></div>
+
+<div class="nav" id="nav" style="display:none">
+<div onclick="home()"><i class="fa fa-home"></i>HOME</div>
+<div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
+</div>
+
+</div>
+
+<div id="toast"></div>
+
 <script>
 
-/* STATE */
 let users = JSON.parse(localStorage.getItem("users")) || [];
 let currentUser = null;
 let depositDone = false;
 let amount = 0;
 let selectedPeriod = 0;
 
+const screen=document.getElementById("screen");
+const nav=document.getElementById("nav");
+
 /* TOAST */
 function toast(msg){
 let t=document.getElementById("toast");
-t.style.background="red";
 t.innerText=msg;
 t.style.display="block";
 setTimeout(()=>t.style.display="none",2500);
@@ -28,6 +135,46 @@ screen.innerHTML=`
 }
 
 /* REGISTER */
+function register(){
+screen.innerHTML=`
+
+<h3 class="title">REGISTER</h3>
+
+<label>First Name</label>
+<input id="f">
+
+<label>Last Name</label>
+<input id="l">
+
+<label>Gender</label>
+<select id="g">
+<option value="">Select</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+
+<label>Phone</label>
+<div class="row">
+<select id="code">
+<option value="+250">RWA +250</option>
+<option value="+254">KEN +254</option>
+</select>
+<input id="phone">
+</div>
+
+<label>Email</label>
+<input id="email">
+
+<label>Password</label>
+<input id="pass">
+
+<label>Confirm Password</label>
+<input id="cpass">
+
+<button onclick="doRegister()">REGISTER</button>
+`;
+}
+
 function doRegister(){
 
 if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
@@ -46,12 +193,7 @@ if(pass.value!==cpass.value){
 toast("Passwords not match ❌");return;
 }
 
-/* SAVE USER */
-let user={
-email:email.value,
-pass:pass.value
-};
-
+let user={email:email.value,pass:pass.value};
 users.push(user);
 localStorage.setItem("users",JSON.stringify(users));
 
@@ -60,6 +202,23 @@ login();
 }
 
 /* LOGIN */
+function login(){
+screen.innerHTML=`
+
+<h3 class="title">Login to continue</h3>
+
+<input id="le" placeholder="email">
+<input id="lp" placeholder="password">
+
+<div style="display:flex;justify-content:space-between">
+<span onclick="forgot()" style="color:#f59e0b;cursor:pointer">Forgot password</span>
+<span onclick="register()" style="color:#f59e0b;cursor:pointer">Create account</span>
+</div>
+
+<button onclick="doLogin()">LOGIN</button>
+`;
+}
+
 function doLogin(){
 
 let user=users.find(u=>u.email===le.value);
@@ -74,8 +233,6 @@ toast("Invalid password ❌");return;
 
 currentUser=user;
 nav.style.display="flex";
-
-/* FORCE DEPOSIT */
 deposit();
 }
 
@@ -85,7 +242,7 @@ screen.innerHTML=`
 
 <h3 class="title">Reset Password</h3>
 
-<input id="fe" placeholder="enter your email">
+<input id="fe" placeholder="email">
 <input id="np" placeholder="new password">
 
 <button onclick="reset()">RESET</button>
@@ -93,7 +250,6 @@ screen.innerHTML=`
 }
 
 function reset(){
-
 let u=users.find(x=>x.email===fe.value);
 
 if(!u){
@@ -113,7 +269,6 @@ login();
 
 /* HOME */
 function home(){
-
 if(!depositDone){
 toast("To activate other services you must finish deposit first.");
 return;
@@ -126,8 +281,22 @@ screen.innerHTML=`
 }
 
 /* DEPOSIT */
-function goPayment(){
+function deposit(){
+screen.innerHTML=`
 
+<h3 class="title">DEPOSIT BALANCE</h3>
+
+<input id="amt" placeholder="amount">
+
+<p>Minimum 5000 RWF</p>
+
+<input id="sender" placeholder="sender name">
+
+<button onclick="goPayment()">CONTINUE</button>
+`;
+}
+
+function goPayment(){
 let a=parseInt(amt.value);
 
 if(!a||a<5000||!sender.value){
@@ -136,6 +305,31 @@ toast("Invalid input ❌");return;
 
 amount=a;
 payment();
+}
+
+/* PAYMENT */
+function payment(){
+screen.innerHTML=`
+<h3 class="title">PAYMENT</h3>
+<div>0795410739<br><br>BARAKA BOLINGO</div>
+<button onclick="dial()">DIAL & PAY</button>
+`;
+}
+
+/* DIAL */
+function dial(){
+screen.innerHTML=`
+<div>*182*1*1*0795410739#</div>
+<input type="file" id="file">
+<button onclick="submitProof()">SUBMIT</button>
+`;
+}
+
+function submitProof(){
+if(!file.value){
+toast("Upload proof ❌");return;
+}
+withdrawPeriod();
 }
 
 /* PERIOD */
@@ -157,27 +351,20 @@ screen.innerHTML=`
 `;
 }
 
-/* PROFIT */
-function calcProfit(a,p){
-return Math.floor(a * (p/10));
-}
-
 function finish(){
-
 selectedPeriod=period.value;
 depositDone=true;
 
-let profit=calcProfit(amount,selectedPeriod);
+let profit=Math.floor(amount*(selectedPeriod/10));
 
 screen.innerHTML=`
-<h3 class="title">Balance</h3>
+<h3 class="title">Final Balance</h3>
 <p>${profit} RWF</p>
 `;
 }
 
 /* WITHDRAW */
 function withdraw(){
-
 if(!depositDone){
 toast("To activate other services you must finish deposit first.");
 return;
@@ -187,7 +374,6 @@ screen.innerHTML=`
 
 <h3 class="title">WITHDRAW</h3>
 
-<p>Amount to withdraw</p>
 <input id="wamt" placeholder="0 RWF">
 
 <p>Minimum: 7500 RWF</p>
@@ -205,7 +391,6 @@ screen.innerHTML=`
 }
 
 function doWithdraw(){
-
 let w=parseInt(wamt.value);
 
 if(!w||w<7500){
@@ -219,3 +404,6 @@ toast("You're not allowed to withdraw before the locked schedule.");
 start();
 
 </script>
+
+</body>
+</html>
