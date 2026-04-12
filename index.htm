@@ -47,7 +47,11 @@ margin-top:6px;
 border-radius:8px;
 border:none;
 outline:none;
+background:#1f2937;
+color:white;
 }
+
+input::placeholder{color:#9ca3af}
 
 button{
 width:100%;
@@ -58,15 +62,10 @@ border-radius:10px;
 background:#facc15;
 font-weight:bold;
 cursor:pointer;
+color:black;
 }
 
-.card{
-background:#1f2937;
-padding:15px;
-margin-bottom:10px;
-border-radius:12px;
-}
-
+/* BOX */
 .box{
 background:#1f2937;
 padding:12px;
@@ -74,37 +73,33 @@ border-radius:10px;
 margin-top:10px;
 }
 
-/* FLEX ROW */
 .row{
 display:flex;
-gap:10px;
+gap:8px;
+}
+
+.row select,.row input{
+flex:1;
 margin-top:6px;
 }
 
-.row select, .row input{
-flex:1;
-margin-top:0;
-}
-
-.inputBox{
+/* NAV */
+.nav{
 display:flex;
-background:#facc15;
-border-radius:10px;
-overflow:hidden;
+justify-content:space-around;
+background:black;
+padding:10px;
 }
 
-.inputBox span{
-padding:10px;
-background:#f59e0b;
-font-weight:bold;
+.nav div{
+text-align:center;
+font-size:12px;
+cursor:pointer;
 }
 
-.inputBox input{
-flex:1;
-border:none;
-padding:10px;
-color:white;
-background:#111827;
+.nav i{
+font-size:22px;
+display:block;
 }
 
 .hidden{display:none}
@@ -129,15 +124,20 @@ display:none;
 <div class="app">
 <div class="header">Tippers Investment</div>
 <div class="content" id="screen"></div>
+
+<div class="nav hidden" id="bottomNav">
+<div onclick="home()"><i>🏠</i>HOME</div>
+<div onclick="deposit()"><i>💰</i>DEPOSIT</div>
+<div onclick="withdrawUI()"><i>📤</i>WITHDRAW</div>
+</div>
 </div>
 
 <div id="toastBox"></div>
 
 <script>
 
-let users=JSON.parse(localStorage.getItem("users"))||[];
+let users=[];
 let currentUser=null;
-let amount=0;
 let depositDone=false;
 
 /* TOAST */
@@ -150,63 +150,134 @@ setTimeout(()=>t.style.display="none",2000);
 
 /* REGISTER */
 function register(){
-
 get("screen").innerHTML=`
 
-<h3>REGISTER</h3>
+<h3 class="yellow">REGISTER</h3>
 
-FIRST NAME: <input placeholder="John"><br>
-LAST NAME: <input placeholder="Doe"><br>
+FIRST NAME:
+<input id="fname" placeholder="John">
+
+LAST NAME:
+<input id="lname" placeholder="Doe">
 
 GENDER (required):
-<select required id="gender">
+<select id="gender">
 <option value="">Select gender</option>
 <option>Male</option>
 <option>Female</option>
 </select>
 
-EMAIL: <input placeholder="example@gmail.com"><br>
+EMAIL:
+<input id="email" placeholder="example@gmail.com">
 
-PASSWORD: <input type="password"><br>
-CONFIRM PASSWORD: <input type="password"><br>
+PASSWORD (6 digits only):
+<input id="pass" placeholder="123456">
+
+CONFIRM PASSWORD:
+<input id="cpass" placeholder="123456">
 
 PHONE:
 <div class="row">
-<select>
-<option>RWA +250</option>
-<option>KEN +254</option>
-<option>UGA +256</option>
-<option>TZA +255</option>
-<option>USA +1</option>
-<option>UK +44</option>
+<select id="code">
+<option value="+250">RWA +250</option>
+<option value="+254">KEN +254</option>
+<option value="+256">UGA +256</option>
+<option value="+255">TZA +255</option>
+<option value="+1">USA +1</option>
+<option value="+44">UK +44</option>
 </select>
-<input placeholder="078xxxxxxx">
+
+<input id="phone" placeholder="078xxxxxxx">
 </div>
 
-<button onclick="login()">Register</button>
+<button onclick="doRegister()">REGISTER</button>
 `;
+}
 
+/* REGISTER VALIDATION */
+function doRegister(){
+
+let f=get("fname").value;
+let l=get("lname").value;
+let g=get("gender").value;
+let e=get("email").value;
+let p=get("pass").value;
+let c=get("cpass").value;
+let phone=get("phone").value;
+let code=get("code").value;
+
+/* REQUIRED CHECK */
+if(!f||!l||!g||!e||!p||!c||!phone){
+toast("Fill all fields ❌");
+return;
+}
+
+/* PASSWORD RULE */
+if(!/^[0-9]{6}$/.test(p)){
+toast("INVALID PASSWORD ❌ (6 digits only)");
+return;
+}
+
+if(p!==c){
+toast("Passwords not match ❌");
+return;
+}
+
+currentUser={email:e,pass:p,balance:0};
+toast("Registered ✔");
+login();
 }
 
 /* LOGIN */
 function login(){
 get("screen").innerHTML=`
-<h3>LOGIN</h3>
 
-<input placeholder="Email">
-<input type="password" placeholder="Password">
+<h3 class="yellow">LOGIN</h3>
 
-<button onclick="deposit()">Login</button>
+<input id="logEmail" placeholder="Email">
+<input id="logPass" placeholder="Password (6 digits)">
+
+<button onclick="doLogin()">LOGIN</button>
 `;
+}
+
+/* LOGIN VALIDATION */
+function doLogin(){
+
+let e=get("logEmail").value;
+let p=get("logPass").value;
+
+if(!e||!p){
+toast("Fill all fields ❌");
+return;
+}
+
+/* PASSWORD RULE */
+if(!/^[0-9]{6}$/.test(p)){
+toast("INVALID PASSWORD ❌");
+return;
+}
+
+currentUser={email:e,balance:0};
+
+get("bottomNav").classList.remove("hidden");
+
+deposit(); // FORCE FLOW
 }
 
 /* HOME */
 function home(){
+if(!depositDone){
+toast("Complete deposit first ❌");
+deposit();
+return;
+}
+
 get("screen").innerHTML=`
-<div class="card">💰 Tips: Save daily</div>
-<div class="card">📊 Invest wisely</div>
-<div class="card">📈 Market growing</div>
-<div class="card">🔥 Passive income ideas</div>
+<div class="box">💰 Balance: ${currentUser.balance||0} RWF</div>
+<div class="box">📊 Tips & Finance Guide</div>
+<div class="box">📈 Market Insights</div>
+<div class="box">🔥 Investment Growth Plan</div>
 `;
 }
 
@@ -216,42 +287,41 @@ get("screen").innerHTML=`
 
 <h3 class="yellow">DEPOSIT BALANCE</h3>
 
-AMOUNT TO DEPOSIT (RWF)
-<div class="inputBox">
-<span>RWF</span>
-<input placeholder="100,000">
-</div>
+AMOUNT (RWF):
+<input id="amount" placeholder="100000">
 
 <p>Minimum: 5,000 RWF</p>
 
 SENDER NAME:
-<input placeholder="MUGABO">
+<input id="sender" placeholder="MUGABO">
 
-<button onclick="payment()">Continue</button>
+<button onclick="payment()">CONTINUE</button>
 `;
 }
 
 /* PAYMENT */
 function payment(){
+let amount=parseInt(get("amount").value);
+let sender=get("sender").value;
+
+if(!amount||amount<5000||!sender){
+toast("Fill correctly ❌");
+return;
+}
+
 get("screen").innerHTML=`
 
-<h3 class="yellow">PAYMENT INFORMATION</h3>
-
-Sender Name: MUGABO
-
-<br><br>
-
-Send money to:
+<h3 class="yellow">PAYMENT INFO</h3>
 
 <div class="box">
-0795410739
-
+Send money to:
 <br><br>
-
-BARAKA Bolingo
+0795410739
+<br><br>
+BARAKA BOLINGO
 </div>
 
-<button onclick="dial()">Continue</button>
+<button onclick="dial()">CONTINUE</button>
 `;
 }
 
@@ -259,12 +329,11 @@ BARAKA Bolingo
 function dial(){
 get("screen").innerHTML=`
 
-USSD:
 <div class="box">*182*1*1*0795410739#</div>
 
 <input type="file" onchange="enable()">
 
-<button id="btn" disabled onclick="withdrawPeriod()">Submit</button>
+<button id="btn" disabled onclick="proof()">SUBMIT</button>
 `;
 }
 
@@ -272,72 +341,47 @@ function enable(){
 document.getElementById("btn").disabled=false;
 }
 
-/* WITHDRAW PERIOD */
-function withdrawPeriod(){
-get("screen").innerHTML=`
-
-<h3>WITHDRAW PERIOD</h3>
-
-<select>
-<option>1 Day</option>
-<option>1 Week</option>
-<option>1 Month</option>
-<option>2 Month</option>
-<option>3 Month</option>
-<option>4 Month</option>
-<option>5 Month</option>
-<option>6 Month</option>
-<option>7 Month</option>
-<option>8 Month</option>
-<option>9 Month</option>
-<option>10 Month</option>
-<option>11 Month</option>
-<option>12 Month</option>
-</select>
-
-<button onclick="home()">Finish</button>
-`;
+/* PROOF */
+function proof(){
+currentUser.balance+=10000;
+depositDone=true;
+withdrawStep();
 }
 
 /* WITHDRAW */
-function withdraw(){
-get("screen").innerHTML=`
+function withdrawUI(){
 
-<h3>WITHDRAW</h3>
+let amt=prompt("Enter withdraw amount:");
 
-AMOUNT TO WITHDRAW:
-<input id="wamount" placeholder="0 RWF">
-
-<p>Minimum: 7500 RWF</p>
-
-<div class="row">
-<select>
-<option>RWA +250</option>
-<option>KEN +254</option>
-<option>UGA +256</option>
-<option>TZA +255</option>
-</select>
-
-<input placeholder="078xxxxxxx">
-</div>
-
-<button onclick="checkWithdraw()">Withdraw</button>
-`;
-}
-
-/* VALIDATION */
-function checkWithdraw(){
-let val=parseInt(document.getElementById("wamount").value)||0;
-
-if(val<7500){
+if(!amt || amt<7500){
 toast("INVALID INPUT ❌");
 return;
 }
 
-toast("Withdraw request sent ✔");
+get("screen").innerHTML=`
+
+<h3 class="yellow">WITHDRAW</h3>
+
+<div class="box">Amount: ${amt} RWF</div>
+
+<div class="row">
+<select id="code">
+<option value="+250">RWA +250</option>
+<option value="+254">KEN +254</option>
+<option value="+256">UGA +256</option>
+<option value="+255">TZA +255</option>
+<option value="+1">USA +1</option>
+<option value="+44">UK +44</option>
+</select>
+
+<input id="wphone" placeholder="078xxxxxxx">
+</div>
+
+<button onclick="toast('Withdraw sent ✔')">WITHDRAW</button>
+`;
 }
 
-/* HELPER */
+/* HELP */
 function get(id){return document.getElementById(id);}
 
 /* START */
