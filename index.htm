@@ -26,10 +26,10 @@ color:white;
 }
 
 .header{
+background:black;
 padding:15px;
 text-align:center;
 font-weight:bold;
-background:black;
 }
 
 .content{
@@ -38,65 +38,74 @@ height:520px;
 overflow-y:auto;
 }
 
-/* HOME SCROLL */
+/* COLORS */
+.yellow{color:#facc15}
+
+/* INPUT */
+input,select{
+width:100%;
+padding:10px;
+margin-top:6px;
+border-radius:8px;
+border:none;
+outline:none;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:12px;
+border:none;
+border-radius:10px;
+background:#facc15;
+font-weight:bold;
+cursor:pointer;
+}
+
+/* CARDS */
 .card{
 background:#1f2937;
 padding:15px;
 margin-bottom:10px;
 border-radius:12px;
+cursor:pointer;
 }
 
-/* DEPOSIT STYLE */
-.title{
-font-weight:bold;
-font-size:18px;
-color:white;
+/* NAV */
+.nav{
+display:flex;
+justify-content:space-around;
+background:black;
+padding:10px;
 }
 
-.yellow{color:#facc15}
+.nav div{text-align:center;font-size:12px;cursor:pointer}
+.nav i{font-size:22px;display:block}
+
+/* BOX */
+.box{
+background:#1f2937;
+padding:12px;
+border-radius:10px;
+margin-top:10px;
+}
 
 .inputBox{
 display:flex;
 background:#facc15;
 border-radius:10px;
 overflow:hidden;
-margin-top:8px;
 }
 
 .inputBox span{
 padding:10px;
 background:#f59e0b;
-font-weight:bold;
 }
 
 .inputBox input{
-border:none;
 flex:1;
-padding:10px;
-outline:none;
-}
-
-.small{
-font-size:12px;
-color:#ccc;
-}
-
-.btn{
-margin-top:15px;
-padding:12px;
-background:#facc15;
 border:none;
-width:100%;
-border-radius:10px;
-font-weight:bold;
-cursor:pointer;
-}
-
-.box{
-background:#1f2937;
-padding:12px;
-border-radius:10px;
-margin-top:10px;
+padding:10px;
 }
 
 .copy{
@@ -107,17 +116,16 @@ cursor:pointer;
 margin-left:10px;
 }
 
-.hidden{display:none}
-
-.nav{
-display:flex;
-justify-content:space-around;
-background:black;
-padding:10px;
+.passBox{position:relative}
+.eye{
+position:absolute;
+right:10px;
+top:12px;
+cursor:pointer;
+color:black;
 }
 
-.nav div{text-align:center;font-size:12px;cursor:pointer}
-.nav i{font-size:22px;display:block}
+.hidden{display:none}
 
 #toastBox{
 position:fixed;
@@ -137,9 +145,7 @@ display:none;
 <body>
 
 <div class="app">
-
 <div class="header">Tippers Investment</div>
-
 <div class="content" id="screen"></div>
 
 <div class="nav hidden" id="bottomNav">
@@ -147,7 +153,6 @@ display:none;
 <div onclick="deposit()"><i>💰</i>DEPOSIT</div>
 <div onclick="withdrawUI()"><i>📤</i>WITHDRAW</div>
 </div>
-
 </div>
 
 <div id="toastBox"></div>
@@ -161,115 +166,175 @@ let senderName="";
 
 function get(id){return document.getElementById(id);}
 
-function showToast(msg){
+function toast(msg){
 let t=get("toastBox");
 t.innerText=msg;
 t.style.display="block";
-setTimeout(()=>t.style.display="none",2500);
+setTimeout(()=>t.style.display="none",2000);
 }
 
-/* HOME (SCROLLABLE) */
+/* WELCOME */
+function welcome(){
+get("screen").innerHTML=`
+<h2 class="yellow">Welcome to Tippers</h2>
+<p>Grow your income smartly</p>
+<button onclick="login()">Start</button>
+`;
+}
+
+/* REGISTER */
+function register(){
+get("screen").innerHTML=`
+
+<p class="yellow"><b>Most welcome to Tippers investment!</b></p>
+
+<h3>Register</h3>
+
+<label>FIRST NAME</label>
+<input id="fname">
+
+<label>EMAIL</label>
+<input id="email" placeholder="Enter your email">
+
+<label>PASSWORD</label>
+<div class="passBox">
+<input id="pass" type="password">
+<span class="eye" onclick="toggle('pass')">👁</span>
+</div>
+
+<label>CONFIRM PASSWORD</label>
+<div class="passBox">
+<input id="cpass" type="password">
+<span class="eye" onclick="toggle('cpass')">👁</span>
+</div>
+
+<button onclick="doRegister()">Register</button>
+
+<p onclick="login()" style="color:#facc15;cursor:pointer">Login</p>
+`;
+}
+
+/* LOGIN */
+function login(){
+get("screen").innerHTML=`
+
+<h3>Login</h3>
+
+<input id="logEmail" required placeholder="Enter email">
+<input id="logPass" required type="password" placeholder="Enter password">
+
+<div class="passBox">
+<span class="eye" onclick="toggle('logPass')">👁</span>
+</div>
+
+<button onclick="doLogin()">Login</button>
+
+<p onclick="register()" style="color:#facc15;cursor:pointer">Create account</p>
+`;
+}
+
+/* HOME */
 function home(){
 get("screen").innerHTML=`
 
-<div class="card">Balance: ${currentUser.balance} RWF</div>
-
-<div class="card">🔥 Investment Plans (Daily profits)</div>
-<div class="card">💡 Tips: Invest more, earn more</div>
-<div class="card">📊 Market is growing fast</div>
-<div class="card">💰 Earn up to 30% monthly</div>
-<div class="card">🚀 Crypto opportunities available</div>
-<div class="card">📢 New users bonus coming soon</div>
-<div class="card">📈 Success stories from investors</div>
+<div class="card" onclick="openCard('balance')">💰 Balance: ${currentUser.balance} RWF</div>
+<div class="card" onclick="openCard('plans')">📊 Investment Plans</div>
+<div class="card" onclick="openCard('tips')">💡 Tips</div>
+<div class="card" onclick="openCard('news')">📢 News</div>
 
 `;
 }
 
-/* DEPOSIT STEP 1 */
+/* OPEN CARDS */
+function openCard(type){
+if(type==="balance"){
+get("screen").innerHTML=`<div class="box">Your balance is ${currentUser.balance} RWF</div>`;
+}
+if(type==="plans"){
+get("screen").innerHTML=`<div class="box">Plans: Daily, Weekly, Monthly profits</div>`;
+}
+if(type==="tips"){
+get("screen").innerHTML=`<div class="box">Tip: Invest wisely to grow faster</div>`;
+}
+if(type==="news"){
+get("screen").innerHTML=`<div class="box">New bonuses coming soon!</div>`;
+}
+}
+
+/* DEPOSIT */
 function deposit(){
 get("screen").innerHTML=`
 
-<div class="title"><b>DEPOSIT BALANCE</b></div>
+<h3 class="yellow">DEPOSIT BALANCE</h3>
 
-<p>Add funds to your wallet using MTN Mobile money</p>
+<p>Add funds using MTN Mobile Money</p>
 
-<p class="yellow">📱 AMOUNT TO DEPOSIT (RWF)</p>
+<p class="yellow">AMOUNT TO DEPOSIT (RWF)</p>
 
 <div class="inputBox">
 <span>RWF</span>
-<input id="amount" placeholder="e.g: 100,000">
+<input id="amount" placeholder="100,000">
 </div>
 
-<p class="small">minimum: 5,000 rwf</p>
+<p>Minimum: 5,000</p>
 
-<p class="yellow">👤 SENDER MOBILE NAME</p>
-<input id="sender" placeholder="e.g: mugabo jean paul">
+<p class="yellow">SENDER MOBILE NAME</p>
+<input id="sender" placeholder="mugabo jean paul">
 
-<p class="small">enter the name registered on your mtn mobile money</p>
-
-<button class="btn" onclick="payment()">Continue ➜</button>
-
+<button onclick="payment()">Continue ➜</button>
 `;
 }
 
-/* PAYMENT INFO */
+/* PAYMENT */
 function payment(){
 currentAmount=parseInt(get("amount").value)||0;
 senderName=get("sender").value;
 
 if(currentAmount<5000){
-showToast("Minimum 5000");return;
+toast("Minimum 5000");return;
 }
 
 get("screen").innerHTML=`
 
-<div class="title">PAYMENT INFORMATIONS</div>
+<h3 class="yellow">PAYMENT INFORMATIONS</h3>
 
-<p>follow the steps below to complete your deposit</p>
+<p>Follow steps to complete payment</p>
 
-<p class="yellow">📱 MTN Mobile money transfer</p>
+<div class="box">Sender: ${senderName}</div>
 
-<div class="box">Sender Name: ${senderName}</div>
-
-<p>Please send exactly ${currentAmount} RWF to the following mtn number:</p>
+<p>Send ${currentAmount} RWF to:</p>
 
 <div class="box">
-0780000000 
-<span class="copy" onclick="copyNum()">Copy</span><br><br>
+0795410739 
+<span class="copy" onclick="copy()">Copy</span><br><br>
 <span class="yellow">BARAKA Bolingo</span>
 </div>
 
-<button class="btn" onclick="dial()">Dial & Pay Now</button>
-
+<button onclick="dial()">Dial & Pay</button>
 `;
 }
 
 /* COPY */
-function copyNum(){
-navigator.clipboard.writeText("0780000000");
-showToast("Copied");
+function copy(){
+navigator.clipboard.writeText("0795410739");
+toast("Copied");
 }
 
 /* DIAL */
 function dial(){
 get("screen").innerHTML=`
 
-<p>Use the following to pay:</p>
-
-<div class="box">
-*182*1*1*0780000000#
-</div>
+<div class="box">*182*1*1*0795410739#</div>
 
 <input type="file" onchange="enableBtn()">
 
 <button id="btn" disabled onclick="proof()">Submit</button>
-
 `;
 }
 
 function enableBtn(){get("btn").disabled=false;}
 
-/* PROOF DONE */
+/* PROOF */
 function proof(){
 currentUser.balance+=currentAmount;
 localStorage.setItem("users",JSON.stringify(users));
@@ -286,14 +351,12 @@ get("screen").innerHTML=`
 <option>1 Day</option>
 <option>1 Week</option>
 <option>1 Month</option>
-<option>2 Months</option>
 <option>3 Months</option>
 <option>6 Months</option>
 <option>12 Months</option>
 </select>
 
-<button class="btn" onclick="home()">Finish</button>
-
+<button onclick="home()">Finish</button>
 `;
 }
 
@@ -301,32 +364,42 @@ get("screen").innerHTML=`
 function withdrawUI(){
 get("screen").innerHTML=`
 
-<h3>Withdraw Money</h3>
+<h3>Withdraw</h3>
 
 <div class="inputBox">
 <span>+250</span>
 <input placeholder="078xxxxxxx">
 </div>
 
-<button class="btn" onclick="withdrawAction()">Withdraw</button>
-
+<button onclick="withdrawAction()">Withdraw</button>
 `;
 }
 
 function withdrawAction(){
-showToast("You're not allowed to withdraw before the locked schedule");
+toast("You're not allowed before schedule");
 }
 
-/* LOGIN SIMPLE */
-function welcome(){
-get("screen").innerHTML=`
-<h2>Welcome</h2>
-<button class="btn" onclick="login()">Start</button>
-`;
+/* LOGIC */
+function toggle(id){
+let p=get(id);
+p.type=p.type==="password"?"text":"password";
 }
 
-function login(){
-currentUser={balance:0};
+function doRegister(){
+users.push({
+email:get("email").value,
+pass:get("pass").value,
+balance:0
+});
+localStorage.setItem("users",JSON.stringify(users));
+toast("Registered");
+login();
+}
+
+function doLogin(){
+let u=users.find(x=>x.email===get("logEmail").value && x.pass===get("logPass").value);
+if(!u){toast("Invalid");return;}
+currentUser=u;
 get("bottomNav").classList.remove("hidden");
 home();
 }
