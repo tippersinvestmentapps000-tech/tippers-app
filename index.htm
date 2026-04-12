@@ -62,27 +62,13 @@ font-weight:bold;
 cursor:pointer;
 }
 
-/* CARDS */
 .card{
 background:#1f2937;
 padding:15px;
 margin-bottom:10px;
 border-radius:12px;
-cursor:pointer;
 }
 
-/* NAV */
-.nav{
-display:flex;
-justify-content:space-around;
-background:black;
-padding:10px;
-}
-
-.nav div{text-align:center;font-size:12px;cursor:pointer}
-.nav i{font-size:22px;display:block}
-
-/* BOX */
 .box{
 background:#1f2937;
 padding:12px;
@@ -100,20 +86,20 @@ overflow:hidden;
 .inputBox span{
 padding:10px;
 background:#f59e0b;
+font-weight:bold;
 }
 
 .inputBox input{
 flex:1;
 border:none;
 padding:10px;
+color:white;
+background:#111827;
 }
 
-.copy{
-background:#facc15;
-padding:5px 10px;
-border-radius:6px;
-cursor:pointer;
-margin-left:10px;
+/* PLACEHOLDER BLACK STYLE */
+input::placeholder{
+color:#d1d5db;
 }
 
 .passBox{position:relative}
@@ -124,6 +110,17 @@ top:12px;
 cursor:pointer;
 color:black;
 }
+
+/* NAV */
+.nav{
+display:flex;
+justify-content:space-around;
+background:black;
+padding:10px;
+}
+
+.nav div{text-align:center;font-size:12px;cursor:pointer}
+.nav i{font-size:22px;display:block}
 
 .hidden{display:none}
 
@@ -163,6 +160,16 @@ let users=JSON.parse(localStorage.getItem("users"))||[];
 let currentUser=null;
 let currentAmount=0;
 let senderName="";
+let depositDone=false;
+
+/* COUNTRIES (20+) */
+let countries=[
+"+250 Rwanda","+254 Kenya","+256 Uganda","+255 Tanzania",
+"+257 Burundi","+251 Ethiopia","+234 Nigeria","+27 South Africa",
+"+212 Morocco","+91 India","+1 USA","+44 UK",
+"+33 France","+49 Germany","+86 China","+81 Japan",
+"+61 Australia","+971 UAE","+82 Korea","+351 Portugal"
+];
 
 function get(id){return document.getElementById(id);}
 
@@ -177,13 +184,16 @@ setTimeout(()=>t.style.display="none",2000);
 function welcome(){
 get("screen").innerHTML=`
 <h2 class="yellow">Welcome to Tippers</h2>
-<p>Grow your income smartly</p>
-<button onclick="login()">Start</button>
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
 `;
 }
 
 /* REGISTER */
 function register(){
+
+let countryOptions=countries.map(c=>`<option>${c}</option>`).join("");
+
 get("screen").innerHTML=`
 
 <p class="yellow"><b>Most welcome to Tippers investment!</b></p>
@@ -191,21 +201,32 @@ get("screen").innerHTML=`
 <h3>Register</h3>
 
 <label>FIRST NAME</label>
-<input id="fname">
+<input id="fname" placeholder="e.g: John">
+
+<label>LAST NAME</label>
+<input id="lname" placeholder="e.g: Doe">
+
+<label>GENDER</label>
+<div>
+<label><input type="checkbox"> Male</label>
+<label><input type="checkbox"> Female</label>
+</div>
 
 <label>EMAIL</label>
-<input id="email" placeholder="Enter your email">
+<input id="email" placeholder="e.g: john@gmail.com">
+
+<label>PHONE</label>
+<select id="country">${countryOptions}</select>
+<input id="phone" placeholder="078xxxxxxx">
 
 <label>PASSWORD</label>
 <div class="passBox">
-<input id="pass" type="password">
-<span class="eye" onclick="toggle('pass')">👁</span>
+<input id="pass" type="password" placeholder="Enter password">
 </div>
 
 <label>CONFIRM PASSWORD</label>
 <div class="passBox">
-<input id="cpass" type="password">
-<span class="eye" onclick="toggle('cpass')">👁</span>
+<input id="cpass" type="password" placeholder="Confirm password">
 </div>
 
 <button onclick="doRegister()">Register</button>
@@ -220,12 +241,8 @@ get("screen").innerHTML=`
 
 <h3>Login</h3>
 
-<input id="logEmail" required placeholder="Enter email">
-<input id="logPass" required type="password" placeholder="Enter password">
-
-<div class="passBox">
-<span class="eye" onclick="toggle('logPass')">👁</span>
-</div>
+<input id="logEmail" placeholder="Enter email">
+<input id="logPass" type="password" placeholder="Enter password">
 
 <button onclick="doLogin()">Login</button>
 
@@ -233,32 +250,66 @@ get("screen").innerHTML=`
 `;
 }
 
-/* HOME */
+/* REGISTER VALIDATION */
+function doRegister(){
+let f=get("fname").value;
+let l=get("lname").value;
+let e=get("email").value;
+let p=get("pass").value;
+let c=get("cpass").value;
+
+if(!f||!l||!e||!p||!c){
+toast("Fill all fields ❌");return;
+}
+
+if(p!==c){
+toast("Passwords not match ❌");return;
+}
+
+users.push({email:e,pass:p,balance:0});
+localStorage.setItem("users",JSON.stringify(users));
+
+toast("Registered ✔");
+login();
+}
+
+/* LOGIN VALIDATION */
+function doLogin(){
+let e=get("logEmail").value;
+let p=get("logPass").value;
+
+if(!e||!p){
+toast("Fill all fields ❌");return;
+}
+
+let u=users.find(x=>x.email===e && x.pass===p);
+if(!u){
+toast("Invalid account ❌");return;
+}
+
+currentUser=u;
+get("bottomNav").classList.remove("hidden");
+
+deposit(); // FORCE FLOW
+}
+
+/* HOME (FULL CONTENT) */
 function home(){
+if(!depositDone){
+toast("Complete deposit first ❌");
+deposit();
+return;
+}
+
 get("screen").innerHTML=`
-
-<div class="card" onclick="openCard('balance')">💰 Balance: ${currentUser.balance} RWF</div>
-<div class="card" onclick="openCard('plans')">📊 Investment Plans</div>
-<div class="card" onclick="openCard('tips')">💡 Tips</div>
-<div class="card" onclick="openCard('news')">📢 News</div>
-
+<div class="card">💰 Finance Tips: Save 20% of income daily</div>
+<div class="card">📊 Investment: Diversify your portfolio</div>
+<div class="card">📈 Market: Crypto is rising</div>
+<div class="card">💡 Advice: Never invest all money at once</div>
+<div class="card">🔥 Success story: Users earning daily profit</div>
+<div class="card">📢 News: New investment plan coming soon</div>
+<div class="card">💼 Business: Passive income strategies</div>
 `;
-}
-
-/* OPEN CARDS */
-function openCard(type){
-if(type==="balance"){
-get("screen").innerHTML=`<div class="box">Your balance is ${currentUser.balance} RWF</div>`;
-}
-if(type==="plans"){
-get("screen").innerHTML=`<div class="box">Plans: Daily, Weekly, Monthly profits</div>`;
-}
-if(type==="tips"){
-get("screen").innerHTML=`<div class="box">Tip: Invest wisely to grow faster</div>`;
-}
-if(type==="news"){
-get("screen").innerHTML=`<div class="box">New bonuses coming soon!</div>`;
-}
 }
 
 /* DEPOSIT */
@@ -273,13 +324,13 @@ get("screen").innerHTML=`
 
 <div class="inputBox">
 <span>RWF</span>
-<input id="amount" placeholder="100,000">
+<input id="amount" placeholder="e.g: 100,000">
 </div>
 
-<p>Minimum: 5,000</p>
+<p>Minimum: 5,000 RWF</p>
 
-<p class="yellow">SENDER MOBILE NAME</p>
-<input id="sender" placeholder="mugabo jean paul">
+<p class="yellow">SENDER NAME:</p>
+<input id="sender" placeholder="e.g: MUGABO">
 
 <button onclick="payment()">Continue ➜</button>
 `;
@@ -290,41 +341,45 @@ function payment(){
 currentAmount=parseInt(get("amount").value)||0;
 senderName=get("sender").value;
 
-if(currentAmount<5000){
-toast("Minimum 5000");return;
+if(currentAmount<5000||!senderName){
+toast("Fill correctly ❌");return;
 }
 
 get("screen").innerHTML=`
 
-<h3 class="yellow">PAYMENT INFORMATIONS</h3>
+<h3 class="yellow">PAYMENT INFORMATION</h3>
 
-<p>Follow steps to complete payment</p>
-
-<div class="box">Sender: ${senderName}</div>
-
-<p>Send ${currentAmount} RWF to:</p>
+<p>Follow steps below</p>
 
 <div class="box">
-0795410739 
-<span class="copy" onclick="copy()">Copy</span><br><br>
-<span class="yellow">BARAKA Bolingo</span>
+Sender: ${senderName}
+</div>
+
+<div class="box">
+Send ${currentAmount} RWF to:
+<br><br>
+0795410739
+<br>
+<span class="yellow">BARAKA BOLINGO</span>
 </div>
 
 <button onclick="dial()">Dial & Pay</button>
 `;
 }
 
-/* COPY */
-function copy(){
-navigator.clipboard.writeText("0795410739");
-toast("Copied");
-}
-
-/* DIAL */
+/* DIAL + PROOF */
 function dial(){
 get("screen").innerHTML=`
 
-<div class="box">*182*1*1*0795410739#</div>
+<p class="yellow">UPLOAD PROOF OF PAYMENT SCREENSHOT</p>
+
+<p>Make sure screenshot is clear</p>
+
+<div class="box">
+USSD:
+<br><br>
+*182*1*1*0795410739#
+</div>
 
 <input type="file" onchange="enableBtn()">
 
@@ -338,14 +393,15 @@ function enableBtn(){get("btn").disabled=false;}
 function proof(){
 currentUser.balance+=currentAmount;
 localStorage.setItem("users",JSON.stringify(users));
+depositDone=true;
 withdrawStep();
 }
 
-/* WITHDRAW PERIOD */
+/* WITHDRAW */
 function withdrawStep(){
 get("screen").innerHTML=`
 
-<h3>Select Withdraw Period</h3>
+<h3 class="yellow">WITHDRAW PERIOD</h3>
 
 <select>
 <option>1 Day</option>
@@ -360,48 +416,49 @@ get("screen").innerHTML=`
 `;
 }
 
-/* WITHDRAW */
+/* WITHDRAW UI */
 function withdrawUI(){
+
+if(!depositDone){
+toast("Complete deposit first ❌");return;
+}
+
 get("screen").innerHTML=`
 
-<h3>Withdraw</h3>
+<h3 class="yellow">WITHDRAW</h3>
+
+<p>Amount to withdraw:</p>
 
 <div class="inputBox">
-<span>+250</span>
-<input placeholder="078xxxxxxx">
+<span>RWF</span>
+<input placeholder="0 RWF">
 </div>
+
+<p>Minimum: 7500 RWF</p>
+
+<p>Telephone:</p>
+
+<select>
+<option>+250 Rwanda</option>
+<option>+254 Kenya</option>
+<option>+256 Uganda</option>
+<option>+255 Tanzania</option>
+<option>+257 Burundi</option>
+<option>+1 USA</option>
+<option>+44 UK</option>
+<option>+91 India</option>
+<option>+27 South Africa</option>
+<option>+33 France</option>
+</select>
+
+<input placeholder="078xxxxxxx">
 
 <button onclick="withdrawAction()">Withdraw</button>
 `;
 }
 
 function withdrawAction(){
-toast("You're not allowed before schedule");
-}
-
-/* LOGIC */
-function toggle(id){
-let p=get(id);
-p.type=p.type==="password"?"text":"password";
-}
-
-function doRegister(){
-users.push({
-email:get("email").value,
-pass:get("pass").value,
-balance:0
-});
-localStorage.setItem("users",JSON.stringify(users));
-toast("Registered");
-login();
-}
-
-function doLogin(){
-let u=users.find(x=>x.email===get("logEmail").value && x.pass===get("logPass").value);
-if(!u){toast("Invalid");return;}
-currentUser=u;
-get("bottomNav").classList.remove("hidden");
-home();
+toast("Not allowed before schedule ❌");
 }
 
 /* START */
