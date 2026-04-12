@@ -31,19 +31,19 @@ screen.innerHTML=`
 function doRegister(){
 
 if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
-toast(" there are any field you skip, Fill all fields to continue ");return;
+toast("Fill all fields ❌");return;
 }
 
 if(!email.value.endsWith("@gmail.com")){
-toast("Invalid email, enter the valid email");return;
+toast("Invalid email ❌");return;
 }
 
 if(!/^[0-9]{6}$/.test(pass.value)){
-toast("The Password You Entering is not Valid, Password Must be Atleast 6 Digits");return;
+toast("Password must be 6 digits ❌");return;
 }
 
 if(pass.value!==cpass.value){
-toast("Incorrect Password, try again!");return;
+toast("Passwords not match ❌");return;
 }
 
 /* SAVE USER */
@@ -65,11 +65,11 @@ function doLogin(){
 let user=users.find(u=>u.email===le.value);
 
 if(!user){
-toast("Account not Found!, The Account you use is not exists in database.");return;
+toast("Account not found ❌");return;
 }
 
 if(lp.value!==user.pass){
-toast("Incorrect Password, Enter the Correct Password");return;
+toast("Invalid password ❌");return;
 }
 
 currentUser=user;
@@ -97,11 +97,11 @@ function reset(){
 let u=users.find(x=>x.email===fe.value);
 
 if(!u){
-toast("Email not found, Your Email is not Exists in database");return;
+toast("Email not found ❌");return;
 }
 
 if(!/^[0-9]{6}$/.test(np.value)){
-toast("Password must be 6 digits");return;
+toast("Password must be 6 digits ❌");return;
 }
 
 u.pass=np.value;
@@ -115,7 +115,7 @@ login();
 function home(){
 
 if(!depositDone){
-toast("To activate other services you must finish deposit process first.");
+toast("To activate other services you must finish deposit first.");
 return;
 }
 
@@ -131,7 +131,7 @@ function goPayment(){
 let a=parseInt(amt.value);
 
 if(!a||a<5000||!sender.value){
-toast("Invalid input, please try again");return;
+toast("Invalid input ❌");return;
 }
 
 amount=a;
@@ -209,10 +209,10 @@ function doWithdraw(){
 let w=parseInt(wamt.value);
 
 if(!w||w<7500){
-toast("INVALID INPUT, TRY AGAIN");return;
+toast("INVALID INPUT ❌");return;
 }
 
-toast("You're not allowed to withdraw before the locked time.");
+toast("You're not allowed to withdraw before the locked schedule.");
 }
 
 /* START */
