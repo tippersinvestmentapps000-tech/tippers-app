@@ -5,7 +5,6 @@
 <title>Tippers Investment</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ICONS (Font Awesome) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
@@ -20,7 +19,6 @@ align-items:center;
 height:100vh;
 }
 
-/* APP */
 .app{
 width:380px;
 background:#000;
@@ -31,18 +29,16 @@ display:flex;
 flex-direction:column;
 }
 
-/* CONTENT */
 .content{
 padding:20px;
 height:520px;
 overflow-y:auto;
-animation:fade 0.4s ease;
+animation:fade 0.4s;
 }
 
-/* ANIMATION */
 @keyframes fade{
-from{opacity:0; transform:translateY(10px);}
-to{opacity:1; transform:translateY(0);}
+from{opacity:0;transform:translateY(10px);}
+to{opacity:1;}
 }
 
 .title{
@@ -51,17 +47,10 @@ text-align:center;
 font-weight:bold;
 }
 
-.desc{
-text-align:center;
-margin-top:10px;
-}
+.desc{text-align:center;margin-top:10px}
 
-label{
-margin-top:10px;
-display:block;
-}
+label{margin-top:10px;display:block}
 
-/* INPUT */
 input,select{
 width:100%;
 padding:10px;
@@ -70,15 +59,8 @@ border-radius:8px;
 border:none;
 background:#0f172a;
 color:white;
-transition:0.3s;
 }
 
-input:focus{
-outline:none;
-box-shadow:0 0 5px #f59e0b;
-}
-
-/* BUTTON */
 button{
 width:100%;
 padding:12px;
@@ -88,47 +70,20 @@ border-radius:10px;
 background:#f59e0b;
 font-weight:bold;
 cursor:pointer;
-transition:0.3s;
 }
 
-button:hover{
-transform:scale(1.03);
-background:#f97316;
-}
+.row{display:flex;gap:5px}
 
-/* ROW */
-.row{
-display:flex;
-gap:5px;
-}
-
-/* NAVBAR */
 .nav{
 display:flex;
 justify-content:space-around;
 background:#020617;
 padding:10px;
-border-top:1px solid #111;
 }
 
-.nav div{
-text-align:center;
-cursor:pointer;
-transition:0.3s;
-}
+.nav div{text-align:center;cursor:pointer}
+.nav i{display:block;font-size:20px}
 
-.nav i{
-font-size:20px;
-display:block;
-margin-bottom:3px;
-}
-
-.nav div:hover{
-color:#f59e0b;
-transform:scale(1.1);
-}
-
-/* TOAST */
 #toast{
 position:fixed;
 bottom:20px;
@@ -147,20 +102,12 @@ display:none;
 <body>
 
 <div class="app">
-
 <div class="content" id="screen"></div>
 
-<!-- DASHBOARD NAV -->
-<div class="nav" id="nav" style="display:none">
-<div onclick="home()">
-<i class="fa-solid fa-house"></i>
-HOME
-</div>
-
-<div onclick="withdraw()">
-<i class="fa-solid fa-money-bill-transfer"></i>
-WITHDRAW
-</div>
+<div class="nav hidden" id="nav">
+<div onclick="home()"><i class="fa fa-home"></i>HOME</div>
+<div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
 </div>
 
 </div>
@@ -172,21 +119,20 @@ WITHDRAW
 const screen=document.getElementById("screen");
 const nav=document.getElementById("nav");
 
+let user=null;
+let depositDone=false;
 let amount=0;
-let paid=false;
 
 /* TOAST */
 function toast(msg){
-let t=document.getElementById("toast");
-t.innerText=msg;
-t.style.display="block";
-setTimeout(()=>t.style.display="none",2000);
+toastBox.innerText=msg;
+toastBox.style.display="block";
+setTimeout(()=>toastBox.style.display="none",2500);
 }
 
 /* START */
 function start(){
-nav.style.display="none";
-
+nav.classList.add("hidden");
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
 <p class="desc">Start now and grow your income smartly in tippers earning every time.</p>
@@ -200,60 +146,38 @@ screen.innerHTML=`
 
 <h3 class="title">REGISTER</h3>
 
-<label>First Name</label>
-<input id="f">
-
-<label>Last Name</label>
-<input id="l">
-
-<label>Gender</label>
-<select id="g">
-<option value="">Select</option>
-<option>Male</option>
-<option>Female</option>
-</select>
-
-<label>Phone</label>
-<div class="row">
-<select id="code">
-<option value="+250">RWA +250</option>
-<option value="+254">KEN +254</option>
-</select>
-<input id="phone">
-</div>
-
-<label>Email</label>
-<input id="email">
-
-<label>Password</label>
-<input id="pass">
-
-<label>Confirm Password</label>
-<input id="cpass">
+<input id="email" placeholder="enter your email">
+<input id="pass" placeholder="6 digit password">
+<input id="cpass" placeholder="confirm password">
 
 <button onclick="doRegister()">REGISTER</button>
 `;
 }
 
-/* REGISTER VALIDATION */
 function doRegister(){
 
-if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
-toast("Fill all fields ❌"); return;
+let e=email.value;
+let p=pass.value;
+let c=cpass.value;
+
+if(!e||!p||!c){
+toast("Fill all fields ❌");return;
 }
 
-if(!email.value.endsWith("@gmail.com")){
-toast("Invalid email ❌"); return;
+if(!e.endsWith("@gmail.com")){
+toast("Invalid email ❌");return;
 }
 
-if(!/^[0-9]{6}$/.test(pass.value)){
-toast("Password must be 6 digits ❌"); return;
+if(!/^[0-9]{6}$/.test(p)){
+toast("Password must be 6 digits ❌");return;
 }
 
-if(pass.value!==cpass.value){
-toast("Passwords not match ❌"); return;
+if(p!==c){
+toast("Passwords not match ❌");return;
 }
 
+user={email:e,pass:p};
+toast("Registered ✔");
 login();
 }
 
@@ -263,14 +187,11 @@ screen.innerHTML=`
 
 <h3 class="title">Login to continue</h3>
 
-<label>Email</label>
-<input id="le">
-
-<label>Password</label>
-<input id="lp">
+<input id="le" placeholder="enter your email">
+<input id="lp" placeholder="password">
 
 <div style="display:flex;justify-content:space-between">
-<span style="color:#f59e0b">Forgot password</span>
+<span onclick="forgot()" style="color:#f59e0b;cursor:pointer">Forgot password</span>
 <span onclick="register()" style="color:#f59e0b;cursor:pointer">Create account</span>
 </div>
 
@@ -278,18 +199,58 @@ screen.innerHTML=`
 `;
 }
 
-/* LOGIN */
 function doLogin(){
 
 if(!le.value||!lp.value){
-toast("Fill all fields ❌"); return;
+toast("Fill all fields ❌");return;
 }
 
-if(!/^[0-9]{6}$/.test(lp.value)){
-toast("Invalid password ❌"); return;
+if(le.value!==user.email){
+toast("Invalid email ❌");return;
 }
 
-deposit();
+if(lp.value!==user.pass){
+toast("Invalid password ❌");return;
+}
+
+nav.classList.remove("hidden");
+deposit(); // force deposit
+}
+
+/* FORGOT */
+function forgot(){
+screen.innerHTML=`
+
+<h3 class="title">Reset Password</h3>
+
+<input id="fe" placeholder="enter your email">
+<input id="np" placeholder="new password">
+
+<button onclick="reset()">RESET</button>
+`;
+}
+
+function reset(){
+if(fe.value!==user.email){
+toast("Email not found ❌");return;
+}
+
+if(!/^[0-9]{6}$/.test(np.value)){
+toast("Password must be 6 digits ❌");return;
+}
+
+user.pass=np.value;
+toast("Password updated ✔");
+login();
+}
+
+/* HOME */
+function home(){
+if(!depositDone){
+toast("To activate other services, you must finish deposit and get license.");
+return;
+}
+toast("Wait for withdraw time.");
 }
 
 /* DEPOSIT */
@@ -297,28 +258,21 @@ function deposit(){
 screen.innerHTML=`
 
 <h3 class="title">DEPOSIT BALANCE</h3>
-<p class="desc">Add funds using MTN mobile money</p>
 
-<label>Amount</label>
-<input id="amt">
+<input id="amt" placeholder="amount">
+<p>Minimum 5000 RWF</p>
 
-<p>Minimum: 5,000 RWF</p>
+<input id="sender" placeholder="sender name">
 
-<label>Sender Name</label>
-<input id="sender">
-
-<button onclick="goPayment()">CONTINUE</button>
+<button onclick="pay()">CONTINUE</button>
 `;
 }
 
-function goPayment(){
-
+function pay(){
 let a=parseInt(amt.value);
-
 if(!a||a<5000||!sender.value){
-toast("Invalid input ❌"); return;
+toast("Invalid input ❌");return;
 }
-
 amount=a;
 payment();
 }
@@ -326,13 +280,8 @@ payment();
 /* PAYMENT */
 function payment(){
 screen.innerHTML=`
-
-<h3 class="title">PAYMENT INFORMATION</h3>
-
-<div style="background:#111;padding:10px;border-radius:10px">
-0795410739<br><br>BARAKA BOLINGO
-</div>
-
+<h3 class="title">PAYMENT</h3>
+<div>0795410739<br>BARAKA</div>
 <button onclick="dial()">DIAL & PAY</button>
 `;
 }
@@ -340,74 +289,60 @@ screen.innerHTML=`
 /* DIAL */
 function dial(){
 screen.innerHTML=`
-
 <div>*182*1*1*0795410739#</div>
-
-<p class="desc">Upload proof of payment screenshot</p>
-
 <input type="file" id="file">
-
 <button onclick="submitProof()">SUBMIT</button>
 `;
 }
 
 function submitProof(){
-
 if(!file.value){
-toast("Upload proof ❌"); return;
+toast("Upload proof ❌");return;
 }
-
-paid=true;
 withdrawPeriod();
 }
 
-/* WITHDRAW PERIOD */
+/* PERIOD */
 function withdrawPeriod(){
 screen.innerHTML=`
 
-<h3 class="title">WITHDRAW PERIOD</h3>
-
-<select>
-<option>1 Day</option>
-<option>1 Week</option>
-<option>1 Month</option>
-<option>12 Months</option>
+<select id="period">
+<option>1day</option>
+<option>7days</option>
+<option>14days</option>
+<option>45days</option>
+<option>3month</option>
+<option>4month</option>
 </select>
 
-<button onclick="finish()">SEND & CONFIRM</button>
+<button onclick="confirm()">SEND & CONFIRM</button>
 `;
 }
 
-function finish(){
-screen.innerHTML=`<button onclick="dashboard()">CONFIRM</button>`;
+function confirm(){
+depositDone=true;
+dashboard();
 }
 
 /* DASHBOARD */
 function dashboard(){
-nav.style.display="flex";
-
 screen.innerHTML=`
 <h3 class="title">Balance: ${amount} RWF</h3>
-<p class="desc">Wait until your withdraw schedule is reached.</p>
+<p class="desc">Withdraw available only after selected period</p>
 `;
-}
-
-/* HOME */
-function home(){
-toast("Wait until your schedule is reached.");
 }
 
 /* WITHDRAW */
 function withdraw(){
 
-if(!paid){
-toast("Complete deposit first ❌"); return;
+if(!depositDone){
+toast("Finish deposit first ❌");return;
 }
 
 let w=prompt("Enter amount");
 
 if(!w||w<7500){
-toast("INVALID INPUT ❌"); return;
+toast("INVALID INPUT ❌");return;
 }
 
 toast("You're not allowed to withdraw before the locked schedule.");
