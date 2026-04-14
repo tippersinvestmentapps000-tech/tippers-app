@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tippers Investment Demo</title>
+<title>Tippers Investment UI Demo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -26,31 +26,25 @@ overflow:hidden;
 color:white;
 display:flex;
 flex-direction:column;
-box-shadow:0 0 20px rgba(0,0,0,0.6);
 }
 
 .content{
 padding:15px;
 height:540px;
 overflow-y:auto;
-animation:fade .3s ease;
 }
 
-@keyframes fade{
-from{opacity:0;transform:translateY(10px)}
-to{opacity:1;transform:translateY(0)}
-}
+.title{color:#f59e0b;text-align:center;font-weight:bold;}
+.desc{text-align:center;color:#cbd5e1;font-size:13px;}
 
-.title{
-text-align:center;
-color:#f59e0b;
-font-weight:bold;
-}
-
-.desc{
-text-align:center;
-color:#cbd5e1;
-font-size:13px;
+input,select{
+width:100%;
+padding:10px;
+margin-top:8px;
+border-radius:8px;
+border:none;
+background:#111827;
+color:white;
 }
 
 button{
@@ -63,17 +57,6 @@ background:linear-gradient(135deg,#f59e0b,#f97316);
 color:white;
 font-weight:bold;
 cursor:pointer;
-}
-
-input,select{
-width:100%;
-padding:10px;
-margin-top:8px;
-border-radius:8px;
-border:none;
-background:#111827;
-color:white;
-outline:none;
 }
 
 .nav{
@@ -91,47 +74,16 @@ cursor:pointer;
 opacity:0.4;
 }
 
-.nav i{
-display:block;
-font-size:18px;
-margin-bottom:4px;
-}
+.nav i{display:block;font-size:18px;}
 
-.nav .active{
-opacity:1;
-color:#f59e0b;
-}
+.locked{opacity:0.3;pointer-events:none;}
 
-/* TABLE */
-.tableWrap{
-overflow-x:auto;
-margin-top:10px;
-border-radius:10px;
-}
+.tableWrap{overflow-x:auto;margin-top:10px;}
+table{width:1000px;border-collapse:collapse;font-size:12px;}
+th,td{border:1px solid #1f2937;padding:8px;text-align:center;}
+th{background:#111827;color:#f59e0b;}
+td{background:#0f172a;}
 
-table{
-width:1000px;
-border-collapse:collapse;
-font-size:12px;
-}
-
-th,td{
-border:1px solid #1f2937;
-padding:8px;
-text-align:center;
-white-space:nowrap;
-}
-
-th{
-background:#111827;
-color:#f59e0b;
-}
-
-td{
-background:#0f172a;
-}
-
-/* TOAST */
 #toast{
 position:fixed;
 bottom:20px;
@@ -143,26 +95,19 @@ border-radius:8px;
 display:none;
 }
 
-/* LOCK OVERLAY */
-.lock{
-opacity:0.4;
-pointer-events:none;
-}
-
 </style>
 </head>
 
 <body>
 
 <div class="app">
-
 <div class="content" id="screen"></div>
 
 <div class="nav" id="nav">
-<div onclick="home()" id="homeBtn"><i class="fa fa-home"></i>HOME</div>
-<div onclick="deposit()" id="depBtn"><i class="fa fa-wallet"></i>DEPOSIT</div>
-<div onclick="earn()" id="earnBtn"><i class="fa fa-chart-line"></i>EARN</div>
-<div onclick="withdraw()" id="withBtn"><i class="fa fa-money-bill"></i>WITHDRAW</div>
+<div onclick="home()" id="h" class="locked"><i class="fa fa-home"></i>HOME</div>
+<div onclick="deposit()" id="d" class="locked"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div onclick="earn()" id="e" class="locked"><i class="fa fa-chart-line"></i>EARN</div>
+<div onclick="withdraw()" id="w" class="locked"><i class="fa fa-money-bill"></i>WITHDRAW</div>
 </div>
 
 </div>
@@ -171,20 +116,18 @@ pointer-events:none;
 
 <script>
 
-let step = "welcome";
-let registered = false;
-let logged = false;
-let depositDone = false;
-let amount = 0;
-let profit = 0;
+let step=0;
+let user=null;
+let depositDone=false;
+let amount=0;
 
-const screen = document.getElementById("screen");
-const nav = document.getElementById("nav");
+const screen=document.getElementById("screen");
+const nav=document.getElementById("nav");
 
 /* TOAST */
-function toast(msg){
+function toast(m){
 let t=document.getElementById("toast");
-t.innerText=msg;
+t.innerText=m;
 t.style.display="block";
 setTimeout(()=>t.style.display="none",2000);
 }
@@ -192,22 +135,21 @@ setTimeout(()=>t.style.display="none",2000);
 /* WELCOME */
 function start(){
 screen.innerHTML=`
-<h2 class="title">WELCOME TO TIPPERS INVESTMENT</h2>
-<p class="desc">Smart demo investment UI system</p>
+<h2 class="title">WELCOME</h2>
+<p class="desc">Fintech UI Simulation</p>
 <button onclick="register()">NEXT</button>
 `;
 }
 
 /* REGISTER */
 function register(){
-step="register";
 screen.innerHTML=`
-<h3 class="title">REGISTER</h3>
+<h3 class="title">REGISTER WITH GOOGLE ACCOUNT</h3>
 
-<input id="name" placeholder="Full name">
-<input id="email" placeholder="Email">
-<input id="pass" placeholder="6 digit password">
-<input id="cpass" placeholder="Confirm password">
+<input id="n" placeholder="Full name">
+<input id="e" placeholder="Email">
+<input id="p" placeholder="6 digit password">
+<input id="c" placeholder="Confirm password">
 
 <button onclick="doRegister()">REGISTER</button>
 `;
@@ -215,21 +157,18 @@ screen.innerHTML=`
 
 /* REGISTER CHECK */
 function doRegister(){
-let n=name.value,e=email.value,p=pass.value,c=cpass.value;
+if(!n.value||!e.value||!p.value||!c.value) return toast("Fill all fields");
+if(!e.value.includes("@")) return toast("Invalid email");
+if(!/^[0-9]{6}$/.test(p.value)) return toast("6 digit password only");
+if(p.value!==c.value) return toast("Password mismatch");
 
-if(!n||!e||!p||!c) return toast("Fill all fields");
-if(!e.includes("@")) return toast("Invalid email");
-if(!/^[0-9]{6}$/.test(p)) return toast("Password must be 6 digits");
-if(p!==c) return toast("Password mismatch");
-
-registered=true;
-toast("Registered successfully");
+user={email:e.value,pass:p.value};
+toast("Registered");
 login();
 }
 
 /* LOGIN */
 function login(){
-step="login";
 screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
 
@@ -240,42 +179,37 @@ screen.innerHTML=`
 `;
 }
 
-/* LOGIN CHECK */
+/* LOGIN */
 function doLogin(){
-if(le.value!==email.value || lp.value!==pass.value){
-return toast("Invalid credentials");
+if(le.value!==user.email || lp.value!==user.pass)
+return toast("Invalid login");
+
+nav.style.display="flex";
+unlockNav();
+home();
 }
 
-logged=true;
-nav.style.display="flex";
-home();
+/* UNLOCK */
+function unlockNav(){
+document.querySelectorAll(".locked").forEach(x=>{
+x.classList.remove("locked");
+});
 }
 
 /* HOME TABLE */
 function home(){
-
-if(!logged) return toast("Login required");
-
 screen.innerHTML=`
 <h3 class="title">TIPPERS INVESTMENT PLAN</h3>
-<p class="desc">Scroll horizontally to view full table</p>
 
 <div class="tableWrap">
 <table>
 <tr>
-<th>INVEST</th><th>1 DAY</th><th>1 WEEK</th><th>1 MONTH</th><th>45 DAYS</th><th>3 MONTH</th><th>4 MONTH</th>
+<th>INVEST</th><th>1D</th><th>1W</th><th>1M</th><th>45D</th><th>3M</th><th>4M</th>
 </tr>
 
-<tr><td>5,000</td><td>110</td><td>1,050</td><td>5,400</td><td>9,225</td><td>22,500</td><td>42,000</td></tr>
-<tr><td>50,000</td><td>1,100</td><td>10,500</td><td>54,000</td><td>92,250</td><td>225,000</td><td>420,000</td></tr>
-<tr><td>100,000</td><td>2,200</td><td>21,000</td><td>108,000</td><td>184,500</td><td>450,000</td><td>840,000</td></tr>
-<tr><td>150,000</td><td>3,300</td><td>31,500</td><td>162,000</td><td>276,750</td><td>675,000</td><td>1,260,000</td></tr>
-<tr><td>300,000</td><td>6,600</td><td>63,000</td><td>324,000</td><td>553,500</td><td>1,350,000</td><td>2,520,000</td></tr>
-<tr><td>500,000</td><td>11,000</td><td>105,000</td><td>540,000</td><td>922,500</td><td>2,250,000</td><td>4,200,000</td></tr>
-<tr><td>700,000</td><td>15,400</td><td>147,000</td><td>756,000</td><td>1,291,500</td><td>3,150,000</td><td>5,880,000</td></tr>
-<tr><td>1,000,000</td><td>22,000</td><td>210,000</td><td>1,080,000</td><td>1,845,000</td><td>4,500,000</td><td>8,400,000</td></tr>
-<tr><td>1,300,000</td><td>28,600</td><td>273,000</td><td>1,404,000</td><td>2,398,500</td><td>5,850,000</td><td>10,920,000</td></tr>
-<tr><td>1,500,000</td><td>33,000</td><td>315,000</td><td>1,620,000</td><td>2,767,500</td><td>6,250,000</td><td>12,600,000</td></tr>
+<tr><td>5,000</td><td>110</td><td>1050</td><td>5400</td><td>9225</td><td>22500</td><td>42000</td></tr>
+<tr><td>50,000</td><td>1100</td><td>10500</td><td>54000</td><td>92250</td><td>225000</td><td>420000</td></tr>
+<tr><td>100,000</td><td>2200</td><td>21000</td><td>108000</td><td>184500</td><td>450000</td><td>840000</td></tr>
 
 </table>
 </div>
@@ -286,14 +220,11 @@ screen.innerHTML=`
 
 /* DEPOSIT */
 function goDeposit(){
-if(!logged) return;
-step="deposit";
-
 screen.innerHTML=`
 <h3 class="title">DEPOSIT</h3>
-<p class="desc">Add funds to activate system</p>
+<p class="desc">Adds funds using MTN mobile money</p>
 
-<input id="amt" placeholder="Enter amount">
+<input id="amt" placeholder="Enter amount (min 5000)">
 <input id="sender" placeholder="Sender name">
 
 <button onclick="confirmDeposit()">CONTINUE</button>
@@ -302,41 +233,14 @@ screen.innerHTML=`
 
 /* CONFIRM */
 function confirmDeposit(){
-if(!amt.value||!sender.value) return toast("Fill fields");
+if(!amt.value||!sender.value) return toast("Fill all");
+
+if(parseInt(amt.value)<5000) return toast("Min 5000");
 
 amount=parseInt(amt.value);
 depositDone=true;
 
-profit = amount + (amount*0.3);
-
-navUnlock();
-
 home();
-}
-
-/* UNLOCK */
-function navUnlock(){
-document.querySelectorAll(".nav div").forEach(d=>{
-d.style.opacity="1";
-});
-}
-
-/* EARN */
-function earn(){
-if(!depositDone) return toast("Deposit required");
-
-screen.innerHTML=`
-<h3 class="title">LIVE EARNINGS</h3>
-<p class="desc">Animated simulation</p>
-
-<h1 id="live">0</h1>
-`;
-
-let x=0;
-setInterval(()=>{
-x+=Math.floor(Math.random()*5000);
-document.getElementById("live").innerText=x+" RWF 💸";
-},800);
 }
 
 /* WITHDRAW */
@@ -349,8 +253,22 @@ screen.innerHTML=`
 <input placeholder="Amount">
 <input placeholder="Phone number">
 
-<button onclick="toast('Request sent (demo)')">PAYOUT NOW</button>
+<button onclick="toast('Demo request sent')">PAYOUT</button>
 `;
+}
+
+/* EARN */
+function earn(){
+screen.innerHTML=`
+<h3 class="title">LIVE EARNINGS</h3>
+<h1 id="l">0</h1>
+`;
+
+let x=0;
+setInterval(()=>{
+x+=Math.floor(Math.random()*3000);
+document.getElementById("l").innerText=x+" RWF 💸";
+},800);
 }
 
 /* START */
