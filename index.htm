@@ -33,6 +33,12 @@ flex-direction:column;
 padding:20px;
 height:520px;
 overflow-y:auto;
+animation:fade .3s ease;
+}
+
+@keyframes fade{
+from{opacity:0; transform:translateY(10px);}
+to{opacity:1; transform:translateY(0);}
 }
 
 .title{color:#f59e0b;text-align:center;font-weight:bold;}
@@ -72,6 +78,26 @@ padding:10px;
 .nav div{text-align:center;cursor:pointer;}
 .nav i{display:block;font-size:20px;margin-bottom:3px;}
 
+.card{
+background:#111;
+padding:12px;
+border-radius:12px;
+margin-top:10px;
+}
+
+.table-title{
+color:#f59e0b;
+text-align:center;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+.table{
+font-size:12px;
+line-height:1.6;
+white-space:pre-line;
+}
+
 #toast{
 position:fixed;
 bottom:20px;
@@ -84,47 +110,6 @@ border-radius:8px;
 display:none;
 }
 
-.card{
-background:#111;
-padding:15px;
-border-radius:12px;
-margin-top:10px;
-}
-
-/* PLAN TABLE */
-.planPage{
-background:linear-gradient(to right,#93c5fd 50%, #ffffff 50%);
-padding:10px;
-border-radius:10px;
-color:black;
-}
-
-.planTitle{
-text-align:center;
-font-weight:bold;
-background:linear-gradient(135deg,#ff0000,#f59e0b);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-margin-bottom:10px;
-}
-
-.planRow{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-font-size:11px;
-padding:6px;
-text-align:center;
-}
-
-.planHeader{
-background:black;
-color:white;
-font-weight:bold;
-}
-
-.planRow:nth-child(even){background:#eee;}
-.planRow:nth-child(odd){background:#ddd;}
-
 </style>
 </head>
 
@@ -136,7 +121,6 @@ font-weight:bold;
 <div class="nav" id="nav" style="display:none">
 <div onclick="home()"><i class="fa fa-home"></i>HOME</div>
 <div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
-<div onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
 <div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
 </div>
 </div>
@@ -145,15 +129,12 @@ font-weight:bold;
 
 <script>
 
-/* STATE */
-let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = null;
+let step = "welcome";
 let depositDone = false;
 let amount = 0;
-let selectedPeriod = 0;
 
-const screen=document.getElementById("screen");
-const nav=document.getElementById("nav");
+const screen = document.getElementById("screen");
+const nav = document.getElementById("nav");
 
 /* TOAST */
 function toast(msg){
@@ -164,7 +145,9 @@ setTimeout(()=>t.style.display="none",2500);
 }
 
 /* START */
+start();
 function start(){
+step="welcome";
 nav.style.display="none";
 
 screen.innerHTML=`
@@ -174,157 +157,137 @@ screen.innerHTML=`
 `;
 }
 
-/* REGISTER */
+/* REGISTER (simple) */
 function register(){
-screen.innerHTML=`
+step="register";
 
+screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
 
-<input id="f" placeholder="Enter first name">
-<input id="l" placeholder="Enter last name">
+<input placeholder="First Name">
+<input placeholder="Last Name">
 
-<select id="g">
-<option value="">Select gender</option>
+<select>
+<option>Select gender</option>
 <option>Male</option>
 <option>Female</option>
 </select>
 
-<div class="row">
-<select id="code">
-<option value="+250">RWA +250</option>
-<option value="+254">KEN +254</option>
-</select>
-<input id="phone" placeholder="Phone number">
-</div>
+<input placeholder="Phone number">
+<input placeholder="Email">
+<input placeholder="6 digit password">
 
-<input id="email" placeholder="Enter your email">
-<input id="pass" placeholder="6 digit password">
-<input id="cpass" placeholder="Confirm password">
-
-<button onclick="doRegister()">REGISTER</button>
+<button onclick="login()">REGISTER</button>
 `;
-}
-
-/* REGISTER VALIDATION */
-function doRegister(){
-
-if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
-toast("Fill all fields ❌"); return;
-}
-
-if(!email.value.endsWith("@gmail.com")){
-toast("Invalid email ❌"); return;
-}
-
-if(!/^[0-9]{6}$/.test(pass.value)){
-toast("Password must be 6 digits ❌"); return;
-}
-
-if(pass.value!==cpass.value){
-toast("Passwords do not match ❌"); return;
-}
-
-let user={email:email.value,pass:pass.value};
-users.push(user);
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Registered successfully ✔");
-login();
 }
 
 /* LOGIN */
 function login(){
+step="login";
+
 screen.innerHTML=`
+<h3 class="title">LOGIN</h3>
 
-<h3 class="title">Login to continue</h3>
+<input placeholder="Email">
+<input placeholder="Password">
 
-<input id="le" placeholder="Enter email">
-<input id="lp" placeholder="Enter password">
-
-<div style="display:flex;justify-content:space-between">
-<span onclick="forgot()" style="color:#f59e0b;cursor:pointer">Forgot password</span>
-<span onclick="register()" style="color:#f59e0b;cursor:pointer">Create account</span>
-</div>
-
-<button onclick="doLogin()">LOGIN</button>
+<button onclick="showHome()">LOGIN</button>
 `;
 }
 
-/* LOGIN */
-function doLogin(){
-
-if(!le.value||!lp.value){
-toast("Fill all fields ❌"); return;
-}
-
-let user=users.find(u=>u.email===le.value);
-
-if(!user){
-toast("Account not found ❌"); return;
-}
-
-if(lp.value!==user.pass){
-toast("Invalid password ❌"); return;
-}
-
-currentUser=user;
+/* HOME TABLE */
+function showHome(){
+step="home";
 nav.style.display="flex";
 
-/* IMPORTANT CHANGE */
-home();
+screen.innerHTML=`
+<div class="table-title">TIPPERS INVESTMENT PLAN</div>
+
+<div class="card table">
+
+INVESTMENT | DAILY 2.2% | WEEK | MONTH | 45D | 3M | 4M
+
+--------------------------------------------------------
+
+5,000 RWF   | 110 RWF   | 1,050 RWF | 5,400 RWF | 9,225 RWF | 22,500 RWF | 42,000 RWF  
+50,000 RWF  | 1,100 RWF | 10,500 RWF| 54,000 RWF| 92,250 RWF| 225,000 RWF| 420,000 RWF  
+100,000 RWF | 2,200 RWF | 21,000 RWF| 108,000 RWF| 184,500 RWF| 450,000 RWF| 840,000 RWF  
+150,000 RWF | 3,300 RWF | 31,500 RWF| 162,000 RWF| 276,750 RWF| 675,000 RWF| 1,260,000 RWF  
+300,000 RWF | 6,600 RWF | 63,000 RWF| 324,000 RWF| 553,500 RWF| 1,350,000 RWF| 2,520,000 RWF  
+500,000 RWF | 11,000 RWF| 105,000 RWF|540,000 RWF| 922,500 RWF| 2,250,000 RWF| 4,200,000 RWF  
+700,000 RWF | 15,400 RWF| 147,000 RWF|756,000 RWF| 1,291,500 RWF|3,150,000 RWF|5,880,000 RWF  
+1,000,000 RWF|22,000 RWF|210,000 RWF|1,080,000 RWF|1,845,000 RWF|4,500,000 RWF|8,400,000 RWF  
+1,300,000 RWF|28,600 RWF|273,000 RWF|1,404,000 RWF|2,398,500 RWF|5,850,000 RWF|10,920,000 RWF  
+1,500,000 RWF|33,000 RWF|315,000 RWF|1,620,000 RWF|2,767,500 RWF|6,250,000 RWF|12,600,000 RWF  
+
+</div>
+
+<button onclick="next()">NEXT</button>
+`;
 }
 
-/* HOME (TABLE) */
-function home(){
+/* NEXT → DEPOSIT */
+function next(){
+deposit();
+}
 
-if(!depositDone){
+/* DEPOSIT */
+function deposit(){
+step="deposit";
 
 screen.innerHTML=`
+<h3 class="title">DEPOSIT BALANCE</h3>
 
-<div class="planPage">
+<input id="amt" placeholder="Amount (RWF)">
+<input id="sender" placeholder="Sender name">
 
-<h3 class="planTitle">TIPPERS INVESTMENT PLAN</h3>
-
-<div class="planRow planHeader">
-<div>INVESTMENT</div><div>2.2%</div><div>3%</div><div>3.6%</div><div>4.1%</div><div>5%</div><div>7%</div>
-</div>
-
-<div class="planRow"><div>5,000</div><div>110</div><div>1,050</div><div>5,400</div><div>9,225</div><div>22,500</div><div>42,000</div></div>
-<div class="planRow"><div>50,000</div><div>1,100</div><div>10,500</div><div>54,000</div><div>92,250</div><div>225,000</div><div>420,000</div></div>
-<div class="planRow"><div>100,000</div><div>2,200</div><div>21,000</div><div>108,000</div><div>184,500</div><div>450,000</div><div>840,000</div></div>
-<div class="planRow"><div>150,000</div><div>3,300</div><div>31,500</div><div>162,000</div><div>276,750</div><div>675,000</div><div>1,260,000</div></div>
-<div class="planRow"><div>300,000</div><div>6,600</div><div>63,000</div><div>324,000</div><div>553,500</div><div>1,350,000</div><div>2,520,000</div></div>
-<div class="planRow"><div>500,000</div><div>11,000</div><div>105,000</div><div>540,000</div><div>922,500</div><div>2,250,000</div><div>4,200,000</div></div>
-<div class="planRow"><div>700,000</div><div>15,400</div><div>147,000</div><div>756,000</div><div>1,291,500</div><div>3,150,000</div><div>5,880,000</div></div>
-<div class="planRow"><div>1,000,000</div><div>22,000</div><div>210,000</div><div>1,080,000</div><div>1,845,000</div><div>4,500,000</div><div>8,400,000</div></div>
-<div class="planRow"><div>1,300,000</div><div>28,600</div><div>273,000</div><div>1,404,000</div><div>2,398,500</div><div>5,850,000</div><div>10,920,000</div></div>
-<div class="planRow"><div>1,500,000</div><div>33,000</div><div>315,000</div><div>1,620,000</div><div>2,767,500</div><div>6,250,000</div><div>12,600,000</div></div>
-
-<button onclick="deposit()">NEXT</button>
-
-</div>
+<button onclick="goPay()">CONTINUE</button>
 `;
+}
+
+function goPay(){
+let a=parseInt(amt.value);
+
+if(!a || !sender.value){
+toast("Fill all fields ❌");
 return;
 }
 
-/* AFTER DEPOSIT */
-let finalAmount=calculateProfit(amount,selectedPeriod);
+if(a < 5000){
+toast("Minimum is 5000 RWF ❌");
+return;
+}
+
+amount=a;
 
 screen.innerHTML=`
 <div class="card">
-<h2 class="title">Balance</h2>
-<h1>${finalAmount} RWF</h1>
+PAY TO: 0795410739 <br><br>
+BARAKA BOLINGO
 </div>
+
+<button onclick="finish()">DONE</button>
 `;
 }
 
-/* REST OF YOUR CODE (UNCHANGED) */
+function finish(){
+depositDone=true;
+toast("Deposit completed ✔");
+showHome();
+}
 
-function deposit(){ /* same as yours */ }
-function earn(){ /* same */ }
-function withdraw(){ /* same */ }
+/* NAV */
+function home(){
+if(!depositDone){
+toast("Complete deposit first ❌");
+return;
+}
+showHome();
+}
 
-start();
+function withdraw(){
+toast("Withdraw locked until plan ends ❌");
+}
 
 </script>
 
