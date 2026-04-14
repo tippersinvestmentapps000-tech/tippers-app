@@ -31,13 +31,12 @@ color:white;
 
 /* CONTENT */
 .content{
-padding:15px;
+padding:20px;
 height:520px;
 overflow-y:auto;
 animation:fade 0.4s ease;
 }
 
-/* ANIMATION */
 @keyframes fade{
 from{opacity:0;transform:translateY(10px);}
 to{opacity:1;transform:translateY(0);}
@@ -52,8 +51,8 @@ font-weight:bold;
 
 .desc{
 text-align:center;
-margin-top:10px;
 color:#ccc;
+margin-top:10px;
 }
 
 /* INPUT */
@@ -78,11 +77,6 @@ background:linear-gradient(135deg,#f59e0b,#f97316);
 color:white;
 font-weight:bold;
 cursor:pointer;
-transition:0.3s;
-}
-
-button:hover{
-transform:scale(1.05);
 }
 
 /* NAV */
@@ -97,11 +91,6 @@ padding:10px;
 text-align:center;
 cursor:pointer;
 opacity:0.5;
-transition:0.3s;
-}
-
-.nav div:hover{
-transform:scale(1.1);
 }
 
 .nav i{
@@ -110,46 +99,34 @@ font-size:20px;
 margin-bottom:3px;
 }
 
-.active{opacity:1 !important;}
+.active{opacity:1 !important}
 
 /* PLAN PAGE */
 .planPage{
 background:linear-gradient(to right,#93c5fd 50%, #ffffff 50%);
 color:black;
-border-radius:10px;
 padding:10px;
-animation:fade 0.5s ease;
+border-radius:10px;
 }
 
 .planTitle{
 text-align:center;
 font-weight:bold;
-font-size:18px;
 background:linear-gradient(135deg,#ff0000,#f59e0b);
 -webkit-background-clip:text;
 -webkit-text-fill-color:transparent;
 }
 
 /* TABLE */
-.planTable{
-font-size:11px;
-margin-top:10px;
-width:100%;
-}
-
 .row{
 display:grid;
 grid-template-columns:repeat(7,1fr);
 padding:6px;
+font-size:11px;
 text-align:center;
 }
 
-.header{
-background:black;
-color:white;
-font-weight:bold;
-}
-
+.header{background:black;color:white;font-weight:bold;}
 .row:nth-child(even){background:#eee;}
 .row:nth-child(odd){background:#ddd;}
 
@@ -172,7 +149,6 @@ display:none;
 <body>
 
 <div class="app">
-
 <div class="content" id="screen"></div>
 
 <div class="nav">
@@ -180,7 +156,6 @@ display:none;
 <div onclick="deposit()" id="depBtn"><i class="fa fa-wallet"></i>DEPOSIT</div>
 <div onclick="withdraw()" id="withBtn"><i class="fa fa-money-bill"></i>WITHDRAW</div>
 </div>
-
 </div>
 
 <div id="toast"></div>
@@ -222,7 +197,7 @@ lockIcons();
 
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP</h2>
-<p class="desc">Start now and grow your income smartly in tippers earning every time.</p>
+<p class="desc">Start now and grow your income smartly.</p>
 <button onclick="register()">START</button>
 `;
 }
@@ -231,20 +206,19 @@ screen.innerHTML=`
 function register(){
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
-<p class="desc">Fill all details correctly</p>
 
-<input id="f" placeholder="Enter first name">
-<input id="l" placeholder="Enter last name">
+<input id="f" placeholder="First name">
+<input id="l" placeholder="Last name">
 
 <select id="g">
-<option value="">Select gender</option>
+<option value="">Gender</option>
 <option>Male</option>
 <option>Female</option>
 </select>
 
 <input id="phone" placeholder="Phone number">
 
-<input id="email" placeholder="Enter email (@gmail.com)">
+<input id="email" placeholder="Email (@gmail.com)">
 <input id="pass" placeholder="6 digit password">
 <input id="cpass" placeholder="Confirm password">
 
@@ -256,12 +230,15 @@ function doRegister(){
 if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
 toast("Fill all fields ❌"); return;
 }
+
 if(!email.value.includes("@gmail.com")){
 toast("Invalid email ❌"); return;
 }
+
 if(!/^[0-9]{6}$/.test(pass.value)){
 toast("Password must be 6 digits ❌"); return;
 }
+
 if(pass.value!==cpass.value){
 toast("Passwords not match ❌"); return;
 }
@@ -276,12 +253,15 @@ login();
 /* LOGIN */
 function login(){
 screen.innerHTML=`
-<h3 class="title">Login to continue</h3>
+<h3 class="title">LOGIN</h3>
 
-<input id="le" placeholder="Enter email">
-<input id="lp" placeholder="Enter password">
+<input id="le" placeholder="Email">
+<input id="lp" placeholder="Password">
 
-<p class="desc">Forgot password? Use reset option</p>
+<div style="display:flex;justify-content:space-between">
+<span onclick="forgot()" style="color:#f59e0b;cursor:pointer">Forgot password</span>
+<span onclick="register()" style="color:#f59e0b;cursor:pointer">Create account</span>
+</div>
 
 <button onclick="doLogin()">LOGIN</button>
 `;
@@ -302,6 +282,36 @@ unlockDeposit();
 plan();
 }
 
+/* FORGOT */
+function forgot(){
+screen.innerHTML=`
+<h3 class="title">RESET PASSWORD</h3>
+
+<input id="fe" placeholder="Email">
+<input id="np" placeholder="New 6 digit password">
+
+<button onclick="reset()">RESET</button>
+`;
+}
+
+function reset(){
+let u=users.find(x=>x.email===fe.value);
+
+if(!u){
+toast("Email not found ❌"); return;
+}
+
+if(!/^[0-9]{6}$/.test(np.value)){
+toast("Password must be 6 digits ❌"); return;
+}
+
+u.pass=np.value;
+localStorage.setItem("users",JSON.stringify(users));
+
+toast("Password updated ✔");
+login();
+}
+
 /* PLAN */
 function plan(){
 screen.innerHTML=`
@@ -309,9 +319,6 @@ screen.innerHTML=`
 <div class="planPage">
 
 <h3 class="planTitle">TIPPERS INVESTMENT PLAN</h3>
-<p class="desc">Choose your investment wisely</p>
-
-<div class="planTable">
 
 <div class="row header">
 <div>INVEST</div><div>2.2%</div><div>3%</div><div>3.6%</div><div>4.1%</div><div>5%</div><div>7%</div>
@@ -328,8 +335,6 @@ screen.innerHTML=`
 <div class="row"><div>1,300,000</div><div>28600</div><div>273000</div><div>1404000</div><div>2398500</div><div>5850000</div><div>10920000</div></div>
 <div class="row"><div>1,500,000</div><div>33000</div><div>315000</div><div>1620000</div><div>2767500</div><div>6250000</div><div>12600000</div></div>
 
-</div>
-
 <button onclick="deposit()">NEXT</button>
 
 </div>
@@ -343,11 +348,10 @@ toast("Finish previous step ❌"); return;
 }
 
 screen.innerHTML=`
-<h3 class="title">DEPOSIT BALANCE</h3>
-<p class="desc">Add funds using MTN mobile money</p>
+<h3 class="title">DEPOSIT</h3>
 
-<input id="amt" placeholder="Amount (RWF)">
-<p>Minimum: 5000 RWF</p>
+<input id="amt" placeholder="Amount">
+<p>Minimum 5000</p>
 
 <input id="sender" placeholder="Sender name">
 
@@ -369,10 +373,8 @@ proof();
 /* PROOF */
 function proof(){
 screen.innerHTML=`
-<p class="desc">Upload proof of payment screenshot</p>
-
+<p class="desc">Upload proof</p>
 <input type="file" id="file">
-
 <button onclick="finish()">SUBMIT</button>
 `;
 }
@@ -386,10 +388,7 @@ depositDone=true;
 unlockAll();
 
 screen.innerHTML=`
-<div class="card">
-<h2>Balance: ${amount} RWF</h2>
-<p class="desc">Wait until your withdraw schedule</p>
-</div>
+<h2 class="title">Balance: ${amount} RWF</h2>
 `;
 }
 
@@ -411,7 +410,7 @@ toast("You're not allowed before schedule");
 /* HOME */
 function home(){
 if(!depositDone){
-toast("Complete deposit first ❌"); return;
+toast("Finish deposit first ❌"); return;
 }
 screen.innerHTML=`<h2 class="title">Balance: ${amount} RWF</h2>`;
 }
