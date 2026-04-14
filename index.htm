@@ -29,19 +29,6 @@ display:flex;
 flex-direction:column;
 }
 
-/* disabled icons overlay */
-.disabled-icons{
-display:flex;
-justify-content:space-around;
-padding:10px;
-background:#020617;
-opacity:0.6;
-}
-
-.disabled-icons i{
-font-size:18px;
-}
-
 .content{
 padding:20px;
 height:520px;
@@ -49,7 +36,7 @@ overflow-y:auto;
 }
 
 .title{color:#f59e0b;text-align:center;font-weight:bold;}
-.desc{text-align:center;margin-top:10px;}
+.desc{text-align:center;margin-top:10px;font-size:13px;}
 
 input,select{
 width:100%;
@@ -97,34 +84,84 @@ border-radius:8px;
 display:none;
 }
 
+.card{
+background:#111;
+padding:15px;
+border-radius:12px;
+margin-top:10px;
+}
+
+/* ===== INVESTMENT TABLE ===== */
+.plan-title{
+text-align:center;
+font-weight:bold;
+color:#ff3b3b;
+margin-bottom:10px;
+}
+
+.sub-title{
+text-align:center;
+font-size:12px;
+color:#f59e0b;
+margin-bottom:10px;
+}
+
+.table{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:5px;
+font-size:10px;
+text-align:center;
+}
+
+.cell{
+background:#0f172a;
+padding:6px;
+border-radius:6px;
+color:white;
+}
+
+.cell.head{
+background:#f59e0b;
+color:black;
+font-weight:bold;
+}
+
+.table-wrapper{
+background:#000;
+padding:10px;
+border-radius:12px;
+border:1px solid #222;
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="app">
-
-<!-- ALWAYS VISIBLE ICONS (DISABLED VISUAL ONLY) -->
-<div class="disabled-icons">
-<i class="fa fa-home"></i>
-<i class="fa fa-wallet"></i>
-<i class="fa fa-chart-line"></i>
-<i class="fa fa-money-bill"></i>
-</div>
-
 <div class="content" id="screen"></div>
 
+<div class="nav" id="nav" style="display:none">
+<div onclick="home()"><i class="fa fa-home"></i>HOME</div>
+<div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
+<div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
+</div>
 </div>
 
 <div id="toast"></div>
 
 <script>
 
-let step="welcome";
-let depositDone=false;
-let amount=0;
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let currentUser = null;
+let depositDone = false;
+let amount = 0;
+let selectedPeriod = 0;
 
 const screen=document.getElementById("screen");
+const nav=document.getElementById("nav");
 
 /* TOAST */
 function toast(msg){
@@ -135,8 +172,9 @@ setTimeout(()=>t.style.display="none",2500);
 }
 
 /* START */
-start();
 function start(){
+nav.style.display="none";
+
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
 <p class="desc">Start now and grow your income smartly.</p>
@@ -144,108 +182,227 @@ screen.innerHTML=`
 `;
 }
 
-/* REGISTER (WITH COUNTRY CODE RESTORED) */
+/* REGISTER */
 function register(){
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
 
-<input placeholder="First Name">
-<input placeholder="Last Name">
+<input id="f" placeholder="Enter first name">
+<input id="l" placeholder="Enter last name">
 
-<select>
-<option>Select gender</option>
+<select id="g">
+<option value="">Select gender</option>
 <option>Male</option>
 <option>Female</option>
 </select>
 
 <div class="row">
-<select>
-<option>RWA +250</option>
-<option>UGA +256</option>
-<option>KEN +254</option>
-<option>TZA +255</option>
-<option>ETH +251</option>
-<option>USA +1</option>
-<option>UK +44</option>
-<option>UGA +256</option>
-<option>DRC +243</option>
-<option>SA +27</option>
-<option>BUR +257</option>
-<option>RWA +250</option>
-<option>GHA +233</option>
-<option>NGA +234</option>
-<option>CAN +1</option>
-<option>GER +49</option>
-<option>FRA +33</option>
-<option>IND +91</option>
-<option>UAE +971</option>
-<option>EGY +20</option>
+<select id="code">
+<option value="+250">RWA +250</option>
+<option value="+254">KEN +254</option>
 </select>
-
-<input placeholder="Phone number">
+<input id="phone" placeholder="Phone number">
 </div>
 
-<input placeholder="Email">
-<input placeholder="6 digit password">
+<input id="email" placeholder="Enter your email">
+<input id="pass" placeholder="6 digit password">
+<input id="cpass" placeholder="Confirm password">
 
-<button onclick="login()">REGISTER</button>
+<button onclick="doRegister()">REGISTER</button>
 `;
+}
+
+/* REGISTER */
+function doRegister(){
+if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
+toast("Fill all fields ❌"); return;
+}
+
+if(!email.value.endsWith("@gmail.com")){
+toast("Invalid email ❌"); return;
+}
+
+if(!/^[0-9]{6}$/.test(pass.value)){
+toast("Password must be 6 digits ❌"); return;
+}
+
+if(pass.value!==cpass.value){
+toast("Passwords do not match ❌"); return;
+}
+
+users.push({email:email.value,pass:pass.value});
+localStorage.setItem("users",JSON.stringify(users));
+
+toast("Registered ✔");
+login();
 }
 
 /* LOGIN */
 function login(){
 screen.innerHTML=`
-<h3 class="title">LOGIN</h3>
+<h3 class="title">Login to continue</h3>
 
-<input placeholder="Email">
-<input placeholder="Password">
+<input id="le" placeholder="Enter email">
+<input id="lp" placeholder="Enter password">
 
-<button onclick="showHome()">LOGIN</button>
-`;
-}
-
-/* HOME TABLE + NEXT */
-function showHome(){
-depositDone=true;
-
-screen.innerHTML=`
-<h3 class="title">TIPPERS INVESTMENT PLAN</h3>
-
-<div style="font-size:12px;line-height:1.6;white-space:pre-line">
-5,000 RWF  | 110 RWF | 1,050 RWF | 5,400 RWF | 9,225 RWF | 22,500 RWF | 42,000 RWF
-50,000 RWF | 1,100 RWF | 10,500 RWF | 54,000 RWF | 92,250 RWF | 225,000 RWF | 420,000 RWF
-100,000 RWF | 2,200 RWF | 21,000 RWF | 108,000 RWF | 184,500 RWF | 450,000 RWF | 840,000 RWF
-150,000 RWF | 3,300 RWF | 31,500 RWF | 162,000 RWF | 276,750 RWF | 675,000 RWF | 1,260,000 RWF
-300,000 RWF | 6,600 RWF | 63,000 RWF | 324,000 RWF | 553,500 RWF | 1,350,000 RWF | 2,520,000 RWF
-500,000 RWF | 11,000 RWF | 105,000 RWF | 540,000 RWF | 922,500 RWF | 2,250,000 RWF | 4,200,000 RWF
-700,000 RWF | 15,400 RWF | 147,000 RWF | 756,000 RWF | 1,291,500 RWF | 3,150,000 RWF | 5,880,000 RWF
-1,000,000 RWF | 22,000 RWF | 210,000 RWF | 1,080,000 RWF | 1,845,000 RWF | 4,500,000 RWF | 8,400,000 RWF
-1,300,000 RWF | 28,600 RWF | 273,000 RWF | 1,404,000 RWF | 2,398,500 RWF | 5,850,000 RWF | 10,920,000 RWF
-1,500,000 RWF | 33,000 RWF | 315,000 RWF | 1,620,000 RWF | 2,767,500 RWF | 6,250,000 RWF | 12,600,000 RWF
+<div style="display:flex;justify-content:space-between">
+<span onclick="forgot()" style="color:#f59e0b;cursor:pointer">Forgot password</span>
+<span onclick="register()" style="color:#f59e0b;cursor:pointer">Create account</span>
 </div>
 
-<button onclick="next()">NEXT</button>
+<button onclick="doLogin()">LOGIN</button>
 `;
 }
 
-/* NEXT → DEPOSIT */
-function next(){
+/* LOGIN */
+function doLogin(){
+let user=users.find(u=>u.email===le.value);
+
+if(!user){toast("Account not found ❌");return;}
+if(lp.value!==user.pass){toast("Invalid password ❌");return;}
+
+currentUser=user;
+nav.style.display="flex";
+showPlan();   // 🔥 IMPORTANT CHANGE
+}
+
+/* ===== INVESTMENT PLAN ===== */
+function showPlan(){
+
+screen.innerHTML=`
+
+<div class="plan-title">TIPPERS INVESTMENT PLAN</div>
+
+<div class="sub-title">
+INVESTMENT • DAILY 2.2% • WEEK • MONTH • 45D • 3M • 4M
+</div>
+
+<div class="table-wrapper">
+
+<div class="table">
+
+<div class="cell head">INV</div>
+<div class="cell head">2.2%</div>
+<div class="cell head">WEEK</div>
+<div class="cell head">MONTH</div>
+<div class="cell head">45D</div>
+<div class="cell head">3M</div>
+<div class="cell head">4M</div>
+
+<!-- ROWS -->
+<div class="cell">5,000 RWF</div><div class="cell">110</div><div class="cell">1,050</div><div class="cell">5,400</div><div class="cell">9,225</div><div class="cell">22,500</div><div class="cell">42,000</div>
+
+<div class="cell">50,000</div><div class="cell">1,100</div><div class="cell">10,500</div><div class="cell">54,000</div><div class="cell">92,250</div><div class="cell">225,000</div><div class="cell">420,000</div>
+
+<div class="cell">100,000</div><div class="cell">2,200</div><div class="cell">21,000</div><div class="cell">108,000</div><div class="cell">184,500</div><div class="cell">450,000</div><div class="cell">840,000</div>
+
+<div class="cell">150,000</div><div class="cell">3,300</div><div class="cell">31,500</div><div class="cell">162,000</div><div class="cell">276,750</div><div class="cell">675,000</div><div class="cell">1,260,000</div>
+
+<div class="cell">300,000</div><div class="cell">6,600</div><div class="cell">63,000</div><div class="cell">324,000</div><div class="cell">553,500</div><div class="cell">1,350,000</div><div class="cell">2,520,000</div>
+
+<div class="cell">500,000</div><div class="cell">11,000</div><div class="cell">105,000</div><div class="cell">540,000</div><div class="cell">922,500</div><div class="cell">2,250,000</div><div class="cell">4,200,000</div>
+
+<div class="cell">700,000</div><div class="cell">15,400</div><div class="cell">147,000</div><div class="cell">756,000</div><div class="cell">1,291,500</div><div class="cell">3,150,000</div><div class="cell">5,880,000</div>
+
+<div class="cell">1,000,000</div><div class="cell">22,000</div><div class="cell">210,000</div><div class="cell">1,080,000</div><div class="cell">1,845,000</div><div class="cell">4,500,000</div><div class="cell">8,400,000</div>
+
+<div class="cell">1,300,000</div><div class="cell">28,600</div><div class="cell">273,000</div><div class="cell">1,404,000</div><div class="cell">2,398,500</div><div class="cell">5,850,000</div><div class="cell">10,920,000</div>
+
+<div class="cell">1,500,000</div><div class="cell">33,000</div><div class="cell">315,000</div><div class="cell">1,620,000</div><div class="cell">2,767,500</div><div class="cell">6,250,000</div><div class="cell">12,600,000</div>
+
+</div>
+</div>
+
+<button onclick="goDeposit()">NEXT</button>
+
+`;
+}
+
+/* NEXT -> DEPOSIT */
+function goDeposit(){
 deposit();
 }
 
 /* DEPOSIT */
 function deposit(){
 screen.innerHTML=`
-<h3 class="title">DEPOSIT</h3>
+<h3 class="title">DEPOSIT BALANCE</h3>
 
-<input placeholder="Amount (RWF)">
-<input placeholder="Sender Name">
+<input id="amt" placeholder="Amount (RWF)">
+<p class="desc">Minimum 5000 RWF</p>
 
-<button onclick="toast('Continue deposit process')">CONTINUE</button>
+<input id="sender" placeholder="Sender name">
+
+<button onclick="goPayment()">CONTINUE</button>
 `;
 }
 
-</script>
+/* PAYMENT FLOW (unchanged) */
+function goPayment(){
+amount=parseInt(amt.value);
+payment();
+}
 
+function payment(){
+screen.innerHTML=`
+<h3 class="title">PAYMENT INFORMATION</h3>
+
+<div class="card">
+0795410739<br><br>BARAKA BOLINGO
+</div>
+
+<button onclick="dial()">DIAL & PAY</button>
+`;
+}
+
+function dial(){
+screen.innerHTML=`
+<div>*182*1*1*0795410739#</div>
+
+<input type="file" id="file">
+<button onclick="submitProof()">SUBMIT</button>
+`;
+}
+
+function submitProof(){
+depositDone=true;
+withdrawPeriod();
+}
+
+function withdrawPeriod(){
+screen.innerHTML=`
+<h3 class="title">WITHDRAW PERIOD</h3>
+
+<select id="period">
+<option>1day</option>
+<option>7days</option>
+<option>14days</option>
+<option>45days</option>
+<option>3month</option>
+<option>4month</option>
+</select>
+
+<button onclick="finish()">SEND & CONFIRM</button>
+`;
+}
+
+function finish(){
+selectedPeriod=period.value;
+screen.innerHTML=`
+<div class="card">
+<h2 class="title">DONE</h2>
+<p class="desc">Process completed</p>
+</div>
+`;
+}
+
+/* HOME SHOW TABLE */
+function home(){
+showPlan();
+}
+
+start();
+
+</script>
 </body>
 </html>
