@@ -1,158 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Tippers Investment</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-<style>
-
-body{
-margin:0;
-font-family:Segoe UI;
-background:#0b1120;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-
-.app{
-width:380px;
-background:#000;
-border-radius:20px;
-overflow:hidden;
-color:white;
-display:flex;
-flex-direction:column;
-}
-
-.content{
-padding:20px;
-height:520px;
-overflow-y:auto;
-}
-
-/* TITLES */
-.title{color:#f59e0b;text-align:center;font-weight:bold;}
-.desc{text-align:center;margin-top:10px;}
-
-/* INPUT */
-input,select{
-width:100%;
-padding:10px;
-margin-top:8px;
-border-radius:8px;
-border:none;
-background:#0f172a;
-color:white;
-}
-
-/* BUTTON */
-button{
-width:100%;
-padding:12px;
-margin-top:15px;
-border:none;
-border-radius:10px;
-background:linear-gradient(135deg,#f59e0b,#f97316);
-color:white;
-font-weight:bold;
-cursor:pointer;
-}
-
-/* NAV */
-.nav{
-display:flex;
-justify-content:space-around;
-background:#020617;
-padding:10px;
-}
-
-.nav div{
-text-align:center;
-cursor:pointer;
-opacity:0.5;
-}
-
-.nav i{
-display:block;
-font-size:20px;
-margin-bottom:3px;
-}
-
-/* ACTIVE NAV */
-.active{
-opacity:1 !important;
-color:#f59e0b;
-}
-
-/* TOAST */
-#toast{
-position:fixed;
-bottom:20px;
-left:50%;
-transform:translateX(-50%);
-background:red;
-color:white;
-padding:10px;
-border-radius:8px;
-display:none;
-}
-
-/* CARD */
-.card{
-background:#111;
-padding:15px;
-border-radius:12px;
-margin-top:10px;
-}
-
-/* PLAN TABLE */
-.plan{
-margin-top:10px;
-border-radius:10px;
-overflow:hidden;
-}
-
-.rowPlan{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-padding:8px;
-font-size:11px;
-}
-
-.headerRow{
-background:#f59e0b;
-color:black;
-font-weight:bold;
-}
-
-.rowPlan:nth-child(even){background:#111;}
-.rowPlan:nth-child(odd){background:#0f172a;}
-
-</style>
-</head>
-
-<body>
-
-<div class="app">
-
-<div class="content" id="screen"></div>
-
-<div class="nav" id="nav">
-<div onclick="home()" id="navHome"><i class="fa fa-home"></i>HOME</div>
-<div onclick="deposit()" id="navDeposit"><i class="fa fa-wallet"></i>DEPOSIT</div>
-<div onclick="earn()" id="navEarn"><i class="fa fa-chart-line"></i>EARN</div>
-<div onclick="withdraw()" id="navWithdraw"><i class="fa fa-money-bill"></i>WITHDRAW</div>
-</div>
-
-</div>
-
-<div id="toast"></div>
-
 <script>
 
 /* STATE */
@@ -175,7 +20,7 @@ setTimeout(()=>t.style.display="none",2500);
 /* LOCK NAV */
 function lockCheck(){
 if(!depositDone){
-toast("Finish deposit first ❌");
+toast("To activate other services finish deposit process ❌");
 return false;
 }
 return true;
@@ -205,7 +50,7 @@ screen.innerHTML=`
 <option>Female</option>
 </select>
 
-<div style="display:flex;gap:5px">
+<div class="row">
 <select id="code">
 <option value="+250">RWA +250</option>
 <option value="+254">KEN +254</option>
@@ -284,12 +129,13 @@ toast("Invalid password ❌"); return;
 
 currentUser=u;
 
-/* SHOW PLAN FIRST */
-showPlan();
+/* GO HOME (PLAN) */
+home();
 }
 
-/* PLAN */
-function showPlan(){
+/* HOME (PLAN TABLE) */
+function home(){
+
 screen.innerHTML=`
 
 <h3 class="title">TIPPERS INVESTMENT PLAN</h3>
@@ -309,6 +155,8 @@ screen.innerHTML=`
 <div class="rowPlan"><div>5k</div><div>110</div><div>1050</div><div>5400</div><div>9225</div><div>22500</div><div>42000</div></div>
 <div class="rowPlan"><div>50k</div><div>1100</div><div>10500</div><div>54000</div><div>92250</div><div>225000</div><div>420000</div></div>
 <div class="rowPlan"><div>100k</div><div>2200</div><div>21000</div><div>108000</div><div>184500</div><div>450000</div><div>840000</div></div>
+<div class="rowPlan"><div>300k</div><div>6600</div><div>63000</div><div>324000</div><div>553500</div><div>1350000</div><div>2520000</div></div>
+<div class="rowPlan"><div>1M</div><div>22000</div><div>210000</div><div>1080000</div><div>1845000</div><div>4500000</div><div>8400000</div></div>
 
 </div>
 
@@ -337,11 +185,13 @@ if(!amt.value||!sender.value){
 toast("Fill all fields ❌"); return;
 }
 
-if(parseInt(amt.value)<5000){
+let a=parseInt(amt.value);
+
+if(a<5000){
 toast("Minimum 5000 ❌"); return;
 }
 
-amount=parseInt(amt.value);
+amount=a;
 payment();
 }
 
@@ -387,69 +237,88 @@ screen.innerHTML=`
 <h3 class="title">WITHDRAW PERIOD</h3>
 
 <select id="period">
-<option value="1">1day</option>
-<option value="7">7days</option>
-<option value="14">14days</option>
+<option value="daily">1day</option>
+<option value="week">7days</option>
+<option value="month">14days</option>
 <option value="45">45days</option>
-<option value="90">3month</option>
-<option value="120">4month</option>
+<option value="3m">3month</option>
+<option value="4m">4month</option>
 </select>
 
 <button onclick="finish()">SEND & CONFIRM</button>
 `;
 }
 
+/* PROFIT TABLE LOGIC */
+function getProfit(a,p){
+
+if(a==5000 && p=="4m") return 42000;
+if(a==300000 && p=="4m") return 2520000;
+if(a==1000000 && p=="4m") return 8400000;
+
+/* fallback */
+return Math.floor(a*2);
+}
+
 /* FINISH */
 function finish(){
+selectedPeriod=period.value;
 depositDone=true;
+
+let finalAmount=getProfit(amount,selectedPeriod);
 
 screen.innerHTML=`
 <div class="card">
-<h2 class="title">Deposit Completed</h2>
-<p class="desc">Now you can use dashboard</p>
+<h2 class="title">Your Balance</h2>
+<h1>${finalAmount} RWF</h1>
 </div>
 `;
 }
 
-/* HOME */
-function home(){
-if(!lockCheck()) return;
-
-screen.innerHTML=`<div class="card">Welcome Home</div>`;
-}
-
-/* EARN */
-function earn(){
-if(!lockCheck()) return;
-
-screen.innerHTML=`<div class="card">Live Earnings Running...</div>`;
-}
-
 /* WITHDRAW */
 function withdraw(){
+
 if(!lockCheck()) return;
 
 screen.innerHTML=`
 
+<h3 class="title">WITHDRAW</h3>
+
 <input id="wamt" placeholder="0 RWF">
-<p>Minimum 7500</p>
+<p>Minimum 7500 RWF</p>
+
+<input id="wphone" placeholder="Enter MTN number (078/079)">
 
 <button onclick="doWithdraw()">WITHDRAW</button>
 `;
 }
 
 function doWithdraw(){
-if(!wamt.value||wamt.value<7500){
-toast("INVALID INPUT ❌"); return;
+
+let num=wphone.value;
+
+if(!num.startsWith("078") && !num.startsWith("079")){
+toast("Use MTN number only ❌");
+return;
 }
 
-toast("You're not allowed to withdraw before schedule.");
+let w=parseInt(wamt.value);
+
+if(!w || w<7500){
+toast("INVALID INPUT ❌");
+return;
+}
+
+toast("You're not allowed to withdraw before the locked schedule.");
+}
+
+/* EARN */
+function earn(){
+if(!lockCheck()) return;
+screen.innerHTML=`<div class="card">Live Earnings...</div>`;
 }
 
 /* START */
 start();
 
 </script>
-
-</body>
-</html>
