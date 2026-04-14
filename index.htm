@@ -228,7 +228,17 @@ screen.innerHTML=`
 <button onclick="doLogin()">LOGIN</button>
 `;
 }
+function enableHomeOnly(){
+nav.style.display="flex";
 
+/* lock all icons first */
+document.querySelectorAll(".nav div").forEach(i=>{
+i.classList.add("locked");
+});
+
+/* unlock ONLY home */
+document.getElementById("homeIcon").classList.remove("locked");
+}
 /* FORGOT PASSWORD PAGE */
 function forgot(){
 screen.innerHTML=`
@@ -272,7 +282,12 @@ toast("Password reset successfully ✔");
 
 login();
 }
-  
+current=u;
+
+/* enable only home icon */
+enableHomeOnly();
+
+showTable();  
 /* TABLE */
 function showTable(){
 screen.innerHTML=`
