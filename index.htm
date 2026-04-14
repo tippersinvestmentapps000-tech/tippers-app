@@ -9,15 +9,15 @@
 
 <style>
 
-/* SPLIT BACKGROUND */
+/* BODY */
 body{
 margin:0;
 font-family:Segoe UI;
-height:100vh;
+background:#0b1120;
 display:flex;
 justify-content:center;
 align-items:center;
-background:linear-gradient(to right,#93c5fd 50%, #ffffff 50%);
+height:100vh;
 }
 
 /* APP */
@@ -36,16 +36,17 @@ height:520px;
 overflow-y:auto;
 }
 
-/* TITLES */
+/* TITLE */
 .title{
+color:#f59e0b;
 text-align:center;
 font-weight:bold;
-background:linear-gradient(135deg,#ff0000,#f59e0b);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
 }
 
-.desc{text-align:center;margin-top:10px;color:white;}
+.desc{
+text-align:center;
+margin-top:10px;
+}
 
 /* INPUT */
 input,select{
@@ -54,8 +55,8 @@ padding:10px;
 margin-top:8px;
 border-radius:8px;
 border:none;
-background:white;
-color:black;
+background:#0f172a;
+color:white;
 }
 
 /* BUTTON */
@@ -79,37 +80,22 @@ background:#020617;
 padding:10px;
 }
 
-.nav div{text-align:center;cursor:pointer;}
-.nav i{display:block;font-size:20px;margin-bottom:3px;}
-
-/* CARD */
-.card{
-background:#111;
-padding:15px;
-border-radius:12px;
-margin-top:10px;
+.nav div{
+text-align:center;
+cursor:pointer;
+opacity:0.5;
 }
 
-/* TABLE */
-.plan{
-margin-top:10px;
+.nav i{
+display:block;
+font-size:20px;
+margin-bottom:3px;
 }
 
-.rowPlan{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-padding:6px;
-font-size:11px;
+/* ACTIVE ICON */
+.active{
+opacity:1 !important;
 }
-
-.headerRow{
-background:black;
-color:white;
-font-weight:bold;
-}
-
-.rowPlan:nth-child(even){background:#111;}
-.rowPlan:nth-child(odd){background:#0f172a;}
 
 /* TOAST */
 #toast{
@@ -124,6 +110,42 @@ border-radius:8px;
 display:none;
 }
 
+/* PLAN PAGE SPECIAL */
+.planPage{
+background:linear-gradient(to right,#93c5fd 50%, #ffffff 50%);
+color:black;
+border-radius:10px;
+padding:10px;
+}
+
+.planTitle{
+text-align:center;
+font-weight:bold;
+background:linear-gradient(135deg,#ff0000,#f59e0b);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.planTable{
+font-size:11px;
+margin-top:10px;
+}
+
+.row{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+padding:6px;
+}
+
+.header{
+background:black;
+color:white;
+font-weight:bold;
+}
+
+.row:nth-child(even){background:#eee;}
+.row:nth-child(odd){background:#ddd;}
+
 </style>
 </head>
 
@@ -133,10 +155,19 @@ display:none;
 
 <div class="content" id="screen"></div>
 
-<div class="nav">
-<div onclick="home()"><i class="fa fa-home"></i>HOME</div>
-<div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
-<div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
+<!-- NAV ALWAYS VISIBLE -->
+<div class="nav" id="nav">
+<div onclick="home()" id="homeBtn">
+<i class="fa fa-home"></i>HOME
+</div>
+
+<div onclick="deposit()" id="depBtn">
+<i class="fa fa-wallet"></i>DEPOSIT
+</div>
+
+<div onclick="withdraw()" id="withBtn">
+<i class="fa fa-money-bill"></i>WITHDRAW
+</div>
 </div>
 
 </div>
@@ -147,9 +178,12 @@ display:none;
 
 /* STATE */
 let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser=null;
-let depositDone=false;
-let amount=0;
+let currentUser = null;
+let depositDone = false;
+let amount = 0;
+
+/* ELEMENT */
+const screen=document.getElementById("screen");
 
 /* TOAST */
 function toast(msg){
@@ -159,8 +193,26 @@ t.style.display="block";
 setTimeout(()=>t.style.display="none",2000);
 }
 
+/* LOCK ICONS */
+function lockIcons(){
+document.querySelectorAll(".nav div").forEach(x=>x.classList.remove("active"));
+}
+
+/* ENABLE AFTER LOGIN */
+function unlockDeposit(){
+lockIcons();
+document.getElementById("depBtn").classList.add("active");
+}
+
+function unlockWithdraw(){
+document.getElementById("withBtn").classList.add("active");
+document.getElementById("homeBtn").classList.add("active");
+}
+
 /* START */
 function start(){
+lockIcons();
+
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP</h2>
 <p class="desc">Start now and grow your income smartly.</p>
@@ -197,12 +249,15 @@ function doRegister(){
 if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
 toast("Fill all fields ❌"); return;
 }
+
 if(!email.value.includes("@gmail.com")){
 toast("Invalid email ❌"); return;
 }
+
 if(!/^[0-9]{6}$/.test(pass.value)){
 toast("Password must be 6 digits ❌"); return;
 }
+
 if(pass.value!==cpass.value){
 toast("Passwords not match ❌"); return;
 }
@@ -217,7 +272,7 @@ login();
 /* LOGIN */
 function login(){
 screen.innerHTML=`
-<h3 class="title">LOGIN</h3>
+<h3 class="title">Login</h3>
 
 <input id="le" placeholder="Email">
 <input id="lp" placeholder="Password">
@@ -227,83 +282,107 @@ screen.innerHTML=`
 }
 
 function doLogin(){
+
+if(!le.value||!lp.value){
+toast("Fill all fields ❌"); return;
+}
+
 let u=users.find(x=>x.email===le.value);
 
 if(!u){
 toast("Account not found ❌"); return;
 }
+
 if(lp.value!==u.pass){
 toast("Invalid password ❌"); return;
 }
 
 currentUser=u;
-home();
+unlockDeposit();
+
+plan(); // 👉 show plan FIRST
 }
 
-/* HOME (FULL TABLE) */
-function home(){
+/* PLAN PAGE */
+function plan(){
 
 screen.innerHTML=`
-<h3 class="title">INVESTMENT PLAN</h3>
 
-<div class="plan">
+<div class="planPage">
 
-<div class="rowPlan headerRow">
-<div>INVEST</div>
-<div>2.2%</div>
-<div>3%</div>
-<div>3.6%</div>
-<div>4.1%</div>
-<div>5%</div>
-<div>7%</div>
+<h3 class="planTitle">TIPPERS INVESTMENT PLAN</h3>
+
+<div class="planTable">
+
+<div class="row header">
+<div>INVEST</div><div>2.2%</div><div>3%</div><div>3.6%</div><div>4.1%</div><div>5%</div><div>7%</div>
 </div>
 
-<div class="rowPlan"><div>5,000</div><div>110</div><div>1050</div><div>5400</div><div>9225</div><div>22500</div><div>42000</div></div>
-<div class="rowPlan"><div>50,000</div><div>1100</div><div>10500</div><div>54000</div><div>92250</div><div>225000</div><div>420000</div></div>
-<div class="rowPlan"><div>100,000</div><div>2200</div><div>21000</div><div>108000</div><div>184500</div><div>450000</div><div>840000</div></div>
-<div class="rowPlan"><div>150,000</div><div>3300</div><div>31500</div><div>162000</div><div>276750</div><div>675000</div><div>1260000</div></div>
-<div class="rowPlan"><div>300,000</div><div>6600</div><div>63000</div><div>324000</div><div>553500</div><div>1350000</div><div>2520000</div></div>
-<div class="rowPlan"><div>500,000</div><div>11000</div><div>105000</div><div>540000</div><div>922500</div><div>2250000</div><div>4200000</div></div>
-<div class="rowPlan"><div>700,000</div><div>15400</div><div>147000</div><div>756000</div><div>1291500</div><div>3150000</div><div>5880000</div></div>
-<div class="rowPlan"><div>1,000,000</div><div>22000</div><div>210000</div><div>1080000</div><div>1845000</div><div>4500000</div><div>8400000</div></div>
-<div class="rowPlan"><div>1,300,000</div><div>28600</div><div>273000</div><div>1404000</div><div>2398500</div><div>5850000</div><div>10920000</div></div>
-<div class="rowPlan"><div>1,500,000</div><div>33000</div><div>315000</div><div>1620000</div><div>2767500</div><div>6250000</div><div>12600000</div></div>
+<div class="row"><div>5,000</div><div>110</div><div>1050</div><div>5400</div><div>9225</div><div>22500</div><div>42000</div></div>
+<div class="row"><div>50,000</div><div>1100</div><div>10500</div><div>54000</div><div>92250</div><div>225000</div><div>420000</div></div>
+<div class="row"><div>100,000</div><div>2200</div><div>21000</div><div>108000</div><div>184500</div><div>450000</div><div>840000</div></div>
+<div class="row"><div>150,000</div><div>3300</div><div>31500</div><div>162000</div><div>276750</div><div>675000</div><div>1260000</div></div>
+<div class="row"><div>300,000</div><div>6600</div><div>63000</div><div>324000</div><div>553500</div><div>1350000</div><div>2520000</div></div>
 
 </div>
 
 <button onclick="deposit()">NEXT</button>
+
+</div>
 `;
 }
 
 /* DEPOSIT */
 function deposit(){
+
+if(!document.getElementById("depBtn").classList.contains("active")){
+toast("Finish previous step ❌"); return;
+}
+
 screen.innerHTML=`
 <h3 class="title">DEPOSIT</h3>
 
-<input id="amt" placeholder="Amount (RWF)">
+<input id="amt" placeholder="Amount">
 <p>Minimum 5000</p>
 
 <input id="sender" placeholder="Sender name">
 
-<button onclick="pay()">CONTINUE</button>
+<button onclick="goPay()">CONTINUE</button>
 `;
 }
 
-function pay(){
+function goPay(){
+
 if(!amt.value||!sender.value){
 toast("Fill all fields ❌"); return;
 }
+
 if(amt.value<5000){
 toast("Minimum 5000 ❌"); return;
 }
+
 amount=amt.value;
-proof();
+payment();
+}
+
+/* PAYMENT */
+function payment(){
+screen.innerHTML=`
+<h3 class="title">PAYMENT</h3>
+
+<div class="card">
+0795410739<br><br>
+BARAKA BOLINGO
+</div>
+
+<button onclick="proof()">DIAL & PAY</button>
+`;
 }
 
 /* PROOF */
 function proof(){
 screen.innerHTML=`
-<p>Upload proof</p>
+<p>Upload proof of payment</p>
 <input type="file" id="file">
 <button onclick="finish()">SUBMIT</button>
 `;
@@ -313,13 +392,23 @@ function finish(){
 if(!file.value){
 toast("Upload proof ❌"); return;
 }
+
 depositDone=true;
+unlockWithdraw();
 
 screen.innerHTML=`
 <div class="card">
-<h2>Your Balance: ${amount} RWF</h2>
+<h2>Balance: ${amount} RWF</h2>
 </div>
 `;
+}
+
+/* HOME */
+function home(){
+if(!depositDone){
+toast("Finish deposit first ❌"); return;
+}
+screen.innerHTML=`<h2 class="title">Balance: ${amount} RWF</h2>`;
 }
 
 /* WITHDRAW */
@@ -337,7 +426,7 @@ toast("Use MTN only ❌"); return;
 toast("Not allowed before schedule");
 }
 
-/* START */
+/* INIT */
 start();
 
 </script>
