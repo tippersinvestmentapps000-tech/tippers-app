@@ -211,14 +211,13 @@ localStorage.setItem("users",JSON.stringify(users));
 toast("Registered successful!");
 login();
 }
-
-/* LOGIN */
+/* LOGIN PAGE */
 function login(){
 screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
 
-<input id="le" placeholder="Email">
-<input id="lp" placeholder="Password">
+<input id="le" placeholder="Enter your email">
+<input id="lp" placeholder="Enter your password">
 
 <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:5px">
 <span onclick="forgot()" style="cursor:pointer;color:#f59e0b">Forgot password?</span>
@@ -228,66 +227,40 @@ screen.innerHTML=`
 <button onclick="doLogin()">LOGIN</button>
 `;
 }
-function enableHomeOnly(){
-nav.style.display="flex";
 
-/* lock all icons first */
-document.querySelectorAll(".nav div").forEach(i=>{
-i.classList.add("locked");
-});
+/* LOGIN VALIDATION + DASHBOARD REDIRECT */
+function doLogin(){
 
-/* unlock ONLY home */
-document.getElementById("homeIcon").classList.remove("locked");
-}
-/* FORGOT PASSWORD PAGE */
-function forgot(){
-screen.innerHTML=`
-<h3 class="title">RESET PASSWORD</h3>
-
-<p class="desc">Enter your email to reset password</p>
-
-<input id="fe" placeholder="Registered email">
-<input id="np" placeholder="New password">
-<input id="cp" placeholder="Confirm password">
-
-<button onclick="resetPassword()">RESET PASSWORD</button>
-`;
-}
-
-/* RESET FUNCTION */
-function resetPassword(){
-
-if(!fe.value || !np.value || !cp.value){
-toast("Fill all fields"); return;
-}
-
-if(np.value !== cp.value){
-toast("Passwords do not match"); return;
+if(!le.value || !lp.value){
+toast("Fill all fields"); 
+return;
 }
 
 let users = JSON.parse(localStorage.getItem("users")) || [];
 
-let user = users.find(u => u.email === fe.value);
+let user = users.find(u => u.email === le.value && u.pass === lp.value);
 
 if(!user){
-toast("Email not found"); return;
+toast("Invalid email or password");
+return;
 }
 
-/* update password */
-user.pass = np.value;
+current=user;
 
-localStorage.setItem("users", JSON.stringify(users));
+/* SHOW NAV */
+nav.style.display="flex";
 
-toast("Password reset successfully ✔");
+/* LOCK ALL ICONS EXCEPT HOME */
+document.querySelectorAll(".nav div").forEach(i=>{
+i.classList.add("locked");
+});
+document.getElementById("homeIcon").classList.remove("locked");
 
-login();
+/* AUTO OPEN HOME DASHBOARD */
+showTable();
+
+toast("Login successful ✔");
 }
-current=u;
-
-/* enable only home icon */
-enableHomeOnly();
-
-showTable();  
 /* TABLE */
 function showTable(){
 screen.innerHTML=`
