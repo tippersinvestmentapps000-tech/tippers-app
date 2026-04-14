@@ -81,7 +81,7 @@ border-radius:8px;
 display:none;
 }
 
-/* TABLE */
+/* TABLE FIX */
 .tableWrap{
 overflow-x:auto;
 margin-top:10px;
@@ -89,7 +89,7 @@ border-radius:10px;
 }
 
 table{
-min-width:900px;
+min-width:1000px;
 border-collapse:collapse;
 font-size:12px;
 }
@@ -111,6 +111,14 @@ padding:15px;
 border-radius:12px;
 margin-top:10px;
 }
+
+.money{
+background:#111;
+padding:10px;
+border-radius:10px;
+text-align:center;
+}
+
 </style>
 </head>
 
@@ -122,6 +130,7 @@ margin-top:10px;
 <div class="nav" id="nav" style="display:none">
 <div onclick="home()"><i class="fa fa-home"></i>HOME</div>
 <div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
 <div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
 </div>
 </div>
@@ -130,9 +139,10 @@ margin-top:10px;
 
 <script>
 
-let step=0;
-let amount=0;
+let users=[];
 let depositDone=false;
+let amount=0;
+let selectedPeriod=0;
 
 const screen=document.getElementById("screen");
 const nav=document.getElementById("nav");
@@ -148,8 +158,8 @@ setTimeout(()=>t.style.display="none",2000);
 /* START */
 function start(){
 screen.innerHTML=`
-<h2 class="title">WELCOME TO TIPPERS INVESTMENT</h2>
-<p class="desc">Start your smart earning journey step by step</p>
+<h2 class="title">WELCOME TO TIPPERS INVESTMENT APP</h2>
+<p class="desc">Start smart investment journey with secure system</p>
 <button onclick="register()">START</button>
 `;
 }
@@ -158,11 +168,28 @@ screen.innerHTML=`
 function register(){
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
-<p class="desc">Fill all required fields correctly</p>
+<p class="desc">Fill all required information correctly</p>
 
-<input id="name" placeholder="Full name">
+<input id="f" placeholder="First name">
+<input id="l" placeholder="Last name">
+
+<select id="g">
+<option value="">Gender</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+
+<div class="row">
+<select id="code">
+<option>+250 MTN</option>
+<option>+254</option>
+</select>
+<input id="phone" placeholder="Phone number">
+</div>
+
 <input id="email" placeholder="Email">
 <input id="pass" placeholder="6 digit password">
+<input id="cpass" placeholder="Confirm password">
 
 <button onclick="login()">REGISTER</button>
 `;
@@ -183,12 +210,11 @@ screen.innerHTML=`
 `;
 }
 
-/* TABLE (RESTORED FULL HEADER) */
+/* TABLE FULL RESTORED */
 function showTable(){
-
 screen.innerHTML=`
 <h3 class="title">TIPPERS INVESTMENT PLAN</h3>
-<p class="desc">Daily / Weekly / Monthly profit structure</p>
+<p class="desc">Daily / Weekly / Monthly Profit Structure</p>
 
 <div class="tableWrap">
 <table>
@@ -246,14 +272,14 @@ screen.innerHTML=`
 `;
 }
 
-/* WITHDRAW (FIXED) */
+/* WITHDRAW (FULL FIX + MTN ONLY) */
 function withdraw(){
 screen.innerHTML=`
 <h3 class="title">WITHDRAW</h3>
-<p class="desc">Enter MTN number and amount</p>
+<p class="desc">MTN number required for withdrawal</p>
 
 <input id="wamt" placeholder="Amount">
-<input id="wphone" placeholder="MTN number +250...">
+<input id="wphone" placeholder="MTN +250 number">
 
 <button onclick="doWithdraw()">WITHDRAW</button>
 `;
@@ -265,7 +291,7 @@ toast("Fill all fields ❌");return;
 }
 
 if(!wphone.value.startsWith("+250")){
-toast("Use MTN number only ❌");return;
+toast("Only MTN allowed ❌");return;
 }
 
 if(parseInt(wamt.value)<7500){
