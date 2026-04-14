@@ -1,29 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tippers Investment</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:#0b1120;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.app{
+width:380px;
+background:#000;
+border-radius:20px;
+overflow:hidden;
+color:white;
+display:flex;
+flex-direction:column;
+}
+
+.content{
+padding:20px;
+height:520px;
+overflow-y:auto;
+}
+
+.title{color:#f59e0b;text-align:center;font-weight:bold;}
+.desc{text-align:center;margin-top:10px;}
+
+input,select{
+width:100%;
+padding:10px;
+margin-top:8px;
+border-radius:8px;
+border:none;
+background:#0f172a;
+color:white;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+background:linear-gradient(135deg,#f59e0b,#f97316);
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+.nav{
+display:flex;
+justify-content:space-around;
+background:#020617;
+padding:10px;
+}
+
+.nav div{
+text-align:center;
+cursor:pointer;
+opacity:0.5;
+}
+
+.nav i{
+display:block;
+font-size:20px;
+margin-bottom:3px;
+}
+
+.card{
+background:#111;
+padding:15px;
+border-radius:12px;
+margin-top:10px;
+}
+
+#toast{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:red;
+color:white;
+padding:10px;
+border-radius:8px;
+display:none;
+}
+
+.plan{
+margin-top:10px;
+}
+
+.rowPlan{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+font-size:11px;
+padding:6px;
+}
+
+.headerRow{
+background:#f59e0b;
+color:black;
+font-weight:bold;
+}
+
+.rowPlan:nth-child(even){background:#111;}
+.rowPlan:nth-child(odd){background:#0f172a;}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+<div class="content" id="screen"></div>
+
+<div class="nav">
+<div onclick="home()"><i class="fa fa-home"></i>HOME</div>
+<div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
+<div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
+</div>
+</div>
+
+<div id="toast"></div>
+
 <script>
 
-/* STATE */
 let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = null;
-let depositDone = false;
-let amount = 0;
-let selectedPeriod = 0;
+let currentUser=null;
+let depositDone=false;
+let amount=0;
 
 const screen=document.getElementById("screen");
 
-/* TOAST */
 function toast(msg){
 let t=document.getElementById("toast");
 t.innerText=msg;
 t.style.display="block";
-setTimeout(()=>t.style.display="none",2500);
-}
-
-/* LOCK NAV */
-function lockCheck(){
-if(!depositDone){
-toast("To activate other services finish deposit process ❌");
-return false;
-}
-return true;
+setTimeout(()=>t.style.display="none",2000);
 }
 
 /* START */
@@ -38,27 +164,20 @@ screen.innerHTML=`
 /* REGISTER */
 function register(){
 screen.innerHTML=`
-
 <h3 class="title">REGISTER</h3>
 
-<input id="f" placeholder="Enter first name">
-<input id="l" placeholder="Enter last name">
+<input id="f" placeholder="First name">
+<input id="l" placeholder="Last name">
 
 <select id="g">
-<option value="">Select gender</option>
+<option value="">Gender</option>
 <option>Male</option>
 <option>Female</option>
 </select>
 
-<div class="row">
-<select id="code">
-<option value="+250">RWA +250</option>
-<option value="+254">KEN +254</option>
-</select>
 <input id="phone" placeholder="Phone number">
-</div>
 
-<input id="email" placeholder="Enter your email">
+<input id="email" placeholder="Email (@gmail.com)">
 <input id="pass" placeholder="6 digit password">
 <input id="cpass" placeholder="Confirm password">
 
@@ -66,23 +185,18 @@ screen.innerHTML=`
 `;
 }
 
-/* REGISTER */
 function doRegister(){
-
 if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
 toast("Fill all fields ❌"); return;
 }
-
-if(!email.value.endsWith("@gmail.com")){
+if(!email.value.includes("@gmail.com")){
 toast("Invalid email ❌"); return;
 }
-
 if(!/^[0-9]{6}$/.test(pass.value)){
 toast("Password must be 6 digits ❌"); return;
 }
-
 if(pass.value!==cpass.value){
-toast("Passwords do not match ❌"); return;
+toast("Passwords not match ❌"); return;
 }
 
 users.push({email:email.value,pass:pass.value});
@@ -95,69 +209,43 @@ login();
 /* LOGIN */
 function login(){
 screen.innerHTML=`
+<h3 class="title">Login</h3>
 
-<h3 class="title">Login to continue</h3>
-
-<input id="le" placeholder="Enter email">
-<input id="lp" placeholder="Enter password">
-
-<div style="display:flex;justify-content:space-between">
-<span onclick="forgot()" style="color:#f59e0b;cursor:pointer">Forgot password</span>
-<span onclick="register()" style="color:#f59e0b;cursor:pointer">Create account</span>
-</div>
+<input id="le" placeholder="Email">
+<input id="lp" placeholder="Password">
 
 <button onclick="doLogin()">LOGIN</button>
 `;
 }
 
-/* LOGIN */
 function doLogin(){
-
-if(!le.value||!lp.value){
-toast("Fill all fields ❌"); return;
-}
-
 let u=users.find(x=>x.email===le.value);
 
 if(!u){
 toast("Account not found ❌"); return;
 }
-
 if(lp.value!==u.pass){
 toast("Invalid password ❌"); return;
 }
 
 currentUser=u;
-
-/* GO HOME (PLAN) */
 home();
 }
 
-/* HOME (PLAN TABLE) */
+/* HOME (PLAN) */
 function home(){
 
 screen.innerHTML=`
-
-<h3 class="title">TIPPERS INVESTMENT PLAN</h3>
+<h3 class="title">INVESTMENT PLAN</h3>
 
 <div class="plan">
-
 <div class="rowPlan headerRow">
-<div>INVEST</div>
-<div>2.2%</div>
-<div>3%</div>
-<div>3.6%</div>
-<div>4.1%</div>
-<div>5%</div>
-<div>7%</div>
+<div>INV</div><div>2.2%</div><div>3%</div><div>3.6%</div><div>4.1%</div><div>5%</div><div>7%</div>
 </div>
 
 <div class="rowPlan"><div>5k</div><div>110</div><div>1050</div><div>5400</div><div>9225</div><div>22500</div><div>42000</div></div>
 <div class="rowPlan"><div>50k</div><div>1100</div><div>10500</div><div>54000</div><div>92250</div><div>225000</div><div>420000</div></div>
 <div class="rowPlan"><div>100k</div><div>2200</div><div>21000</div><div>108000</div><div>184500</div><div>450000</div><div>840000</div></div>
-<div class="rowPlan"><div>300k</div><div>6600</div><div>63000</div><div>324000</div><div>553500</div><div>1350000</div><div>2520000</div></div>
-<div class="rowPlan"><div>1M</div><div>22000</div><div>210000</div><div>1080000</div><div>1845000</div><div>4500000</div><div>8400000</div></div>
-
 </div>
 
 <button onclick="deposit()">NEXT</button>
@@ -167,158 +255,76 @@ screen.innerHTML=`
 /* DEPOSIT */
 function deposit(){
 screen.innerHTML=`
+<h3 class="title">DEPOSIT</h3>
 
-<h3 class="title">DEPOSIT BALANCE</h3>
-
-<input id="amt" placeholder="Amount (RWF)">
-<p>Minimum 5000 RWF</p>
+<input id="amt" placeholder="Amount">
+<p>Minimum 5000</p>
 
 <input id="sender" placeholder="Sender name">
 
-<button onclick="goPayment()">CONTINUE</button>
+<button onclick="pay()">CONTINUE</button>
 `;
 }
 
-function goPayment(){
-
+function pay(){
 if(!amt.value||!sender.value){
 toast("Fill all fields ❌"); return;
 }
 
-let a=parseInt(amt.value);
-
-if(a<5000){
+if(amt.value<5000){
 toast("Minimum 5000 ❌"); return;
 }
 
-amount=a;
-payment();
+amount=amt.value;
+proof();
 }
 
-/* PAYMENT */
-function payment(){
+/* PROOF */
+function proof(){
 screen.innerHTML=`
-
-<h3 class="title">PAYMENT INFORMATION</h3>
-
-<div class="card">
-0795410739<br><br>BARAKA BOLINGO
-</div>
-
-<button onclick="dial()">DIAL & PAY</button>
-`;
-}
-
-/* DIAL */
-function dial(){
-screen.innerHTML=`
-
-<div>*182*1*1*0795410739#</div>
-
-<p class="desc">Upload proof of payment screenshot</p>
-
+<p>Upload proof</p>
 <input type="file" id="file">
-
-<button onclick="submitProof()">SUBMIT</button>
+<button onclick="finish()">SUBMIT</button>
 `;
 }
 
-function submitProof(){
+function finish(){
 if(!file.value){
 toast("Upload proof ❌"); return;
 }
-withdrawPeriod();
-}
-
-/* PERIOD */
-function withdrawPeriod(){
-screen.innerHTML=`
-
-<h3 class="title">WITHDRAW PERIOD</h3>
-
-<select id="period">
-<option value="daily">1day</option>
-<option value="week">7days</option>
-<option value="month">14days</option>
-<option value="45">45days</option>
-<option value="3m">3month</option>
-<option value="4m">4month</option>
-</select>
-
-<button onclick="finish()">SEND & CONFIRM</button>
-`;
-}
-
-/* PROFIT TABLE LOGIC */
-function getProfit(a,p){
-
-if(a==5000 && p=="4m") return 42000;
-if(a==300000 && p=="4m") return 2520000;
-if(a==1000000 && p=="4m") return 8400000;
-
-/* fallback */
-return Math.floor(a*2);
-}
-
-/* FINISH */
-function finish(){
-selectedPeriod=period.value;
 depositDone=true;
-
-let finalAmount=getProfit(amount,selectedPeriod);
 
 screen.innerHTML=`
 <div class="card">
-<h2 class="title">Your Balance</h2>
-<h1>${finalAmount} RWF</h1>
+<h2>Balance: ${amount} RWF</h2>
 </div>
 `;
 }
 
 /* WITHDRAW */
 function withdraw(){
-
-if(!lockCheck()) return;
-
-screen.innerHTML=`
-
-<h3 class="title">WITHDRAW</h3>
-
-<input id="wamt" placeholder="0 RWF">
-<p>Minimum 7500 RWF</p>
-
-<input id="wphone" placeholder="Enter MTN number (078/079)">
-
-<button onclick="doWithdraw()">WITHDRAW</button>
-`;
+if(!depositDone){
+toast("Finish deposit first ❌"); return;
 }
 
-function doWithdraw(){
+let num=prompt("Enter MTN number");
 
-let num=wphone.value;
-
-if(!num.startsWith("078") && !num.startsWith("079")){
-toast("Use MTN number only ❌");
-return;
+if(!num.startsWith("078")&&!num.startsWith("079")){
+toast("MTN only ❌"); return;
 }
 
-let w=parseInt(wamt.value);
-
-if(!w || w<7500){
-toast("INVALID INPUT ❌");
-return;
-}
-
-toast("You're not allowed to withdraw before the locked schedule.");
+toast("Not allowed yet");
 }
 
 /* EARN */
 function earn(){
-if(!lockCheck()) return;
-screen.innerHTML=`<div class="card">Live Earnings...</div>`;
+toast("Complete deposit first");
 }
 
 /* START */
 start();
 
 </script>
+
+</body>
+</html>
