@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-
 body{
 margin:0;
 font-family:Segoe UI;
@@ -19,6 +18,7 @@ align-items:center;
 height:100vh;
 }
 
+/* APP */
 .app{
 width:380px;
 background:#000;
@@ -29,15 +29,21 @@ display:flex;
 flex-direction:column;
 }
 
+/* SCREEN */
 .content{
 padding:20px;
 height:520px;
 overflow-y:auto;
-overflow-x:hidden;
+animation:fade .4s ease;
+}
+
+@keyframes fade{
+from{opacity:0;transform:translateY(10px)}
+to{opacity:1;transform:translateY(0)}
 }
 
 .title{color:#f59e0b;text-align:center;font-weight:bold;}
-.desc{text-align:center;margin-top:10px;font-size:13px;}
+.desc{text-align:center;margin-top:10px;color:#ddd}
 
 input,select{
 width:100%;
@@ -63,6 +69,7 @@ cursor:pointer;
 
 .row{display:flex;gap:5px;}
 
+/* NAV */
 .nav{
 display:flex;
 justify-content:space-around;
@@ -73,6 +80,7 @@ padding:10px;
 .nav div{text-align:center;cursor:pointer;}
 .nav i{display:block;font-size:20px;margin-bottom:3px;}
 
+/* TOAST */
 #toast{
 position:fixed;
 bottom:20px;
@@ -85,56 +93,61 @@ border-radius:8px;
 display:none;
 }
 
-.card{
-background:#111;
-padding:15px;
-border-radius:12px;
-margin-top:10px;
-}
-
-/* ===== TABLE FIX ===== */
-.table-wrapper{
-background:#000;
-padding:10px;
-border-radius:12px;
-border:1px solid #222;
-overflow-x:auto;
-}
-
-.table{
-display:grid;
-grid-template-columns:repeat(7, minmax(100px, 1fr));
-gap:6px;
-font-size:11px;
-text-align:center;
-min-width:750px;
-}
-
-.cell{
+/* TABLE */
+.tableWrap{
+margin-top:15px;
 background:#0f172a;
-padding:8px;
-border-radius:6px;
-white-space:nowrap;
+border-radius:12px;
+overflow:hidden;
 }
 
-.cell.head{
-background:#f59e0b;
-color:black;
-font-weight:bold;
-}
-
-.plan-title{
+.tableTitle{
 text-align:center;
-color:#ff3b3b;
+padding:10px;
 font-weight:bold;
-margin-bottom:5px;
-}
-
-.sub-title{
-text-align:center;
-font-size:12px;
 color:#f59e0b;
-margin-bottom:10px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+font-size:12px;
+}
+
+th,td{
+padding:8px;
+text-align:center;
+border:1px solid #1f2937;
+}
+
+th{
+background:#111827;
+color:#f59e0b;
+}
+
+/* LIVE ANIMATION */
+.money{
+position:relative;
+overflow:hidden;
+height:40px;
+background:#111;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.floating{
+position:absolute;
+color:#f59e0b;
+animation:rise 1.5s linear infinite;
+font-weight:bold;
+}
+
+@keyframes rise{
+0%{transform:translateY(20px);opacity:0}
+50%{opacity:1}
+100%{transform:translateY(-40px);opacity:0}
 }
 
 </style>
@@ -159,20 +172,22 @@ margin-bottom:10px;
 
 <script>
 
-let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = null;
-let depositDone = false;
-let amount = 0;
-let selectedPeriod = 0;
+let users=[];
+let currentUser=null;
+
+let depositDone=false;
+let amount=0;
+let selectedPeriod=0;
 
 const screen=document.getElementById("screen");
 const nav=document.getElementById("nav");
 
-function toast(msg){
+/* TOAST */
+function toast(m){
 let t=document.getElementById("toast");
-t.innerText=msg;
+t.innerText=m;
 t.style.display="block";
-setTimeout(()=>t.style.display="none",2500);
+setTimeout(()=>t.style.display="none",2000);
 }
 
 /* START */
@@ -180,7 +195,7 @@ function start(){
 nav.style.display="none";
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
-<p class="desc">Start now and grow your income smartly.</p>
+<p class="desc">Start smart investment and grow income step by step.</p>
 <button onclick="register()">START</button>
 `;
 }
@@ -189,6 +204,8 @@ screen.innerHTML=`
 function register(){
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
+
+<p class="desc">Fill all fields correctly before continuing.</p>
 
 <input id="f" placeholder="First name">
 <input id="l" placeholder="Last name">
@@ -201,13 +218,13 @@ screen.innerHTML=`
 
 <div class="row">
 <select id="code">
-<option>+250 RWA</option>
-<option>+254 KEN</option>
+<option value="+250">RWA +250</option>
+<option value="+254">KEN +254</option>
 </select>
-<input id="phone" placeholder="Phone">
+<input id="phone" placeholder="Phone number">
 </div>
 
-<input id="email" placeholder="Email">
+<input id="email" placeholder="Email @gmail.com">
 <input id="pass" placeholder="6 digit password">
 <input id="cpass" placeholder="Confirm password">
 
@@ -216,27 +233,20 @@ screen.innerHTML=`
 }
 
 function doRegister(){
-
 if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
-toast("Fill all fields ❌"); return;
+toast("Fill all fields ❌");return;
 }
-
-if(!email.value.includes("@")){
-toast("Invalid email ❌"); return;
+if(!email.value.endsWith("@gmail.com")){
+toast("Invalid email ❌");return;
 }
-
 if(!/^[0-9]{6}$/.test(pass.value)){
-toast("Password must be 6 digits ❌"); return;
+toast("Password must be 6 digits ❌");return;
 }
-
 if(pass.value!==cpass.value){
-toast("Passwords mismatch ❌"); return;
+toast("Password mismatch ❌");return;
 }
 
 users.push({email:email.value,pass:pass.value});
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Registered ✔");
 login();
 }
 
@@ -245,126 +255,204 @@ function login(){
 screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
 
+<p class="desc">Enter credentials to continue.</p>
+
 <input id="le" placeholder="Email">
 <input id="lp" placeholder="Password">
+
+<div style="display:flex;justify-content:space-between">
+<span onclick="forgot()" style="color:#f59e0b;cursor:pointer">Forgot password</span>
+<span onclick="register()" style="color:#f59e0b;cursor:pointer">Create account</span>
+</div>
 
 <button onclick="doLogin()">LOGIN</button>
 `;
 }
 
 function doLogin(){
-
 let u=users.find(x=>x.email===le.value);
-if(!u){toast("Account not found ❌");return;}
-if(lp.value!==u.pass){toast("Wrong password ❌");return;}
+if(!u){toast("User not found ❌");return;}
+if(u.pass!==lp.value){toast("Wrong password ❌");return;}
 
 currentUser=u;
 nav.style.display="flex";
-showPlan();
+
+/* SHOW TABLE FIRST */
+home();
 }
 
-/* ===== PLAN TABLE ===== */
-function showPlan(){
+/* TABLE HOME */
+function home(){
 
+if(!depositDone){
+screen.innerHTML=investmentTable();
+}else{
 screen.innerHTML=`
-<div class="plan-title">TIPPERS INVESTMENT PLAN</div>
-<div class="sub-title">2.2% • WEEK • MONTH • 45D • 3M • 4M</div>
+<h3 class="title">YOUR BALANCE</h3>
+<p class="desc">Access unlocked features</p>
+<div class="tableWrap">${investmentTable()}</div>
+`;
+}
+}
 
-<div class="table-wrapper">
-<div class="table">
+/* INVESTMENT TABLE */
+function investmentTable(){
+return `
+<div class="tableWrap">
+<div class="tableTitle">TIPPERS INVESTMENT PLAN</div>
 
-<div class="cell head">INV</div>
-<div class="cell head">2.2%</div>
-<div class="cell head">WEEK</div>
-<div class="cell head">MONTH</div>
-<div class="cell head">45D</div>
-<div class="cell head">3M</div>
-<div class="cell head">4M</div>
+<table>
+<tr>
+<th>AMOUNT</th>
+<th>DAILY 2.2%</th>
+<th>WEEK</th>
+<th>MONTH</th>
+<th>45D</th>
+<th>3M</th>
+<th>4M</th>
+</tr>
 
-<div class="cell">5K</div><div class="cell">110</div><div class="cell">1050</div><div class="cell">5400</div><div class="cell">9225</div><div class="cell">22500</div><div class="cell">42000</div>
-
-<div class="cell">50K</div><div class="cell">1100</div><div class="cell">10500</div><div class="cell">54000</div><div class="cell">92250</div><div class="cell">225K</div><div class="cell">420K</div>
-
-<div class="cell">100K</div><div class="cell">2200</div><div class="cell">21000</div><div class="cell">108000</div><div class="cell">184500</div><div class="cell">450K</div><div class="cell">840K</div>
-
-<div class="cell">150K</div><div class="cell">3300</div><div class="cell">31500</div><div class="cell">162000</div><div class="cell">276750</div><div class="cell">675K</div><div class="cell">1.26M</div>
-
-<div class="cell">300K</div><div class="cell">6600</div><div class="cell">63000</div><div class="cell">324000</div><div class="cell">553500</div><div class="cell">1.35M</div><div class="cell">2.52M</div>
-
-<div class="cell">500K</div><div class="cell">11000</div><div class="cell">105000</div><div class="cell">540000</div><div class="cell">922500</div><div class="cell">2.25M</div><div class="cell">4.2M</div>
-
-<div class="cell">700K</div><div class="cell">15400</div><div class="cell">147000</div><div class="cell">756000</div><div class="cell">1291500</div><div class="cell">3.15M</div><div class="cell">5.88M</div>
-
-<div class="cell">1M</div><div class="cell">22000</div><div class="cell">210000</div><div class="cell">1080000</div><div class="cell">1845000</div><div class="cell">4.5M</div><div class="cell">8.4M</div>
-
-<div class="cell">1.5M</div><div class="cell">33000</div><div class="cell">315000</div><div class="cell">1620000</div><div class="cell">2767500</div><div class="cell">6.25M</div><div class="cell">12.6M</div>
-
+<tr><td>5,000</td><td>110</td><td>1,050</td><td>5,400</td><td>9,225</td><td>22,500</td><td>42,000</td></tr>
+<tr><td>50,000</td><td>1,100</td><td>10,500</td><td>54,000</td><td>92,250</td><td>225,000</td><td>420,000</td></tr>
+<tr><td>100,000</td><td>2,200</td><td>21,000</td><td>108,000</td><td>184,500</td><td>450,000</td><td>840,000</td></tr>
+<tr><td>150,000</td><td>3,300</td><td>31,500</td><td>162,000</td><td>276,750</td><td>675,000</td><td>1,260,000</td></tr>
+<tr><td>300,000</td><td>6,600</td><td>63,000</td><td>324,000</td><td>553,500</td><td>1,350,000</td><td>2,520,000</td></tr>
+<tr><td>500,000</td><td>11,000</td><td>105,000</td><td>540,000</td><td>922,500</td><td>2,250,000</td><td>4,200,000</td></tr>
+<tr><td>700,000</td><td>15,400</td><td>147,000</td><td>756,000</td><td>1,291,500</td><td>3,150,000</td><td>5,880,000</td></tr>
+<tr><td>1,000,000</td><td>22,000</td><td>210,000</td><td>1,080,000</td><td>1,845,000</td><td>4,500,000</td><td>8,400,000</td></tr>
+<tr><td>1,300,000</td><td>28,600</td><td>273,000</td><td>1,404,000</td><td>2,398,500</td><td>5,850,000</td><td>10,920,000</td></tr>
+<tr><td>1,500,000</td><td>33,000</td><td>315,000</td><td>1,620,000</td><td>2,767,500</td><td>6,250,000</td><td>12,600,000</td></tr>
+</table>
 </div>
-</div>
 
-<button onclick="deposit()">NEXT</button>
+<button onclick="goDeposit()">NEXT</button>
 `;
 }
 
-/* DEPOSIT FLOW */
+/* NEXT -> DEPOSIT */
+function goDeposit(){
+deposit();
+}
+
+/* DEPOSIT */
 function deposit(){
 screen.innerHTML=`
 <h3 class="title">DEPOSIT</h3>
 
-<input id="amt" placeholder="Amount">
-<input id="sender" placeholder="Sender">
+<p class="desc">Add funds using MTN Mobile Money</p>
 
-<button onclick="goPayment()">CONTINUE</button>
+<input id="amt" placeholder="Amount">
+<p class="desc">Minimum 5000 RWF</p>
+
+<input id="sender" placeholder="Sender name">
+
+<button onclick="payment()">CONTINUE</button>
 `;
 }
 
-function goPayment(){
-amount=parseInt(amt.value);
-payment();
-}
-
+/* PAYMENT */
 function payment(){
 screen.innerHTML=`
 <h3 class="title">PAYMENT INFO</h3>
 
-<div class="card">0795410739<br>BARAKA BOLINGO</div>
+<p class="desc">Follow instructions carefully</p>
+
+<div class="card">
+0795410739<br><br>BARAKA BOLINGO
+</div>
 
 <button onclick="dial()">DIAL & PAY</button>
 `;
 }
 
+/* DIAL */
 function dial(){
 screen.innerHTML=`
+<p class="desc">*182*1*1*0795410739#</p>
+
 <input type="file" id="file">
-<button onclick="submitProof()">SUBMIT</button>
+
+<button onclick="submitProof()">UPLOAD</button>
 `;
 }
 
+/* PROOF */
 function submitProof(){
+if(!file.value){toast("Upload proof ❌");return;}
+withdrawPeriod();
+}
+
+/* WITHDRAW PERIOD */
+function withdrawPeriod(){
+screen.innerHTML=`
+<h3 class="title">WITHDRAW PERIOD</h3>
+
+<p class="desc">Select investment duration</p>
+
+<select id="period">
+<option value="1">1 Day</option>
+<option value="7">1 Week</option>
+<option value="14">2 Weeks</option>
+<option value="45">45 Days</option>
+<option value="90">3 Months</option>
+<option value="120">4 Months</option>
+</select>
+
+<button onclick="finish()">CONFIRM</button>
+`;
+}
+
+/* FINISH */
+function finish(){
+selectedPeriod=period.value;
 depositDone=true;
-withdraw();
+home();
+}
+
+/* LIVE EARN */
+function earn(){
+screen.innerHTML=`
+<h3 class="title">LIVE EARNINGS</h3>
+
+<div class="money" id="moneyBox">
+<div class="floating">+RWF</div>
+</div>
+`;
+
+setInterval(()=>{
+let el=document.createElement("div");
+el.className="floating";
+el.innerText="+"+Math.floor(Math.random()*5000)+" RWF";
+document.getElementById("moneyBox").appendChild(el);
+
+setTimeout(()=>el.remove(),1500);
+},800);
 }
 
 /* WITHDRAW */
 function withdraw(){
+
+if(!depositDone){
+toast("Complete deposit first ❌");return;
+}
+
 screen.innerHTML=`
 <h3 class="title">WITHDRAW</h3>
-<input placeholder="Amount">
-<button onclick="toast('Locked')">WITHDRAW</button>
+
+<p class="desc">Only available after activation</p>
+
+<input id="wamt" placeholder="Amount">
+
+<button onclick="doWithdraw()">WITHDRAW</button>
 `;
 }
 
-/* EARN */
-function earn(){
-screen.innerHTML=`
-<h3 class="title">LIVE EARNINGS</h3>
-<div class="card"><h2>0 RWF</h2></div>
-`;
+function doWithdraw(){
+if(!wamt.value){toast("Enter amount ❌");return;}
+if(parseInt(wamt.value)<7500){
+toast("INVALID INPUT ❌");return;
 }
-
-/* HOME */
-function home(){
-showPlan();
+toast("Withdraw locked until maturity ❌");
 }
 
 start();
