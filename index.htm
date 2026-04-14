@@ -29,16 +29,23 @@ display:flex;
 flex-direction:column;
 }
 
+/* disabled icons overlay */
+.disabled-icons{
+display:flex;
+justify-content:space-around;
+padding:10px;
+background:#020617;
+opacity:0.6;
+}
+
+.disabled-icons i{
+font-size:18px;
+}
+
 .content{
 padding:20px;
 height:520px;
 overflow-y:auto;
-animation:fade .3s ease;
-}
-
-@keyframes fade{
-from{opacity:0; transform:translateY(10px);}
-to{opacity:1; transform:translateY(0);}
 }
 
 .title{color:#f59e0b;text-align:center;font-weight:bold;}
@@ -78,26 +85,6 @@ padding:10px;
 .nav div{text-align:center;cursor:pointer;}
 .nav i{display:block;font-size:20px;margin-bottom:3px;}
 
-.card{
-background:#111;
-padding:12px;
-border-radius:12px;
-margin-top:10px;
-}
-
-.table-title{
-color:#f59e0b;
-text-align:center;
-font-weight:bold;
-margin-bottom:10px;
-}
-
-.table{
-font-size:12px;
-line-height:1.6;
-white-space:pre-line;
-}
-
 #toast{
 position:fixed;
 bottom:20px;
@@ -116,25 +103,28 @@ display:none;
 <body>
 
 <div class="app">
+
+<!-- ALWAYS VISIBLE ICONS (DISABLED VISUAL ONLY) -->
+<div class="disabled-icons">
+<i class="fa fa-home"></i>
+<i class="fa fa-wallet"></i>
+<i class="fa fa-chart-line"></i>
+<i class="fa fa-money-bill"></i>
+</div>
+
 <div class="content" id="screen"></div>
 
-<div class="nav" id="nav" style="display:none">
-<div onclick="home()"><i class="fa fa-home"></i>HOME</div>
-<div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
-<div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
-</div>
 </div>
 
 <div id="toast"></div>
 
 <script>
 
-let step = "welcome";
-let depositDone = false;
-let amount = 0;
+let step="welcome";
+let depositDone=false;
+let amount=0;
 
-const screen = document.getElementById("screen");
-const nav = document.getElementById("nav");
+const screen=document.getElementById("screen");
 
 /* TOAST */
 function toast(msg){
@@ -147,9 +137,6 @@ setTimeout(()=>t.style.display="none",2500);
 /* START */
 start();
 function start(){
-step="welcome";
-nav.style.display="none";
-
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
 <p class="desc">Start now and grow your income smartly.</p>
@@ -157,10 +144,8 @@ screen.innerHTML=`
 `;
 }
 
-/* REGISTER (simple) */
+/* REGISTER (WITH COUNTRY CODE RESTORED) */
 function register(){
-step="register";
-
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
 
@@ -173,7 +158,33 @@ screen.innerHTML=`
 <option>Female</option>
 </select>
 
+<div class="row">
+<select>
+<option>RWA +250</option>
+<option>UGA +256</option>
+<option>KEN +254</option>
+<option>TZA +255</option>
+<option>ETH +251</option>
+<option>USA +1</option>
+<option>UK +44</option>
+<option>UGA +256</option>
+<option>DRC +243</option>
+<option>SA +27</option>
+<option>BUR +257</option>
+<option>RWA +250</option>
+<option>GHA +233</option>
+<option>NGA +234</option>
+<option>CAN +1</option>
+<option>GER +49</option>
+<option>FRA +33</option>
+<option>IND +91</option>
+<option>UAE +971</option>
+<option>EGY +20</option>
+</select>
+
 <input placeholder="Phone number">
+</div>
+
 <input placeholder="Email">
 <input placeholder="6 digit password">
 
@@ -183,8 +194,6 @@ screen.innerHTML=`
 
 /* LOGIN */
 function login(){
-step="login";
-
 screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
 
@@ -195,31 +204,24 @@ screen.innerHTML=`
 `;
 }
 
-/* HOME TABLE */
+/* HOME TABLE + NEXT */
 function showHome(){
-step="home";
-nav.style.display="flex";
+depositDone=true;
 
 screen.innerHTML=`
-<div class="table-title">TIPPERS INVESTMENT PLAN</div>
+<h3 class="title">TIPPERS INVESTMENT PLAN</h3>
 
-<div class="card table">
-
-INVESTMENT | DAILY 2.2% | WEEK | MONTH | 45D | 3M | 4M
-
---------------------------------------------------------
-
-5,000 RWF   | 110 RWF   | 1,050 RWF | 5,400 RWF | 9,225 RWF | 22,500 RWF | 42,000 RWF  
-50,000 RWF  | 1,100 RWF | 10,500 RWF| 54,000 RWF| 92,250 RWF| 225,000 RWF| 420,000 RWF  
-100,000 RWF | 2,200 RWF | 21,000 RWF| 108,000 RWF| 184,500 RWF| 450,000 RWF| 840,000 RWF  
-150,000 RWF | 3,300 RWF | 31,500 RWF| 162,000 RWF| 276,750 RWF| 675,000 RWF| 1,260,000 RWF  
-300,000 RWF | 6,600 RWF | 63,000 RWF| 324,000 RWF| 553,500 RWF| 1,350,000 RWF| 2,520,000 RWF  
-500,000 RWF | 11,000 RWF| 105,000 RWF|540,000 RWF| 922,500 RWF| 2,250,000 RWF| 4,200,000 RWF  
-700,000 RWF | 15,400 RWF| 147,000 RWF|756,000 RWF| 1,291,500 RWF|3,150,000 RWF|5,880,000 RWF  
-1,000,000 RWF|22,000 RWF|210,000 RWF|1,080,000 RWF|1,845,000 RWF|4,500,000 RWF|8,400,000 RWF  
-1,300,000 RWF|28,600 RWF|273,000 RWF|1,404,000 RWF|2,398,500 RWF|5,850,000 RWF|10,920,000 RWF  
-1,500,000 RWF|33,000 RWF|315,000 RWF|1,620,000 RWF|2,767,500 RWF|6,250,000 RWF|12,600,000 RWF  
-
+<div style="font-size:12px;line-height:1.6;white-space:pre-line">
+5,000 RWF  | 110 RWF | 1,050 RWF | 5,400 RWF | 9,225 RWF | 22,500 RWF | 42,000 RWF
+50,000 RWF | 1,100 RWF | 10,500 RWF | 54,000 RWF | 92,250 RWF | 225,000 RWF | 420,000 RWF
+100,000 RWF | 2,200 RWF | 21,000 RWF | 108,000 RWF | 184,500 RWF | 450,000 RWF | 840,000 RWF
+150,000 RWF | 3,300 RWF | 31,500 RWF | 162,000 RWF | 276,750 RWF | 675,000 RWF | 1,260,000 RWF
+300,000 RWF | 6,600 RWF | 63,000 RWF | 324,000 RWF | 553,500 RWF | 1,350,000 RWF | 2,520,000 RWF
+500,000 RWF | 11,000 RWF | 105,000 RWF | 540,000 RWF | 922,500 RWF | 2,250,000 RWF | 4,200,000 RWF
+700,000 RWF | 15,400 RWF | 147,000 RWF | 756,000 RWF | 1,291,500 RWF | 3,150,000 RWF | 5,880,000 RWF
+1,000,000 RWF | 22,000 RWF | 210,000 RWF | 1,080,000 RWF | 1,845,000 RWF | 4,500,000 RWF | 8,400,000 RWF
+1,300,000 RWF | 28,600 RWF | 273,000 RWF | 1,404,000 RWF | 2,398,500 RWF | 5,850,000 RWF | 10,920,000 RWF
+1,500,000 RWF | 33,000 RWF | 315,000 RWF | 1,620,000 RWF | 2,767,500 RWF | 6,250,000 RWF | 12,600,000 RWF
 </div>
 
 <button onclick="next()">NEXT</button>
@@ -233,60 +235,14 @@ deposit();
 
 /* DEPOSIT */
 function deposit(){
-step="deposit";
-
 screen.innerHTML=`
-<h3 class="title">DEPOSIT BALANCE</h3>
+<h3 class="title">DEPOSIT</h3>
 
-<input id="amt" placeholder="Amount (RWF)">
-<input id="sender" placeholder="Sender name">
+<input placeholder="Amount (RWF)">
+<input placeholder="Sender Name">
 
-<button onclick="goPay()">CONTINUE</button>
+<button onclick="toast('Continue deposit process')">CONTINUE</button>
 `;
-}
-
-function goPay(){
-let a=parseInt(amt.value);
-
-if(!a || !sender.value){
-toast("Fill all fields ❌");
-return;
-}
-
-if(a < 5000){
-toast("Minimum is 5000 RWF ❌");
-return;
-}
-
-amount=a;
-
-screen.innerHTML=`
-<div class="card">
-PAY TO: 0795410739 <br><br>
-BARAKA BOLINGO
-</div>
-
-<button onclick="finish()">DONE</button>
-`;
-}
-
-function finish(){
-depositDone=true;
-toast("Deposit completed ✔");
-showHome();
-}
-
-/* NAV */
-function home(){
-if(!depositDone){
-toast("Complete deposit first ❌");
-return;
-}
-showHome();
-}
-
-function withdraw(){
-toast("Withdraw locked until plan ends ❌");
 }
 
 </script>
