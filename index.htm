@@ -17,7 +17,6 @@ justify-content:center;
 align-items:center;
 height:100vh;
 }
-
 .app{
 width:390px;
 height:95vh;
@@ -28,107 +27,33 @@ display:flex;
 flex-direction:column;
 color:white;
 }
-
 .content{
 flex:1;
 padding:15px;
 overflow-y:auto;
-animation:fade .3s ease;
 }
-
-@keyframes fade{
-from{opacity:0;transform:translateY(10px);}
-to{opacity:1;transform:translateY(0);}
-}
-
-.title{color:#f59e0b;text-align:center;font-weight:bold;}
+.title{color:#f59e0b;text-align:center;}
 .desc{text-align:center;color:#aaa;font-size:13px;}
-
 input,select{
-width:100%;
-padding:10px;
-margin-top:8px;
-border-radius:8px;
-border:none;
-background:#0f172a;
-color:white;
+width:100%;padding:10px;margin-top:8px;border-radius:8px;border:none;background:#0f172a;color:white;
 }
-
 button{
-width:100%;
-padding:12px;
-margin-top:15px;
-border:none;
-border-radius:10px;
-background:linear-gradient(135deg,#f59e0b,#f97316);
-color:white;
-font-weight:bold;
-cursor:pointer;
+width:100%;padding:12px;margin-top:15px;border:none;border-radius:10px;
+background:linear-gradient(135deg,#f59e0b,#f97316);color:white;cursor:pointer;
 }
-
 .row{display:flex;gap:5px;}
-
-.nav{
-display:flex;
-justify-content:space-around;
-background:#020617;
-padding:10px;
-}
-
-.nav div{
-text-align:center;
-cursor:pointer;
-font-size:12px;
-opacity:.8;
-}
-
-.nav i{display:block;font-size:18px;margin-bottom:3px;}
-
+.nav{display:flex;justify-content:space-around;background:#020617;padding:10px;}
+.nav div{text-align:center;cursor:pointer;font-size:12px;opacity:.8;}
+.nav i{display:block;}
 .locked{opacity:.3;pointer-events:none;}
-
 .toast{
-position:fixed;
-bottom:20px;
-left:50%;
-transform:translateX(-50%);
-background:red;
-color:white;
-padding:10px;
-border-radius:8px;
-display:none;
-font-size:13px;
+position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+background:red;color:white;padding:10px;border-radius:8px;display:none;
 }
-
-.table{
-overflow-x:auto;
-white-space:nowrap;
-margin-top:10px;
-background:#111;
-padding:10px;
-border-radius:10px;
-}
-
-.table div{
-display:grid;
-grid-template-columns:160px repeat(7,140px);
-gap:10px;
-padding:5px 0;
-}
-
-.cell{
-background:#0f172a;
-padding:8px;
-border-radius:6px;
-text-align:center;
-font-size:12px;
-}
-
-.card{
-background:#111;
-padding:12px;
-border-radius:10px;
-margin-top:10px;
-}
+.table{overflow-x:auto;white-space:nowrap;background:#111;padding:10px;border-radius:10px;}
+.table div{display:grid;grid-template-columns:160px repeat(7,140px);gap:10px;}
+.cell{background:#0f172a;padding:8px;border-radius:6px;text-align:center;font-size:12px;}
+.card{background:#111;padding:10px;border-radius:10px;margin-top:10px;}
 </style>
 </head>
 
@@ -149,15 +74,25 @@ margin-top:10px;
 
 <script>
 
+/* STATE */
 let users=JSON.parse(localStorage.getItem("users"))||[];
 let current=null;
 let depositDone=false;
-let amount=0;
-let period=1;
+
+/* REF SYSTEM */
+let referrer=null;
+const urlParams=new URLSearchParams(window.location.search);
+if(urlParams.get("ref")){
+referrer=urlParams.get("ref");
+localStorage.setItem("referrer",referrer);
+}else{
+referrer=localStorage.getItem("referrer");
+}
 
 const screen=document.getElementById("screen");
 const nav=document.getElementById("nav");
 
+/* TOAST */
 function toast(msg){
 let t=document.getElementById("toast");
 t.innerText=msg;
@@ -165,12 +100,11 @@ t.style.display="block";
 setTimeout(()=>t.style.display="none",2500);
 }
 
-/* WELCOME */
+/* START */
 function start(){
-nav.style.display="none";
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT</h2>
-<p class="desc">Start Earning now and look your better future! </p>
+<p class="desc">Start earning now!</p>
 <button onclick="register()">NEXT</button>
 `;
 }
@@ -178,16 +112,13 @@ screen.innerHTML=`
 /* REGISTER */
 function register(){
 screen.innerHTML=`
-<h3 class="title">REGISTER WITH GOOGLE ACCOUNT</h3>
+<h3 class="title">REGISTER</h3>
 
 <input id="fn" placeholder="First name">
 <input id="ln" placeholder="Last name">
 
 <div class="row">
-<select id="code">
-<option>+250</option>
-<option>+254</option>
-</select>
+<select><option>+250</option></select>
 <input id="phone" placeholder="Phone">
 </div>
 
@@ -195,72 +126,55 @@ screen.innerHTML=`
 <input id="pass" placeholder="Password">
 <input id="cpass" placeholder="Confirm password">
 
-<button onclick="doRegister()">REGISTER NOW</button>
+<button onclick="doRegister()">REGISTER</button>
 `;
 }
 
 function doRegister(){
 if(!fn.value||!ln.value||!phone.value||!email.value||!pass.value||!cpass.value){
-toast("Fill all fields"); return;
+toast("Fill all fields");return;
 }
-if(pass.value.length<4){toast("Weak password");return;}
-if(pass.value!==cpass.value){toast("Passwords mismatch");return;}
+if(pass.value!==cpass.value){
+toast("Passwords mismatch");return;
+}
 
-users.push({email:email.value,pass:pass.value});
+let newUser={
+email:email.value,
+pass:pass.value,
+ref:referrer
+};
+
+users.push(newUser);
 localStorage.setItem("users",JSON.stringify(users));
-toast("Registered successful!");
+
+toast("Registered ✔");
 login();
 }
-/* LOGIN PAGE */
+
+/* LOGIN */
 function login(){
 screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
-
-<input id="le" placeholder="Enter your email">
-<input id="lp" placeholder="Enter your password">
-
-<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:5px">
-<span onclick="forgot()" style="cursor:pointer;color:#f59e0b">Forgot password?</span>
-<span onclick="register()" style="cursor:pointer;color:#f59e0b">Create account</span>
-</div>
-
+<input id="le" placeholder="Email">
+<input id="lp" placeholder="Password">
 <button onclick="doLogin()">LOGIN</button>
 `;
 }
 
-/* LOGIN VALIDATION + DASHBOARD REDIRECT */
 function doLogin(){
-
-if(!le.value || !lp.value){
-toast("Fill all fields"); 
-return;
-}
-
-let users = JSON.parse(localStorage.getItem("users")) || [];
-
-let user = users.find(u => u.email === le.value && u.pass === lp.value);
-
-if(!user){
-toast("Invalid email or password");
-return;
-}
+let user=users.find(u=>u.email==le.value && u.pass==lp.value);
+if(!user){toast("Invalid login");return;}
 
 current=user;
-
-/* SHOW NAV */
 nav.style.display="flex";
 
-/* LOCK ALL ICONS EXCEPT HOME */
-document.querySelectorAll(".nav div").forEach(i=>{
-i.classList.add("locked");
-});
-document.getElementById("homeIcon").classList.remove("locked");
+/* unlock home */
+document.querySelectorAll(".nav div").forEach(i=>i.classList.add("locked"));
+homeIcon.classList.remove("locked");
 
-/* AUTO OPEN HOME DASHBOARD */
 showTable();
-
-toast("Login successful ✔");
 }
+
 /* TABLE */
 function showTable(){
 screen.innerHTML=`
@@ -269,109 +183,56 @@ screen.innerHTML=`
 <div class="table">
 <div>
 <div class="cell">INVESTMENT</div>
-<div class="cell">EVERY DAY</div>
-<div class="cell">PAYOUT WEEK</div>
-<div class="cell">PAYOUT MONTH</div>
-<div class="cell">PAYOUT 45DAYS</div>
-<div class="cell">PAYOUT 3MONTHS</div>
-<div class="cell">PAYOUT 4MONTHS</div>
+<div class="cell">DAY</div>
+<div class="cell">WEEK</div>
+<div class="cell">MONTH</div>
+<div class="cell">45D</div>
+<div class="cell">3M</div>
+<div class="cell">4M</div>
 </div>
 
-${[
-["5,000",110,1050,5400,9225,22500,42000],
-["50,000",1100,10500,54000,92250,225000,420000],
-["100,000",2200,21000,108000,184500,450000,840000],
-["150,000",3300,31500,162000,276750,675000,1260000],
-["300,000",6600,63000,324000,553500,1350000,2520000],
-["500,000",11000,105000,540000,922500,2250000,4200000],
-["700,000",15400,147000,756000,1291500,3150000,5880000],
-["1,000,000",22000,210000,1080000,1845000,4500000,8400000],
-["1,300,000",28600,273000,1404000,2398500,5850000,10920000],
-["1,500,000",33000,315000,1620000,2767500,6250000,12600000]
-].map(r=>`
-<div>
-<div class="cell">${r[0]} RWF</div>
-<div class="cell">${r[1]} RWF</div>
-<div class="cell">${r[2]} RWF</div>
-<div class="cell">${r[3]} RWF</div>
-<div class="cell">${r[4]} RWF</div>
-<div class="cell">${r[5]} RWF</div>
-<div class="cell">${r[6]} RWF</div>
-</div>
-`).join("")}
+<div><div class="cell">5,000 RWF</div><div class="cell">110</div><div class="cell">1,050</div><div class="cell">5,400</div><div class="cell">9,225</div><div class="cell">22,500</div><div class="cell">42,000</div></div>
+<div><div class="cell">50,000 RWF</div><div class="cell">1,100</div><div class="cell">10,500</div><div class="cell">54,000</div><div class="cell">92,250</div><div class="cell">225,000</div><div class="cell">420,000</div></div>
+
 </div>
 
+<button onclick="shareLink()">INVITE FRIEND</button>
 <button onclick="openDeposit()">NEXT</button>
 `;
 }
 
+/* SHARE */
+function shareLink(){
+let link=window.location.href+"?ref="+current.email;
+navigator.clipboard.writeText(link);
+toast("Link copied ✔");
+}
+
 /* DEPOSIT */
 function openDeposit(){
-unlockIcons();
+document.querySelectorAll(".nav div").forEach(i=>i.classList.remove("locked"));
+
 screen.innerHTML=`
-<h3 class="title">DEPOSIT AND PAYMENT PROCESS</h3>
-<p class="desc">Add funds using MTN Mobile Money.</p>
-
-<input id="amt" placeholder="Enter amount">
-<input id="sender" placeholder="Enter Sender name">
-
-<button onclick="payment()">CONTINUE →</button>
+<h3 class="title">DEPOSIT</h3>
+<input id="amt" placeholder="Amount">
+<input id="sender" placeholder="Sender name">
+<button onclick="payment()">CONTINUE</button>
 `;
 }
 
 function payment(){
-if(!amt.value||!sender.value){toast("Fill all");return;}
-amount=parseInt(amt.value);
-
 screen.innerHTML=`
-<h3 class="title">PAYMENT INFORMATION</h3>
-<div class="card">0795410739</div>
+<h3 class="title">PAYMENT</h3>
+<div class="card">0792459701</div>
 <div class="card">BARAKA BOLINGO</div>
-<div class="card">*182*1*1*0795410739#</div>
-<button onclick="proof()">FINISH</button>
-`;
-}
-
-function proof(){
-screen.innerHTML=`
-<h3 class="title">UPLOAD PROOF OF PAYMENT</h3>
-<input type="file" id="file">
-<button onclick="periodPage()">UPLOAD</button>
-`;
-}
-
-function periodPage(){
-screen.innerHTML=`
-<h3 class="title">SELECT THE PAYOUT PERIOD YOU WISH</h3>
-<div class="card">select your earning lock until to four months</div>
-<select id="p">
-<option value="1">1 Day</option>
-<option value="7">1 Week</option>
-<option value="30">1 Month</option>
-<option value="45">45 Days</option>
-<option value="90">3 Months</option>
-<option value="120">4 Months</option>
-</select>
-
-<button onclick="finish()">SUBMIT</button>
+<div class="card">*182*1*1*0792459701#</div>
+<button onclick="finish()">FINISH</button>
 `;
 }
 
 function finish(){
-period=p.value;
 depositDone=true;
-
-screen.innerHTML=`
-<h3 class="title">PAYMENT SUCCESSFUL</h3>
-<p class="desc">BALANCE ACTIVATED!</p>
-`;
-}
-
-/* UNLOCK ICONS */
-function unlockIcons(){
-document.querySelectorAll(".nav div").forEach(d=>{
-d.classList.remove("locked");
-});
+toast("Deposit successful ✔");
 }
 
 /* NAV */
@@ -379,24 +240,18 @@ function home(){showTable();}
 function deposit(){openDeposit();}
 
 function earn(){
-screen.innerHTML=`
-<h3 class="title">LIVE EARNING CHANGED PER SECOND</h3>
-<div class="card" id="live">0 RWF</div>
-`;
-let i=0;
-setInterval(()=>{
-i+=Math.random()*200;
-live.innerText=Math.floor(i)+" RWF";
-},1000);
+screen.innerHTML=`<h3 class="title">LIVE EARNING</h3>`;
 }
 
 function withdraw(){
+if(!depositDone){
+toast("Deposit first ❌");return;
+}
 screen.innerHTML=`
 <h3 class="title">WITHDRAW</h3>
-<div class="card">Welcome! Your Balance locked period is ended? you're allowed to Payout Now</div>
-<input type="text" id="AMOUNT" placeholder="Enter Amount">
-<input placeholder="Enter your MTN Mobile number">
-<button onclick="toast('Processing locked schedule')">PAYOUT NOW</button>
+<input placeholder="Amount">
+<input placeholder="MTN number">
+<button onclick="toast('Payout successful ✔')">PAYOUT</button>
 `;
 }
 
