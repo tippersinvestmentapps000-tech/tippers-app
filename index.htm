@@ -2,114 +2,42 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tippers Investment</title>
+<title>Tippers Investment DEMO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-body{
-margin:0;
-font-family:Segoe UI;
-background:#0b1120;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-
-.app{
-width:390px;
-height:95vh;
-background:#000;
-border-radius:20px;
-overflow:hidden;
-display:flex;
-flex-direction:column;
-color:white;
-}
-
-.content{
-flex:1;
-padding:15px;
-overflow-y:auto;
-}
-
+body{margin:0;font-family:Segoe UI;background:#0b1120;display:flex;justify-content:center;align-items:center;height:100vh;}
+.app{width:390px;height:95vh;background:#000;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;color:white;}
+.content{flex:1;padding:15px;overflow-y:auto;}
 .title{color:#f59e0b;text-align:center;}
 .desc{text-align:center;color:#aaa;font-size:13px;}
 
 input,select{
-width:100%;
-padding:10px;
-margin-top:8px;
-border-radius:8px;
-border:none;
-background:#0f172a;
-color:white;
+width:100%;padding:10px;margin-top:8px;border-radius:8px;border:none;background:#0f172a;color:white;
 }
 
 button{
-width:100%;
-padding:12px;
-margin-top:15px;
-border:none;
-border-radius:10px;
-background:linear-gradient(135deg,#f59e0b,#f97316);
-color:white;
-font-weight:bold;
-cursor:pointer;
+width:100%;padding:12px;margin-top:15px;border:none;border-radius:10px;
+background:linear-gradient(135deg,#f59e0b,#f97316);color:white;font-weight:bold;cursor:pointer;
 }
 
 .row{display:flex;gap:5px;}
 
-.nav{
-display:flex;
-justify-content:space-around;
-background:#020617;
-padding:10px;
-}
-
-.nav div{
-text-align:center;
-font-size:12px;
-opacity:.8;
-cursor:pointer;
-}
-
+.nav{display:flex;justify-content:space-around;background:#020617;padding:10px;}
+.nav div{text-align:center;font-size:12px;opacity:.8;cursor:pointer;}
 .locked{opacity:.3;pointer-events:none;}
 
 .toast{
-position:fixed;
-bottom:20px;
-left:50%;
-transform:translateX(-50%);
-background:red;
-padding:10px;
-border-radius:8px;
-display:none;
+position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+background:red;color:white;padding:10px;border-radius:8px;display:none;
 }
 
-.table{
-overflow-x:auto;
-white-space:nowrap;
-background:#111;
-padding:10px;
-border-radius:10px;
-}
-
-.table div{
-display:grid;
-grid-template-columns:160px repeat(7,140px);
-gap:10px;
-}
-
-.cell{
-background:#0f172a;
-padding:8px;
-border-radius:6px;
-text-align:center;
-font-size:12px;
-}
+.table{overflow-x:auto;background:#111;padding:10px;border-radius:10px;}
+.rowTable{display:grid;grid-template-columns:160px repeat(7,140px);gap:10px;margin-bottom:5px;}
+.cell{background:#0f172a;padding:8px;border-radius:6px;text-align:center;font-size:12px;}
+.card{background:#111;padding:12px;border-radius:10px;margin-top:10px;}
 </style>
 </head>
 
@@ -130,7 +58,7 @@ font-size:12px;
 
 <script>
 
-/* REF LINK READ */
+/* REF TRACK */
 let ref = new URLSearchParams(window.location.search).get("ref");
 if(ref){
 localStorage.setItem("referrer", ref);
@@ -138,12 +66,12 @@ localStorage.setItem("referrer", ref);
 
 /* STATE */
 let users = JSON.parse(localStorage.getItem("users")) || [];
-let current = null;
+let currentUser = null;
 let depositDone = false;
 let amount = 0;
 
-const screen = document.getElementById("screen");
-const nav = document.getElementById("nav");
+const screen=document.getElementById("screen");
+const nav=document.getElementById("nav");
 
 /* TOAST */
 function toast(msg){
@@ -158,7 +86,7 @@ function start(){
 nav.style.display="none";
 screen.innerHTML=`
 <h2 class="title">WELCOME</h2>
-<p class="desc">Start earning smartly</p>
+<p class="desc">Demo Investment System</p>
 <button onclick="register()">NEXT</button>
 `;
 }
@@ -185,18 +113,14 @@ screen.innerHTML=`
 }
 
 function doRegister(){
-
 if(!fn.value||!ln.value||!phone.value||!email.value||!pass.value||!cpass.value){
-toast("Fill all fields"); return;
+toast("Fill all fields ❌"); return;
 }
-
-if(pass.value!==cpass.value){
-toast("Password mismatch"); return;
-}
+if(pass.value!==cpass.value){toast("Password mismatch ❌");return;}
 
 let refBy = localStorage.getItem("referrer") || null;
 
-let newUser={
+let user={
 email:email.value,
 pass:pass.value,
 phone:phone.value,
@@ -204,7 +128,7 @@ balance:0,
 refBy:refBy
 };
 
-users.push(newUser);
+users.push(user);
 localStorage.setItem("users",JSON.stringify(users));
 
 toast("Registered ✔");
@@ -226,50 +150,65 @@ screen.innerHTML=`
 function doLogin(){
 if(!le.value||!lp.value){toast("Fill all");return;}
 
-let u = users.find(x=>x.email===le.value && x.pass===lp.value);
-
+let u=users.find(x=>x.email===le.value && x.pass===lp.value);
 if(!u){toast("Invalid");return;}
 
-current = u;
-
+currentUser=u;
 nav.style.display="flex";
 
-/* LOCK */
+/* lock icons */
 document.querySelectorAll(".nav div").forEach(i=>i.classList.add("locked"));
 document.getElementById("homeIcon").classList.remove("locked");
 
 home();
 }
 
-/* HOME TABLE */
+/* TABLE */
 function home(){
 screen.innerHTML=`
 <h3 class="title">TIPPERS PLAN</h3>
 
 <div class="table">
-<div>
+
+<div class="rowTable">
 <div class="cell">INVEST</div>
-<div class="cell">1 DAY</div>
-<div class="cell">1 WEEK</div>
-<div class="cell">1 MONTH</div>
-<div class="cell">45 DAYS</div>
-<div class="cell">3 MONTHS</div>
-<div class="cell">4 MONTHS</div>
+<div class="cell">1DAY</div>
+<div class="cell">1WEEK</div>
+<div class="cell">1MONTH</div>
+<div class="cell">45DAYS</div>
+<div class="cell">3MONTHS</div>
+<div class="cell">4MONTHS</div>
 </div>
 
-<div>
-<div class="cell">100,000 RWF</div>
-<div class="cell">2,200</div>
-<div class="cell">21,000</div>
-<div class="cell">108,000</div>
-<div class="cell">184,500</div>
-<div class="cell">450,000</div>
-<div class="cell">840,000</div>
+${[
+["100,000",2200,21000,108000,184500,450000,840000],
+["500,000",11000,105000,540000,922500,2250000,4200000]
+].map(r=>`
+<div class="rowTable">
+<div class="cell">${r[0]} RWF</div>
+<div class="cell">${r[1]}</div>
+<div class="cell">${r[2]}</div>
+<div class="cell">${r[3]}</div>
+<div class="cell">${r[4]}</div>
+<div class="cell">${r[5]}</div>
+<div class="cell">${r[6]}</div>
 </div>
+`).join("")}
+
 </div>
+
+<div class="card">Balance: ${currentUser.balance} RWF</div>
 
 <button onclick="unlockDeposit()">CONTINUE</button>
+<button onclick="copyLink()">COPY REFERRAL LINK</button>
 `;
+}
+
+/* COPY LINK */
+function copyLink(){
+let link = window.location.href.split("?")[0] + "?ref=" + currentUser.email;
+navigator.clipboard.writeText(link);
+toast("Link copied ✔");
 }
 
 /* UNLOCK */
@@ -281,4 +220,72 @@ deposit();
 /* DEPOSIT */
 function deposit(){
 screen.innerHTML=`
-<h3 class="title">DE
+<h3 class="title">DEPOSIT</h3>
+<p class="desc">Demo deposit</p>
+
+<input id="amt" placeholder="Amount">
+<input id="sender" placeholder="Sender name">
+
+<button onclick="pay()">CONTINUE</button>
+`;
+}
+
+function pay(){
+if(!amt.value||!sender.value){toast("Fill all");return;}
+amount=parseInt(amt.value);
+
+finishDeposit();
+}
+
+/* FINISH */
+function finishDeposit(){
+
+depositDone=true;
+
+/* REF BONUS */
+if(currentUser.refBy){
+let refUser=users.find(u=>u.email===currentUser.refBy);
+if(refUser){
+let bonus=Math.floor(amount*0.06);
+refUser.balance += bonus;
+toast("Referrer earned "+bonus+" RWF ✔");
+}
+}
+
+localStorage.setItem("users",JSON.stringify(users));
+
+document.getElementById("earnIcon").classList.remove("locked");
+document.getElementById("witIcon").classList.remove("locked");
+
+home();
+}
+
+/* EARN */
+function earn(){
+screen.innerHTML=`
+<h3 class="title">LIVE EARNING</h3>
+<div class="card" id="live">0 RWF</div>
+`;
+let i=0;
+setInterval(()=>{
+i+=Math.random()*500;
+live.innerText=Math.floor(i)+" RWF";
+},1000);
+}
+
+/* WITHDRAW */
+function withdraw(){
+screen.innerHTML=`
+<h3 class="title">WITHDRAW</h3>
+<input placeholder="Amount">
+<input placeholder="Phone number">
+<button onclick="toast('Payout successful ✔')">PAYOUT</button>
+`;
+}
+
+start();
+
+</script>
+
+</body>
+</html>
