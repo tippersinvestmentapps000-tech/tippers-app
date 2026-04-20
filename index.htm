@@ -148,13 +148,28 @@ screen.innerHTML=`
 /* REGISTER */
 function register(){
 screen.innerHTML=`
-<h3 class="title">REGISTER</h3>
+<h3>REGISTER WITH GOOGLE ACCOUNT</h3>
+
 <input id="fn" placeholder="First name">
 <input id="ln" placeholder="Last name">
-<input id="phone" placeholder="Phone">
+
+<!-- COUNTRY CODE FIX -->
+<div class="row">
+  <select id="code">
+    <option value="+250">🇷🇼 Rwanda +250</option>
+    <option value="+254">🇰🇪 Kenya +254</option>
+    <option value="+255">🇹🇿 Tanzania +255</option>
+    <option value="+256">🇺🇬 Uganda +256</option>
+  </select>
+
+  <input id="phone" placeholder="Phone number">
+</div>
+
 <input id="email" placeholder="Email">
 <input id="pass" placeholder="Password">
 <input id="cpass" placeholder="Confirm password">
+
+<!-- BUTTON FIX -->
 <button onclick="doRegister()">REGISTER</button>
 `;
 }
