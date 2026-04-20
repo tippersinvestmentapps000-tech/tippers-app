@@ -17,6 +17,7 @@ justify-content:center;
 align-items:center;
 height:100vh;
 }
+
 .app{
 width:390px;
 height:95vh;
@@ -27,33 +28,88 @@ display:flex;
 flex-direction:column;
 color:white;
 }
+
 .content{
 flex:1;
 padding:15px;
 overflow-y:auto;
 }
+
 .title{color:#f59e0b;text-align:center;}
 .desc{text-align:center;color:#aaa;font-size:13px;}
+
 input,select{
-width:100%;padding:10px;margin-top:8px;border-radius:8px;border:none;background:#0f172a;color:white;
+width:100%;
+padding:10px;
+margin-top:8px;
+border-radius:8px;
+border:none;
+background:#0f172a;
+color:white;
 }
+
 button{
-width:100%;padding:12px;margin-top:15px;border:none;border-radius:10px;
-background:linear-gradient(135deg,#f59e0b,#f97316);color:white;cursor:pointer;
+width:100%;
+padding:12px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+background:linear-gradient(135deg,#f59e0b,#f97316);
+color:white;
+font-weight:bold;
+cursor:pointer;
 }
+
 .row{display:flex;gap:5px;}
-.nav{display:flex;justify-content:space-around;background:#020617;padding:10px;}
-.nav div{text-align:center;cursor:pointer;font-size:12px;opacity:.8;}
-.nav i{display:block;}
-.locked{opacity:.3;pointer-events:none;}
-.toast{
-position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-background:red;color:white;padding:10px;border-radius:8px;display:none;
+
+.nav{
+display:flex;
+justify-content:space-around;
+background:#020617;
+padding:10px;
 }
-.table{overflow-x:auto;white-space:nowrap;background:#111;padding:10px;border-radius:10px;}
-.table div{display:grid;grid-template-columns:160px repeat(7,140px);gap:10px;}
-.cell{background:#0f172a;padding:8px;border-radius:6px;text-align:center;font-size:12px;}
-.card{background:#111;padding:10px;border-radius:10px;margin-top:10px;}
+
+.nav div{
+text-align:center;
+font-size:12px;
+opacity:.8;
+cursor:pointer;
+}
+
+.locked{opacity:.3;pointer-events:none;}
+
+.toast{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:red;
+padding:10px;
+border-radius:8px;
+display:none;
+}
+
+.table{
+overflow-x:auto;
+white-space:nowrap;
+background:#111;
+padding:10px;
+border-radius:10px;
+}
+
+.table div{
+display:grid;
+grid-template-columns:160px repeat(7,140px);
+gap:10px;
+}
+
+.cell{
+background:#0f172a;
+padding:8px;
+border-radius:6px;
+text-align:center;
+font-size:12px;
+}
 </style>
 </head>
 
@@ -74,23 +130,20 @@ background:red;color:white;padding:10px;border-radius:8px;display:none;
 
 <script>
 
-/* STATE */
-let users=JSON.parse(localStorage.getItem("users"))||[];
-let current=null;
-let depositDone=false;
-
-/* REF SYSTEM */
-let referrer=null;
-const urlParams=new URLSearchParams(window.location.search);
-if(urlParams.get("ref")){
-referrer=urlParams.get("ref");
-localStorage.setItem("referrer",referrer);
-}else{
-referrer=localStorage.getItem("referrer");
+/* REF LINK READ */
+let ref = new URLSearchParams(window.location.search).get("ref");
+if(ref){
+localStorage.setItem("referrer", ref);
 }
 
-const screen=document.getElementById("screen");
-const nav=document.getElementById("nav");
+/* STATE */
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let current = null;
+let depositDone = false;
+let amount = 0;
+
+const screen = document.getElementById("screen");
+const nav = document.getElementById("nav");
 
 /* TOAST */
 function toast(msg){
@@ -102,9 +155,10 @@ setTimeout(()=>t.style.display="none",2500);
 
 /* START */
 function start(){
+nav.style.display="none";
 screen.innerHTML=`
-<h2 class="title">WELCOME TO TIPPERS INVESTMENT</h2>
-<p class="desc">Start earning now!</p>
+<h2 class="title">WELCOME</h2>
+<p class="desc">Start earning smartly</p>
 <button onclick="register()">NEXT</button>
 `;
 }
@@ -118,30 +172,36 @@ screen.innerHTML=`
 <input id="ln" placeholder="Last name">
 
 <div class="row">
-<select><option>+250</option></select>
+<select id="code"><option>+250</option></select>
 <input id="phone" placeholder="Phone">
 </div>
 
 <input id="email" placeholder="Email">
 <input id="pass" placeholder="Password">
-<input id="cpass" placeholder="Confirm password">
+<input id="cpass" placeholder="Confirm Password">
 
 <button onclick="doRegister()">REGISTER</button>
 `;
 }
 
 function doRegister(){
+
 if(!fn.value||!ln.value||!phone.value||!email.value||!pass.value||!cpass.value){
-toast("Fill all fields");return;
+toast("Fill all fields"); return;
 }
+
 if(pass.value!==cpass.value){
-toast("Passwords mismatch");return;
+toast("Password mismatch"); return;
 }
+
+let refBy = localStorage.getItem("referrer") || null;
 
 let newUser={
 email:email.value,
 pass:pass.value,
-ref:referrer
+phone:phone.value,
+balance:0,
+refBy:refBy
 };
 
 users.push(newUser);
@@ -155,109 +215,70 @@ login();
 function login(){
 screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
+
 <input id="le" placeholder="Email">
 <input id="lp" placeholder="Password">
+
 <button onclick="doLogin()">LOGIN</button>
 `;
 }
 
 function doLogin(){
-let user=users.find(u=>u.email==le.value && u.pass==lp.value);
-if(!user){toast("Invalid login");return;}
+if(!le.value||!lp.value){toast("Fill all");return;}
 
-current=user;
+let u = users.find(x=>x.email===le.value && x.pass===lp.value);
+
+if(!u){toast("Invalid");return;}
+
+current = u;
+
 nav.style.display="flex";
 
-/* unlock home */
+/* LOCK */
 document.querySelectorAll(".nav div").forEach(i=>i.classList.add("locked"));
-homeIcon.classList.remove("locked");
+document.getElementById("homeIcon").classList.remove("locked");
 
-showTable();
+home();
 }
 
-/* TABLE */
-function showTable(){
+/* HOME TABLE */
+function home(){
 screen.innerHTML=`
-<h3 class="title">TIPPERS INVESTMENT PLAN</h3>
+<h3 class="title">TIPPERS PLAN</h3>
 
 <div class="table">
 <div>
-<div class="cell">INVESTMENT</div>
-<div class="cell">DAY</div>
-<div class="cell">WEEK</div>
-<div class="cell">MONTH</div>
-<div class="cell">45D</div>
-<div class="cell">3M</div>
-<div class="cell">4M</div>
+<div class="cell">INVEST</div>
+<div class="cell">1 DAY</div>
+<div class="cell">1 WEEK</div>
+<div class="cell">1 MONTH</div>
+<div class="cell">45 DAYS</div>
+<div class="cell">3 MONTHS</div>
+<div class="cell">4 MONTHS</div>
 </div>
 
-<div><div class="cell">5,000 RWF</div><div class="cell">110</div><div class="cell">1,050</div><div class="cell">5,400</div><div class="cell">9,225</div><div class="cell">22,500</div><div class="cell">42,000</div></div>
-<div><div class="cell">50,000 RWF</div><div class="cell">1,100</div><div class="cell">10,500</div><div class="cell">54,000</div><div class="cell">92,250</div><div class="cell">225,000</div><div class="cell">420,000</div></div>
-
+<div>
+<div class="cell">100,000 RWF</div>
+<div class="cell">2,200</div>
+<div class="cell">21,000</div>
+<div class="cell">108,000</div>
+<div class="cell">184,500</div>
+<div class="cell">450,000</div>
+<div class="cell">840,000</div>
+</div>
 </div>
 
-<button onclick="shareLink()">INVITE FRIEND</button>
-<button onclick="openDeposit()">NEXT</button>
+<button onclick="unlockDeposit()">CONTINUE</button>
 `;
 }
 
-/* SHARE */
-function shareLink(){
-let link=window.location.href+"?ref="+current.email;
-navigator.clipboard.writeText(link);
-toast("Link copied ✔");
+/* UNLOCK */
+function unlockDeposit(){
+document.getElementById("depIcon").classList.remove("locked");
+deposit();
 }
 
 /* DEPOSIT */
-function openDeposit(){
-document.querySelectorAll(".nav div").forEach(i=>i.classList.remove("locked"));
-
+function deposit(){
 screen.innerHTML=`
-<h3 class="title">DEPOSIT</h3>
-<input id="amt" placeholder="Amount">
-<input id="sender" placeholder="Sender name">
-<button onclick="payment()">CONTINUE</button>
-`;
-}
-
-function payment(){
-screen.innerHTML=`
-<h3 class="title">PAYMENT</h3>
-<div class="card">0792459701</div>
-<div class="card">BARAKA BOLINGO</div>
-<div class="card">*182*1*1*0792459701#</div>
-<button onclick="finish()">FINISH</button>
-`;
-}
-
-function finish(){
-depositDone=true;
-toast("Deposit successful ✔");
-}
-
-/* NAV */
-function home(){showTable();}
-function deposit(){openDeposit();}
-
-function earn(){
-screen.innerHTML=`<h3 class="title">LIVE EARNING</h3>`;
-}
-
-function withdraw(){
-if(!depositDone){
-toast("Deposit first ❌");return;
-}
-screen.innerHTML=`
-<h3 class="title">WITHDRAW</h3>
-<input placeholder="Amount">
-<input placeholder="MTN number">
-<button onclick="toast('Payout successful ✔')">PAYOUT</button>
-`;
-}
-
-start();
-
-</script>
-
-</body>
-</html>
+<h3 class="title">DE
