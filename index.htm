@@ -105,8 +105,7 @@ const screen = document.getElementById("screen");
 const nav = document.getElementById("nav");
 
 /* STATE */
-let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = null;
+let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
 let depositDone = false;
 let amount = 0;
 let selectedPeriod = 0;
@@ -140,6 +139,10 @@ screen.innerHTML=`
 /* REGISTER */
 function register(){
 let ref=new URLSearchParams(window.location.search).get("ref");
+  function getLink(){
+if(!currentUser) return "";
+return window.location.origin + "?ref=" + currentUser.refCode;
+}
 
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
@@ -218,14 +221,28 @@ screen.innerHTML=`
 }
 
 function doLogin(){
-let user=users.find(u=>u.email===val("le"));
 
-if(!user||user.pass!==val("lp")){
-toast("Wrong login ❌"); return;
+if(!val("le") || !val("lp")){
+toast("Fill all fields ❌"); return;
 }
 
-currentUser=user;
+let user = users.find(u=>u.email===val("le"));
+
+if(!user){
+toast("Account not found ❌"); return;
+}
+
+if(user.pass !== val("lp")){
+toast("Invalid password ❌"); return;
+}
+
+/* ✅ FIX */
+currentUser = user;
+localStorage.setItem("currentUser", JSON.stringify(user));
+
 nav.style.display="flex";
+
+/* IMPORTANT */
 deposit();
 }
 
@@ -238,17 +255,30 @@ toast("Link copied ✔");
 
 /* DEPOSIT */
 function deposit(){
+
+if(!currentUser){
+toast("Login first ❌");
+login();
+return;
+}
+
 screen.innerHTML=`
-<h3 class="title">DEPOSIT</h3>
-<input id="amt" placeholder="Amount">
-<input id="sender" placeholder="Sender">
+<h3 class="title">DEPOSIT BALANCE</h3>
+
+<input id="amt" placeholder="Amount (RWF)">
+<input id="sender" placeholder="Sender name">
+
 <button onclick="goPayment()">CONTINUE</button>
 
-<div class="card">${getLink()}</div>
+<div class="card">
+Referral Link:<br>
+${getLink()}
+</div>
+
 <button onclick="shareLink()">SHARE LINK</button>
 `;
 }
-
+/* payment*/
 function goPayment(){
 if(!val("amt")||!val("sender")){
 toast("Fill all fields ❌"); return;
