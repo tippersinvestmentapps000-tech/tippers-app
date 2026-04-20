@@ -2,42 +2,108 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tippers Investment DEMO</title>
+<title>Tippers Investment</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-body{margin:0;font-family:Segoe UI;background:#0b1120;display:flex;justify-content:center;align-items:center;height:100vh;}
-.app{width:390px;height:95vh;background:#000;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;color:white;}
-.content{flex:1;padding:15px;overflow-y:auto;}
-.title{color:#f59e0b;text-align:center;}
+body{
+margin:0;
+font-family:Segoe UI;
+background:#0b1120;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.app{
+width:390px;
+height:95vh;
+background:#000;
+border-radius:20px;
+overflow:hidden;
+display:flex;
+flex-direction:column;
+color:white;
+}
+
+.content{
+flex:1;
+padding:15px;
+overflow-y:auto;
+}
+
+.title{color:#f59e0b;text-align:center;font-weight:bold;}
 .desc{text-align:center;color:#aaa;font-size:13px;}
 
-input,select{
-width:100%;padding:10px;margin-top:8px;border-radius:8px;border:none;background:#0f172a;color:white;
+input{
+width:100%;
+padding:10px;
+margin-top:8px;
+border-radius:8px;
+border:none;
+background:#0f172a;
+color:white;
 }
 
 button{
-width:100%;padding:12px;margin-top:15px;border:none;border-radius:10px;
-background:linear-gradient(135deg,#f59e0b,#f97316);color:white;font-weight:bold;cursor:pointer;
+width:100%;
+padding:12px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+background:linear-gradient(135deg,#f59e0b,#f97316);
+color:white;
+font-weight:bold;
+cursor:pointer;
 }
 
-.row{display:flex;gap:5px;}
+.nav{
+display:flex;
+justify-content:space-around;
+background:#020617;
+padding:10px;
+}
 
-.nav{display:flex;justify-content:space-around;background:#020617;padding:10px;}
-.nav div{text-align:center;font-size:12px;opacity:.8;cursor:pointer;}
-.locked{opacity:.3;pointer-events:none;}
+.nav div{font-size:12px;cursor:pointer;opacity:.6}
+.nav i{display:block}
+
+.locked{pointer-events:none;opacity:.3}
+
+.table{
+overflow-x:auto;
+white-space:nowrap;
+margin-top:10px;
+background:#111;
+padding:10px;
+border-radius:10px;
+}
+
+.row{
+display:grid;
+grid-template-columns:160px repeat(7,140px);
+gap:10px;
+}
+
+.cell{
+background:#0f172a;
+padding:8px;
+border-radius:6px;
+text-align:center;
+}
 
 .toast{
-position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-background:red;color:white;padding:10px;border-radius:8px;display:none;
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:red;
+padding:10px;
+border-radius:8px;
+display:none;
 }
-
-.table{overflow-x:auto;background:#111;padding:10px;border-radius:10px;}
-.rowTable{display:grid;grid-template-columns:160px repeat(7,140px);gap:10px;margin-bottom:5px;}
-.cell{background:#0f172a;padding:8px;border-radius:6px;text-align:center;font-size:12px;}
-.card{background:#111;padding:12px;border-radius:10px;margin-top:10px;}
 </style>
 </head>
 
@@ -47,10 +113,10 @@ background:red;color:white;padding:10px;border-radius:8px;display:none;
 <div class="content" id="screen"></div>
 
 <div class="nav" id="nav" style="display:none">
-<div id="homeIcon" class="locked" onclick="home()"><i class="fa fa-home"></i>HOME</div>
-<div id="depIcon" class="locked" onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
-<div id="earnIcon" class="locked" onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
-<div id="witIcon" class="locked" onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
+<div id="homeI" class="locked" onclick="home()"><i class="fa fa-home"></i>HOME</div>
+<div id="depI" class="locked" onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div id="earnI" class="locked" onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
+<div id="witI" class="locked" onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
 </div>
 </div>
 
@@ -58,35 +124,23 @@ background:red;color:white;padding:10px;border-radius:8px;display:none;
 
 <script>
 
-/* REF TRACK */
-let ref = new URLSearchParams(window.location.search).get("ref");
-if(ref){
-localStorage.setItem("referrer", ref);
-}
-
-/* STATE */
-let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = null;
-let depositDone = false;
-let amount = 0;
+let users = JSON.parse(localStorage.getItem("users"))||[];
+let current=null;
 
 const screen=document.getElementById("screen");
 const nav=document.getElementById("nav");
 
-/* TOAST */
-function toast(msg){
+function toast(m){
 let t=document.getElementById("toast");
-t.innerText=msg;
+t.innerText=m;
 t.style.display="block";
-setTimeout(()=>t.style.display="none",2500);
+setTimeout(()=>t.style.display="none",2000);
 }
 
 /* START */
 function start(){
-nav.style.display="none";
 screen.innerHTML=`
 <h2 class="title">WELCOME</h2>
-<p class="desc">Demo Investment System</p>
 <button onclick="register()">NEXT</button>
 `;
 }
@@ -95,43 +149,35 @@ screen.innerHTML=`
 function register(){
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
-
 <input id="fn" placeholder="First name">
 <input id="ln" placeholder="Last name">
-
-<div class="row">
-<select id="code"><option>+250</option></select>
 <input id="phone" placeholder="Phone">
-</div>
-
 <input id="email" placeholder="Email">
 <input id="pass" placeholder="Password">
-<input id="cpass" placeholder="Confirm Password">
-
+<input id="cpass" placeholder="Confirm password">
 <button onclick="doRegister()">REGISTER</button>
 `;
 }
 
 function doRegister(){
 if(!fn.value||!ln.value||!phone.value||!email.value||!pass.value||!cpass.value){
-toast("Fill all fields ❌"); return;
+toast("Fill all");return;
 }
-if(pass.value!==cpass.value){toast("Password mismatch ❌");return;}
+if(pass.value!==cpass.value){toast("Mismatch");return;}
 
-let refBy = localStorage.getItem("referrer") || null;
+let id=Date.now();
 
-let user={
+let refLink=location.href.split("?")[0]+"?ref="+id;
+
+users.push({
+id,
 email:email.value,
 pass:pass.value,
-phone:phone.value,
-balance:0,
-refBy:refBy
-};
+refLink,
+refCount:0
+});
 
-users.push(user);
 localStorage.setItem("users",JSON.stringify(users));
-
-toast("Registered ✔");
 login();
 }
 
@@ -139,133 +185,113 @@ login();
 function login(){
 screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
-
 <input id="le" placeholder="Email">
 <input id="lp" placeholder="Password">
-
 <button onclick="doLogin()">LOGIN</button>
 `;
 }
 
 function doLogin(){
-if(!le.value||!lp.value){toast("Fill all");return;}
-
 let u=users.find(x=>x.email===le.value && x.pass===lp.value);
 if(!u){toast("Invalid");return;}
 
-currentUser=u;
+current=u;
 nav.style.display="flex";
 
-/* lock icons */
-document.querySelectorAll(".nav div").forEach(i=>i.classList.add("locked"));
-document.getElementById("homeIcon").classList.remove("locked");
+/* unlock home */
+document.getElementById("homeI").classList.remove("locked");
 
 home();
 }
 
-/* TABLE */
+/* HOME */
 function home(){
 screen.innerHTML=`
-<h3 class="title">TIPPERS PLAN</h3>
+<h3 class="title">TIPPERS INVESTMENT PLAN</h3>
 
 <div class="table">
 
-<div class="rowTable">
+<div class="row">
 <div class="cell">INVEST</div>
 <div class="cell">1DAY</div>
 <div class="cell">1WEEK</div>
 <div class="cell">1MONTH</div>
 <div class="cell">45DAYS</div>
-<div class="cell">3MONTHS</div>
-<div class="cell">4MONTHS</div>
+<div class="cell">3MONTH</div>
+<div class="cell">4MONTH</div>
 </div>
 
 ${[
-["100,000",2200,21000,108000,184500,450000,840000],
-["500,000",11000,105000,540000,922500,2250000,4200000]
+["5,000","110","1,050","5,400","9,225","22,500","42,000"],
+["50,000","1,100","10,500","54,000","92,250","225,000","420,000"],
+["100,000","2,200","21,000","108,000","184,500","450,000","840,000"],
+["150,000","3,300","31,500","162,000","276,750","675,000","1,260,000"],
+["300,000","6,600","63,000","324,000","553,500","1,350,000","2,520,000"],
+["500,000","11,000","105,000","540,000","922,500","2,250,000","4,200,000"],
+["700,000","15,400","147,000","756,000","1,291,500","3,150,000","5,880,000"],
+["1,000,000","22,000","210,000","1,080,000","1,845,000","4,500,000","8,400,000"],
+["1,300,000","28,600","273,000","1,404,000","2,398,500","5,850,000","10,920,000"],
+["1,500,000","33,000","315,000","1,620,000","2,767,500","6,250,000","12,600,000"]
 ].map(r=>`
-<div class="rowTable">
-<div class="cell">${r[0]} RWF</div>
-<div class="cell">${r[1]}</div>
-<div class="cell">${r[2]}</div>
-<div class="cell">${r[3]}</div>
-<div class="cell">${r[4]}</div>
-<div class="cell">${r[5]}</div>
-<div class="cell">${r[6]}</div>
-</div>
-`).join("")}
+<div class="row">
+${r.map(c=>`<div class="cell">${c} RWF</div>`).join("")}
+</div>`).join("")}
 
 </div>
 
-<div class="card">Balance: ${currentUser.balance} RWF</div>
+<div class="card">
+<p>Your referral link:</p>
+<input value="${current.refLink}" id="ref">
+<button onclick="copyRef()">COPY LINK</button>
+<p>Invited users: ${current.refCount}</p>
+</div>
 
 <button onclick="unlockDeposit()">CONTINUE</button>
-<button onclick="copyLink()">COPY REFERRAL LINK</button>
 `;
 }
 
-/* COPY LINK */
-function copyLink(){
-let link = window.location.href.split("?")[0] + "?ref=" + currentUser.email;
-navigator.clipboard.writeText(link);
+function copyRef(){
+navigator.clipboard.writeText(ref.value);
 toast("Link copied ✔");
 }
 
 /* UNLOCK */
 function unlockDeposit(){
-document.getElementById("depIcon").classList.remove("locked");
-deposit();
+document.getElementById("depI").classList.remove("locked");
+toast("Deposit unlocked");
 }
 
 /* DEPOSIT */
 function deposit(){
 screen.innerHTML=`
 <h3 class="title">DEPOSIT</h3>
-<p class="desc">Demo deposit</p>
-
 <input id="amt" placeholder="Amount">
-<input id="sender" placeholder="Sender name">
-
+<input id="name" placeholder="Sender name">
 <button onclick="pay()">CONTINUE</button>
 `;
 }
 
 function pay(){
-if(!amt.value||!sender.value){toast("Fill all");return;}
-amount=parseInt(amt.value);
+if(!amt.value||!name.value){toast("Fill all");return;}
 
-finishDeposit();
+screen.innerHTML=`
+<h3 class="title">PAY</h3>
+<div class="cell">0792459701</div>
+<div class="cell">BARAKA BOLINGO</div>
+<div class="cell">*182*1*1*0792459701#</div>
+<button onclick="finish()">FINISH</button>
+`;
 }
 
-/* FINISH */
-function finishDeposit(){
-
-depositDone=true;
-
-/* REF BONUS */
-if(currentUser.refBy){
-let refUser=users.find(u=>u.email===currentUser.refBy);
-if(refUser){
-let bonus=Math.floor(amount*0.06);
-refUser.balance += bonus;
-toast("Referrer earned "+bonus+" RWF ✔");
-}
-}
-
-localStorage.setItem("users",JSON.stringify(users));
-
-document.getElementById("earnIcon").classList.remove("locked");
-document.getElementById("witIcon").classList.remove("locked");
-
+function finish(){
+document.querySelectorAll(".nav div").forEach(i=>i.classList.remove("locked"));
+toast("Deposit done ✔");
 home();
 }
 
 /* EARN */
 function earn(){
-screen.innerHTML=`
-<h3 class="title">LIVE EARNING</h3>
-<div class="card" id="live">0 RWF</div>
-`;
+screen.innerHTML=`<h3>LIVE</h3><h1 id="live">0</h1>`;
 let i=0;
 setInterval(()=>{
 i+=Math.random()*500;
@@ -276,9 +302,9 @@ live.innerText=Math.floor(i)+" RWF";
 /* WITHDRAW */
 function withdraw(){
 screen.innerHTML=`
-<h3 class="title">WITHDRAW</h3>
+<h3>Withdraw</h3>
 <input placeholder="Amount">
-<input placeholder="Phone number">
+<input placeholder="Phone">
 <button onclick="toast('Payout successful ✔')">PAYOUT</button>
 `;
 }
