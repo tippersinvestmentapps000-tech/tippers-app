@@ -11,3 +11,98 @@
     "cors": "^2.8.5"
   }
 }
+const express = require("express");
+const cors = require("cors");
+
+const app = express(); // 🔥 THIS FIXES YOUR ERROR
+
+app.use(cors());
+app.use(express.json());
+
+// MEMORY DATABASE (demo)
+let users = {};
+
+// ======================
+// REGISTER
+// ======================
+app.post("/register", (req, res) => {
+const { email, password, ref } = req.body;
+
+const id = Date.now().toString();
+
+users[id] = {
+id,
+email,
+password,
+balance: 0,
+bonus: 0,
+refBy: ref || null
+};
+
+res.json({
+success: true,
+userId: id
+});
+});
+
+// ======================
+// LOGIN
+// ======================
+app.post("/login", (req, res) => {
+const { email, password } = req.body;
+
+let user = Object.values(users).find(
+u => u.email === email && u.password === password
+);
+
+if (!user) {
+return res.json({ success: false });
+}
+
+res.json({
+success: true,
+user
+});
+});
+
+// ======================
+// DEPOSIT + BONUS 6%
+// ======================
+app.post("/deposit", (req, res) => {
+const { userId, amount } = req.body;
+
+let user = users[userId];
+
+if (!user) {
+return res.json({ success: false, message: "User not found" });
+}
+
+// add balance
+user.balance += amount;
+
+// referral bonus
+if (user.refBy && users[user.refBy]) {
+let bonus = amount * 0.06;
+users[user.refBy].bonus += bonus;
+}
+
+res.json({
+success: true,
+balance: user.balance,
+bonus: user.bonus
+});
+});
+
+// ======================
+// GET USERS (DEBUG)
+// ======================
+app.get("/users", (req, res) => {
+res.json(users);
+});
+
+// ======================
+// START SERVER
+// ======================
+app.listen(3000, () => {
+console.log("Server running on http://localhost:3000");
+});
