@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-
 body{
 margin:0;
 font-family:Segoe UI;
@@ -18,7 +17,6 @@ justify-content:center;
 align-items:center;
 height:100vh;
 }
-
 .app{
 width:380px;
 background:#000;
@@ -28,16 +26,13 @@ color:white;
 display:flex;
 flex-direction:column;
 }
-
 .content{
 padding:20px;
 height:520px;
 overflow-y:auto;
 }
-
 .title{color:#f59e0b;text-align:center;font-weight:bold;}
 .desc{text-align:center;margin-top:10px;}
-
 input,select{
 width:100%;
 padding:10px;
@@ -47,7 +42,6 @@ border:none;
 background:#0f172a;
 color:white;
 }
-
 button{
 width:100%;
 padding:12px;
@@ -59,34 +53,33 @@ color:white;
 font-weight:bold;
 cursor:pointer;
 }
-
+.row{display:flex;gap:5px;}
 .nav{
 display:flex;
 justify-content:space-around;
 background:#020617;
 padding:10px;
 }
-
 .nav div{text-align:center;cursor:pointer;}
-
-.card{
-background:#111;
-padding:15px;
-border-radius:12px;
-margin-top:10px;
-}
-
+.nav i{display:block;font-size:20px;margin-bottom:3px;}
 #toast{
 position:fixed;
 bottom:20px;
 left:50%;
 transform:translateX(-50%);
 background:red;
+color:white;
 padding:10px;
 border-radius:8px;
 display:none;
 }
-
+.card{
+background:#111;
+padding:15px;
+border-radius:12px;
+margin-top:10px;
+word-break:break-all;
+}
 </style>
 </head>
 
@@ -96,10 +89,10 @@ display:none;
 <div class="content" id="screen"></div>
 
 <div class="nav" id="nav" style="display:none">
-<div onclick="home()">HOME</div>
-<div onclick="deposit()">DEPOSIT</div>
-<div onclick="earn()">EARN</div>
-<div onclick="withdraw()">WITHDRAW</div>
+<div onclick="home()"><i class="fa fa-home"></i>HOME</div>
+<div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
+<div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
 </div>
 </div>
 
@@ -107,74 +100,104 @@ display:none;
 
 <script>
 
-/* SAFE STATE */
-let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
+/* HELPERS */
+function val(id){ return document.getElementById(id)?.value; }
 
+/* STATE */
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let currentUser = null;
+let depositDone = false;
 let amount = 0;
-let selectedPeriod = 1;
+let selectedPeriod = 0;
 
 /* TOAST */
 function toast(msg){
 let t=document.getElementById("toast");
 t.innerText=msg;
 t.style.display="block";
-setTimeout(()=>t.style.display="none",2000);
+setTimeout(()=>t.style.display="none",2500);
 }
 
 /* REF LINK */
 function getLink(){
-if(!currentUser) return "";
 return window.location.origin + "?ref=" + currentUser.refCode;
 }
 
 /* START */
 function start(){
-document.getElementById("nav").style.display="none";
-
-document.getElementById("screen").innerHTML=`
-<h2 class="title">WELCOME TO TIPPERS INVESTMENT</h2>
+nav.style.display="none";
+screen.innerHTML=`
+<h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
+<p class="desc">Start now and grow your income smartly.</p>
 <button onclick="register()">START</button>
 `;
 }
 
 /* REGISTER */
 function register(){
-
-let ref = new URLSearchParams(window.location.search).get("ref");
+let ref=new URLSearchParams(window.location.search).get("ref");
 
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
 
-<input id="email">
-<input id="pass">
-<input id="cpass">
+<input id="f" placeholder="First name">
+<input id="l" placeholder="Last name">
+
+<select id="g">
+<option value="">Gender</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+
+<div class="row">
+<select id="code">
+<option value="+250">RWA +250</option>
+<option value="+254">KEN +254</option>
+</select>
+<input id="phone" placeholder="Phone">
+</div>
+
+<input id="email" placeholder="Email">
+<input id="pass" placeholder="6 digit password">
+<input id="cpass" placeholder="Confirm password">
 
 <button onclick="doRegister('${ref||""}')">REGISTER</button>
 `;
 }
 
-/* REGISTER SAFE */
+/* REGISTER SAVE */
 function doRegister(ref){
 
-if(pass.value!==cpass.value){
-toast("Password error"); return;
+if(!val("f")||!val("l")||!val("g")||!val("phone")||!val("email")||!val("pass")||!val("cpass")){
+toast("Fill all fields ❌"); return;
+}
+
+if(!val("email").endsWith("@gmail.com")){
+toast("Invalid email ❌"); return;
+}
+
+if(!/^[0-9]{6}$/.test(val("pass"))){
+toast("Password must be 6 digits ❌"); return;
+}
+
+if(val("pass")!==val("cpass")){
+toast("Passwords do not match ❌"); return;
 }
 
 let user={
-email:email.value,
-pass:pass.value,
+email:val("email"),
+pass:val("pass"),
 refCode:"REF"+Math.floor(Math.random()*999999),
 balance:0,
-invitedBy:ref || null,
+invitedBy:ref||null,
 referrals:[],
 bonusGiven:false
 };
 
 if(ref){
-let inviter = users.find(u=>u.refCode===ref);
+let inviter=users.find(u=>u.refCode===ref);
 if(inviter){
-inviter.referrals.push(email.value);
+inviter.referrals.push(user.email);
 }
 }
 
@@ -185,10 +208,10 @@ toast("Registered ✔");
 login();
 }
 
-/* LOGIN SAFE */
+/* LOGIN */
 function login(){
 screen.innerHTML=`
-<h3>LOGIN</h3>
+<h3 class="title">Login</h3>
 <input id="le">
 <input id="lp">
 <button onclick="doLogin()">LOGIN</button>
@@ -196,150 +219,151 @@ screen.innerHTML=`
 }
 
 function doLogin(){
+let user=users.find(u=>u.email===val("le"));
 
-let user = users.find(u=>u.email===le.value);
-
-if(!user || user.pass!==lp.value){
-toast("Wrong login"); return;
+if(!user||user.pass!==val("lp")){
+toast("Wrong login ❌"); return;
 }
 
 currentUser=user;
 localStorage.setItem("currentUser",JSON.stringify(user));
 
-document.getElementById("nav").style.display="flex";
+nav.style.display="flex";
 deposit();
 }
 
 /* SHARE */
-function share(){
+function shareLink(){
 let link=getLink();
-
-if(navigator.share){
-navigator.share({url:link,title:"Join"});
-}else{
 navigator.clipboard.writeText(link);
-toast("Copied ✔");
-}
+toast("Link copied ✔");
 }
 
 /* DEPOSIT */
 function deposit(){
-
-if(!currentUser) return start();
-
 screen.innerHTML=`
-<h3>DEPOSIT</h3>
+<h3 class="title">DEPOSIT</h3>
 
-<input id="amt">
-<button onclick="go()">CONTINUE</button>
+<input id="amt" placeholder="Amount">
+<input id="sender" placeholder="Sender">
 
-<div class="card">
-${getLink()}
-</div>
+<button onclick="goPayment()">CONTINUE</button>
 
-<button onclick="share()">SHARE LINK</button>
+<div class="card">${getLink()}</div>
+<button onclick="shareLink()">SHARE LINK</button>
 `;
 }
 
-function go(){
-amount=parseInt(amt.value||0);
+function goPayment(){
+if(!val("amt")||!val("sender")){
+toast("Fill all fields ❌"); return;
+}
+
+let a=parseInt(val("amt"));
+if(a<5000){
+toast("Minimum is 5000 ❌"); return;
+}
+
+amount=a;
 payment();
 }
 
 /* PAYMENT */
 function payment(){
 screen.innerHTML=`
-<h3>PAY</h3>
+<h3>PAYMENT</h3>
 <div class="card">0795410739</div>
-<button onclick="proof()">NEXT</button>
+<button onclick="dial()">NEXT</button>
 `;
 }
 
-/* PROOF */
-function proof(){
+function dial(){
 screen.innerHTML=`
 <input type="file" id="file">
-<button onclick="submit()">SUBMIT</button>
+<button onclick="submitProof()">SUBMIT</button>
 `;
 }
 
-/* BONUS FIX SAFE */
-function submit(){
-
-if(!file.value){
-toast("Upload proof"); return;
+/* BONUS */
+function submitProof(){
+if(!val("file")){
+toast("Upload proof ❌"); return;
 }
 
 if(amount>=1000000){
-bonus();
+let inviter=users.find(u=>u.refCode===currentUser.invitedBy);
+if(inviter && !inviter.bonusGiven){
+inviter.balance+=60000;
+inviter.bonusGiven=true;
+localStorage.setItem("users",JSON.stringify(users));
+toast("Bonus +60000 ✔");
+}
 }
 
 withdrawPeriod();
 }
 
-/* BONUS */
-function bonus(){
-
-let inviter = users.find(u=>u.refCode===currentUser.invitedBy);
-
-if(!inviter) return;
-if(inviter.bonusGiven) return;
-
-inviter.balance = (inviter.balance||0)+60000;
-inviter.bonusGiven=true;
-
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Bonus +60000 ✔");
-}
-
-/* PERIOD SAFE FIX (THIS WAS BREAKING YOUR CODE) */
+/* PERIOD */
 function withdrawPeriod(){
-
 screen.innerHTML=`
 <select id="period">
 <option value="1">1day</option>
 <option value="7">7days</option>
 <option value="14">14days</option>
+<option value="45">45days</option>
+<option value="90">3month</option>
 </select>
-
 <button onclick="finish()">CONFIRM</button>
 `;
 }
 
-/* FIXED HERE */
-function finish(){
+function calculateProfit(a,p){
+let rate=0;
+if(p==1) rate=0.05;
+if(p==7) rate=0.2;
+if(p==14) rate=0.45;
+if(p==45) rate=1.2;
+if(p==90) rate=3;
+return Math.floor(a+(a*rate));
+}
 
-let p=document.getElementById("period").value;
+function finish(){
+let p=val("period");
+if(!p){ toast("Select period"); return; }
+
 selectedPeriod=parseInt(p);
+depositDone=true;
+
+let final=calculateProfit(amount,selectedPeriod);
 
 screen.innerHTML=`
 <div class="card">
-<h2>DONE</h2>
-<h1>CALCULATED</h1>
+<h2>Final Balance</h2>
+<h1>${final} RWF</h1>
 </div>
 `;
 }
 
-/* HOME SAFE */
+/* HOME */
 function home(){
-
-if(!currentUser) return start();
+if(!depositDone){
+toast("Finish deposit first ❌"); return;
+}
 
 let u=users.find(x=>x.email===currentUser.email);
 
 screen.innerHTML=`
 <div class="card">
-<h3>BALANCE</h3>
-<h1>${u.balance||0}</h1>
-<p>Referrals: ${u.referrals.length}</p>
+<h2>Balance</h2>
+<h1>${calculateProfit(amount,selectedPeriod)} RWF</h1>
+<p>Referral Bonus: ${u.balance||0}</p>
 </div>
 `;
 }
 
 /* EARN */
 function earn(){
-screen.innerHTML=`<h3>LIVE</h3>`;
+screen.innerHTML=`<h3>LIVE EARNING...</h3>`;
 }
 
 /* WITHDRAW */
