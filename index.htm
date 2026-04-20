@@ -2,250 +2,123 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tippers DEMO</title>
+<title>DEMO FIX</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{margin:0;font-family:Arial;background:#0b1120;display:flex;justify-content:center;align-items:center;height:100vh}
-.app{width:390px;height:95vh;background:#000;border-radius:20px;display:flex;flex-direction:column;color:white;overflow:hidden}
-.content{flex:1;padding:15px;overflow-y:auto}
+body{
+margin:0;
+font-family:Arial;
+background:#0b1120;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+color:white;
+}
+
+.app{
+width:390px;
+height:95vh;
+background:#000;
+border-radius:20px;
+display:flex;
+flex-direction:column;
+}
+
+.content{
+flex:1;
+padding:15px;
+overflow:auto;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:#f59e0b;
+border:none;
+border-radius:10px;
+font-weight:bold;
+}
+
 .title{text-align:center;color:#f59e0b}
-input,select{width:100%;padding:10px;margin-top:8px;border:none;border-radius:8px;background:#111;color:white}
-button{width:100%;padding:12px;margin-top:10px;border:none;border-radius:10px;background:#f59e0b;font-weight:bold}
-.nav{display:flex;justify-content:space-around;background:#111;padding:10px}
-.nav div{font-size:12px;cursor:pointer}
-.locked{opacity:.3;pointer-events:none}
-.table{overflow-x:auto;white-space:nowrap;background:#111;padding:10px;border-radius:10px}
-.cell{display:inline-block;min-width:120px;background:#0f172a;margin:5px;padding:8px;border-radius:6px;text-align:center;font-size:12px}
-.toast{position:fixed;bottom:20px;background:red;padding:10px;border-radius:8px;display:none}
 </style>
 </head>
 
 <body>
 
 <div class="app">
-<div class="content" id="screen"></div>
-
-<div class="nav" id="nav" style="display:none">
-<div id="homeBtn" onclick="home()" class="locked">HOME</div>
-<div onclick="deposit()" class="locked">DEPOSIT</div>
-<div onclick="earn()" class="locked">EARN</div>
-<div onclick="withdraw()" class="locked">WITHDRAW</div>
+<div class="content" id="screen">LOADING...</div>
 </div>
-</div>
-
-<div class="toast" id="toast"></div>
 
 <script>
 
-let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = null;
-let refId = new URLSearchParams(location.search).get("ref");
-let depositDone = false;
-let amount = 0;
-
-/* SAFE INPUT GET */
-function val(id){ return document.getElementById(id)?.value || ""; }
-
-/* TOAST */
-function toast(msg){
-let t=document.getElementById("toast");
-t.innerText=msg;
-t.style.display="block";
-setTimeout(()=>t.style.display="none",2000);
+/* SAFE ELEMENT GET */
+function el(id){
+return document.getElementById(id);
 }
 
-/* WELCOME */
+/* SAFE SCREEN */
+function show(html){
+let s = el("screen");
+if(!s){
+alert("SCREEN NOT FOUND");
+return;
+}
+s.innerHTML = html;
+}
+
+/* START SAFE */
 function start(){
-screen.innerHTML=`
-<h2 class="title">WELCOME</h2>
-<button onclick="register()">NEXT</button>
-`;
+show(`
+<h2 class="title">WELCOME TO DEMO</h2>
+<p style="text-align:center">System is running properly</p>
+<button onclick="next()">NEXT</button>
+`);
 }
 
-/* REGISTER */
-function register(){
-screen.innerHTML=`
-<h3 class="title">REGISTER</h3>
+/* NEXT PAGE */
+function next(){
+show(`
+<h3 class="title">REGISTER PAGE</h3>
 
-<input id="fn" placeholder="First name">
-<input id="ln" placeholder="Last name">
-<input id="phone" placeholder="Phone">
-<input id="email" placeholder="Email">
-<input id="pass" placeholder="Password">
-<input id="cpass" placeholder="Confirm">
+<input placeholder="First name">
+<input placeholder="Last name">
+<input placeholder="Phone">
+<input placeholder="Email">
 
-<button onclick="doRegister()">REGISTER</button>
-`;
-}
-
-/* REGISTER LOGIC */
-function doRegister(){
-
-let fn=val("fn");
-let ln=val("ln");
-let phone=val("phone");
-let email=val("email");
-let pass=val("pass");
-let cpass=val("cpass");
-
-if(!fn||!ln||!phone||!email||!pass||!cpass){
-toast("Fill all fields"); return;
-}
-
-if(pass!==cpass){
-toast("Password mismatch"); return;
-}
-
-let id = Date.now();
-
-let user = {
-id,fn,ln,phone,email,pass,
-balance:0,
-refLink: location.origin + "?ref=" + id,
-refBy: refId || null
-};
-
-users.push(user);
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Registered ✔");
-login();
+<button onclick="login()">REGISTER</button>
+`);
 }
 
 /* LOGIN */
 function login(){
-screen.innerHTML=`
+show(`
 <h3 class="title">LOGIN</h3>
 
-<input id="le" placeholder="Email">
-<input id="lp" placeholder="Password">
+<input id="email" placeholder="Email">
+<input id="pass" placeholder="Password">
 
-<button onclick="doLogin()">LOGIN</button>
-`;
+<button onclick="dashboard()">LOGIN</button>
+`);
 }
 
-function doLogin(){
+/* DASHBOARD */
+function dashboard(){
+show(`
+<h3 class="title">DASHBOARD</h3>
 
-let u = users.find(x =>
-x.email === val("le") && x.pass === val("lp")
-);
+<p style="text-align:center">✔ System Working</p>
 
-if(!u){ toast("Wrong login"); return; }
-
-currentUser = u;
-
-document.getElementById("nav").style.display="flex";
-unlockHome();
-home();
+<button onclick="start()">BACK TO START</button>
+`);
 }
 
-/* HOME TABLE */
-function home(){
-screen.innerHTML=`
-<h3 class="title">TIPPERS INVESTMENT PLAN</h3>
-
-<div class="table">
-<div class="cell">INVEST</div>
-<div class="cell">1D</div>
-<div class="cell">1W</div>
-<div class="cell">1M</div>
-<div class="cell">45D</div>
-<div class="cell">3M</div>
-<div class="cell">4M</div>
-
-<div class="cell">5000</div>
-<div class="cell">110</div>
-<div class="cell">1050</div>
-<div class="cell">5400</div>
-<div class="cell">9225</div>
-<div class="cell">22500</div>
-<div class="cell">42000</div>
-</div>
-
-<p>Your referral link:</p>
-<small>${currentUser.refLink}</small>
-
-<button onclick="deposit()">NEXT</button>
-`;
-}
-
-/* DEPOSIT */
-function deposit(){
-unlockAll();
-screen.innerHTML=`
-<h3 class="title">DEPOSIT</h3>
-
-<input id="amt" placeholder="Amount">
-<input id="sender" placeholder="Sender">
-
-<button onclick="pay()">CONTINUE</button>
-`;
-}
-
-function pay(){
-if(!val("amt")||!val("sender")){
-toast("Fill all"); return;
-}
-
-amount=parseInt(val("amt"));
-
-screen.innerHTML=`
-<h3 class="title">PAYMENT</h3>
-<p>0792459701</p>
-<p>*182*1*1*0792459701#</p>
-
-<button onclick="finish()">FINISH</button>
-`;
-}
-
-function finish(){
-depositDone=true;
-
-/* 6% BONUS */
-if(refId){
-let ref = users.find(u=>u.id==refId);
-if(ref){
-ref.balance += amount * 0.06;
-}
-}
-
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Deposit success + bonus");
-home();
-}
-
-/* WITHDRAW */
-function withdraw(){
-if(!depositDone){toast("Locked");return;}
-
-screen.innerHTML=`
-<h3 class="title">WITHDRAW</h3>
-
-<input id="wamt" placeholder="Amount">
-<input id="wphone" placeholder="Phone">
-
-<button onclick="doWithdraw()">PAYOUT</button>
-`;
-}
-
-function doWithdraw(){
-if(val("wphone") !== currentUser.phone){
-toast("Invalid phone"); return;
-}
-toast("Payout successful ✔");
-}
-
-/* NAV */
-function unlockHome(){
-document.getElementById("homeBtn").classList.remove("locked");
-}
-function unlockAll(){
-document.querySelectorAll(".nav div").forEach(d=>d.classList.remove("locked"));
-}
-
+/* AUTO START */
+window.onload = function(){
 start();
+};
 
 </script>
 
