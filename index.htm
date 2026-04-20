@@ -100,8 +100,9 @@ word-break:break-all;
 
 <script>
 
-/* HELPERS */
-function val(id){ return document.getElementById(id)?.value; }
+/* 🔥 FIX: DECLARE DOM FIRST */
+const screen = document.getElementById("screen");
+const nav = document.getElementById("nav");
 
 /* STATE */
 let users = JSON.parse(localStorage.getItem("users")) || [];
@@ -109,6 +110,9 @@ let currentUser = null;
 let depositDone = false;
 let amount = 0;
 let selectedPeriod = 0;
+
+/* HELPER */
+function val(id){ return document.getElementById(id)?.value; }
 
 /* TOAST */
 function toast(msg){
@@ -139,16 +143,13 @@ let ref=new URLSearchParams(window.location.search).get("ref");
 
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
-
 <input id="f" placeholder="First name">
 <input id="l" placeholder="Last name">
-
 <select id="g">
 <option value="">Gender</option>
 <option>Male</option>
 <option>Female</option>
 </select>
-
 <div class="row">
 <select id="code">
 <option value="+250">RWA +250</option>
@@ -156,11 +157,9 @@ screen.innerHTML=`
 </select>
 <input id="phone" placeholder="Phone">
 </div>
-
 <input id="email" placeholder="Email">
 <input id="pass" placeholder="6 digit password">
 <input id="cpass" placeholder="Confirm password">
-
 <button onclick="doRegister('${ref||""}')">REGISTER</button>
 `;
 }
@@ -226,8 +225,6 @@ toast("Wrong login ❌"); return;
 }
 
 currentUser=user;
-localStorage.setItem("currentUser",JSON.stringify(user));
-
 nav.style.display="flex";
 deposit();
 }
@@ -243,10 +240,8 @@ toast("Link copied ✔");
 function deposit(){
 screen.innerHTML=`
 <h3 class="title">DEPOSIT</h3>
-
 <input id="amt" placeholder="Amount">
 <input id="sender" placeholder="Sender">
-
 <button onclick="goPayment()">CONTINUE</button>
 
 <div class="card">${getLink()}</div>
@@ -310,8 +305,6 @@ screen.innerHTML=`
 <option value="1">1day</option>
 <option value="7">7days</option>
 <option value="14">14days</option>
-<option value="45">45days</option>
-<option value="90">3month</option>
 </select>
 <button onclick="finish()">CONFIRM</button>
 `;
@@ -322,16 +315,11 @@ let rate=0;
 if(p==1) rate=0.05;
 if(p==7) rate=0.2;
 if(p==14) rate=0.45;
-if(p==45) rate=1.2;
-if(p==90) rate=3;
 return Math.floor(a+(a*rate));
 }
 
 function finish(){
-let p=val("period");
-if(!p){ toast("Select period"); return; }
-
-selectedPeriod=parseInt(p);
+selectedPeriod=parseInt(val("period"));
 depositDone=true;
 
 let final=calculateProfit(amount,selectedPeriod);
@@ -356,17 +344,15 @@ screen.innerHTML=`
 <div class="card">
 <h2>Balance</h2>
 <h1>${calculateProfit(amount,selectedPeriod)} RWF</h1>
-<p>Referral Bonus: ${u.balance||0}</p>
+<p>Referral Bonus: ${u.balance}</p>
 </div>
 `;
 }
 
-/* EARN */
 function earn(){
 screen.innerHTML=`<h3>LIVE EARNING...</h3>`;
 }
 
-/* WITHDRAW */
 function withdraw(){
 screen.innerHTML=`<h3>LOCKED</h3>`;
 }
