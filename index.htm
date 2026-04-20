@@ -163,11 +163,25 @@ function doRegister(){
 if(!fn.value||!ln.value||!phone.value||!email.value||!pass.value||!cpass.value){
 toast("Fill all");return;
 }
-if(pass.value!==cpass.value){toast("Mismatch");return;}
+if(pass.value!==cpass.value){toast("Mismatch");return;
+ users.push({
+id,
+email:email.value,
+pass:pass.value,
+refLink,
+refCount:0,
+referredBy: refId || null   // 👈 aha ni ingenzi cyane
+});
+if(refId){
+let refUser = users.find(u=>u.id == refId);
+if(refUser){
+refUser.refCount = (refUser.refCount || 0) + 1;
+}
+}                            }
 
 let id=Date.now();
 
-let refLink=location.href.split("?")[0]+"?ref="+id;
+let refLink = window.location.origin + window.location.pathname + "?ref=" + id;  
 
 users.push({
 id,
@@ -241,17 +255,24 @@ ${r.map(c=>`<div class="cell">${c} RWF</div>`).join("")}
 
 <div class="card">
 <p>Your referral link:</p>
-<input value="${current.refLink}" id="ref">
+
+<input id="ref" value="${current.refLink}" readonly>
+
 <button onclick="copyRef()">COPY LINK</button>
-<p>Invited users: ${current.refCount}</p>
+
+<a href="${current.refLink}" target="_blank" style="color:#f59e0b;font-size:12px">
+Open Link
+</a>
+
+<p>Invited users: ${current.refCount || 0}</p>
 </div>
 
 <button onclick="unlockDeposit()">CONTINUE</button>
 `;
 }
-
 function copyRef(){
-navigator.clipboard.writeText(ref.value);
+let link = document.getElementById("ref").value;
+navigator.clipboard.writeText(link);
 toast("Link copied ✔");
 }
 
