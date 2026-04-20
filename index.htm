@@ -153,13 +153,25 @@ setTimeout(()=>t.style.display="none",2000);
 }
 
 /* WELCOME */
-function start(){
-document.getElementById("nav").style.display="none";
-screen.innerHTML=`
-<h2 class="title">WELCOME</h2>
-<p class="desc">Tippers Investment System Demo</p>
-<button onclick="register()">NEXT</button>
-`;
+const screen = document.getElementById("screen");
+  function start(){
+  document.getElementById("nav").style.display = "none";
+
+  screen.innerHTML = `
+    <h2 class="title">WELCOME TO TIPPERS INVESTMENT</h2>
+
+    <p class="desc">
+      Grow your income by using tippers investment system
+    </p>
+
+    <div class="card">
+      ✔ Secure System Demo<br>
+      ✔ Referral Enabled<br>
+      ✔ Investment Plans Ready
+    </div>
+
+    <button onclick="register()">NEXT</button>
+  `;
 }
 
 /* REGISTER */
@@ -341,9 +353,7 @@ screen.innerHTML=`
 }
 
 /* START */
-start();
-
-</script>
+  start();
 
 </body>
 </html>
