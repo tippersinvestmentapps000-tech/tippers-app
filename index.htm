@@ -2,96 +2,22 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tippers Demo System</title>
+<title>Tippers DEMO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-margin:0;
-font-family:Segoe UI;
-background:#0b1120;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-
-.app{
-width:390px;
-height:95vh;
-background:#000;
-border-radius:20px;
-display:flex;
-flex-direction:column;
-color:white;
-overflow:hidden;
-}
-
-.content{
-flex:1;
-padding:15px;
-overflow-y:auto;
-}
-
+body{margin:0;font-family:Arial;background:#0b1120;display:flex;justify-content:center;align-items:center;height:100vh}
+.app{width:390px;height:95vh;background:#000;border-radius:20px;display:flex;flex-direction:column;color:white;overflow:hidden}
+.content{flex:1;padding:15px;overflow-y:auto}
 .title{text-align:center;color:#f59e0b}
-
-input,select{
-width:100%;
-padding:10px;
-margin-top:8px;
-border-radius:8px;
-border:none;
-background:#111;
-color:white;
-}
-
-button{
-width:100%;
-padding:12px;
-margin-top:10px;
-border:none;
-border-radius:10px;
-background:#f59e0b;
-font-weight:bold;
-}
-
-.nav{
-display:flex;
-justify-content:space-around;
-background:#111;
-padding:10px;
-}
-
-.nav div{cursor:pointer;font-size:12px}
+input,select{width:100%;padding:10px;margin-top:8px;border:none;border-radius:8px;background:#111;color:white}
+button{width:100%;padding:12px;margin-top:10px;border:none;border-radius:10px;background:#f59e0b;font-weight:bold}
+.nav{display:flex;justify-content:space-around;background:#111;padding:10px}
+.nav div{font-size:12px;cursor:pointer}
 .locked{opacity:.3;pointer-events:none}
-
-.table{
-overflow-x:auto;
-white-space:nowrap;
-background:#111;
-padding:10px;
-border-radius:10px;
-}
-
-.cell{
-display:inline-block;
-min-width:130px;
-margin:5px;
-padding:8px;
-background:#0f172a;
-border-radius:6px;
-text-align:center;
-font-size:12px;
-}
-
-.toast{
-position:fixed;
-bottom:20px;
-background:red;
-padding:10px;
-border-radius:8px;
-display:none;
-}
+.table{overflow-x:auto;white-space:nowrap;background:#111;padding:10px;border-radius:10px}
+.cell{display:inline-block;min-width:120px;background:#0f172a;margin:5px;padding:8px;border-radius:6px;text-align:center;font-size:12px}
+.toast{position:fixed;bottom:20px;background:red;padding:10px;border-radius:8px;display:none}
 </style>
 </head>
 
@@ -102,7 +28,7 @@ display:none;
 
 <div class="nav" id="nav" style="display:none">
 <div id="homeBtn" onclick="home()" class="locked">HOME</div>
-<div onclick="deposit()" class="locked" id="depBtn">DEPOSIT</div>
+<div onclick="deposit()" class="locked">DEPOSIT</div>
 <div onclick="earn()" class="locked">EARN</div>
 <div onclick="withdraw()" class="locked">WITHDRAW</div>
 </div>
@@ -113,11 +39,15 @@ display:none;
 <script>
 
 let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser;
+let currentUser = null;
 let refId = new URLSearchParams(location.search).get("ref");
-let depositDone=false;
-let amount=0;
+let depositDone = false;
+let amount = 0;
 
+/* SAFE INPUT GET */
+function val(id){ return document.getElementById(id)?.value || ""; }
+
+/* TOAST */
 function toast(msg){
 let t=document.getElementById("toast");
 t.innerText=msg;
@@ -149,31 +79,31 @@ screen.innerHTML=`
 `;
 }
 
-/* REGISTER */
+/* REGISTER LOGIC */
 function doRegister(){
-let fn=fnInput.value;
-let ln=lnInput.value;
-let phone=phoneInput.value;
-let email=emailInput.value;
-let pass=passInput.value;
-let cpass=cpassInput.value;
+
+let fn=val("fn");
+let ln=val("ln");
+let phone=val("phone");
+let email=val("email");
+let pass=val("pass");
+let cpass=val("cpass");
 
 if(!fn||!ln||!phone||!email||!pass||!cpass){
-toast("Fill all");return;
+toast("Fill all fields"); return;
 }
 
 if(pass!==cpass){
-toast("Password mismatch");return;
+toast("Password mismatch"); return;
 }
 
-let id=Date.now();
+let id = Date.now();
 
-let user={
-id,
-fn,ln,phone,email,pass,
+let user = {
+id,fn,ln,phone,email,pass,
 balance:0,
-refLink: location.origin+"?ref="+id,
-refBy: refId
+refLink: location.origin + "?ref=" + id,
+refBy: refId || null
 };
 
 users.push(user);
@@ -196,16 +126,21 @@ screen.innerHTML=`
 }
 
 function doLogin(){
-let u=users.find(x=>x.email==le.value && x.pass==lp.value);
-if(!u){toast("Wrong login");return;}
 
-currentUser=u;
+let u = users.find(x =>
+x.email === val("le") && x.pass === val("lp")
+);
+
+if(!u){ toast("Wrong login"); return; }
+
+currentUser = u;
+
 document.getElementById("nav").style.display="flex";
 unlockHome();
 home();
 }
 
-/* DASHBOARD TABLE */
+/* HOME TABLE */
 function home(){
 screen.innerHTML=`
 <h3 class="title">TIPPERS INVESTMENT PLAN</h3>
@@ -249,9 +184,11 @@ screen.innerHTML=`
 }
 
 function pay(){
-if(!amt.value||!sender.value){toast("Fill");return;}
+if(!val("amt")||!val("sender")){
+toast("Fill all"); return;
+}
 
-amount=parseInt(amt.value);
+amount=parseInt(val("amt"));
 
 screen.innerHTML=`
 <h3 class="title">PAYMENT</h3>
@@ -265,11 +202,11 @@ screen.innerHTML=`
 function finish(){
 depositDone=true;
 
-/* REF BONUS 6% */
+/* 6% BONUS */
 if(refId){
-let ref=users.find(u=>u.id==refId);
+let ref = users.find(u=>u.id==refId);
 if(ref){
-ref.balance += amount*0.06;
+ref.balance += amount * 0.06;
 }
 }
 
@@ -294,17 +231,16 @@ screen.innerHTML=`
 }
 
 function doWithdraw(){
-if(wphone.value!=currentUser.phone){
-toast("Invalid phone");return;
+if(val("wphone") !== currentUser.phone){
+toast("Invalid phone"); return;
 }
 toast("Payout successful ✔");
 }
 
-/* UNLOCK */
+/* NAV */
 function unlockHome(){
 document.getElementById("homeBtn").classList.remove("locked");
 }
-
 function unlockAll(){
 document.querySelectorAll(".nav div").forEach(d=>d.classList.remove("locked"));
 }
