@@ -44,7 +44,6 @@ border-radius:8px;
 border:none;
 background:#0f172a;
 color:white;
-outline:none;
 }
 
 button{
@@ -94,13 +93,7 @@ padding:10px;
 
 .nav div{
 font-size:12px;
-text-align:center;
 cursor:pointer;
-}
-
-.locked{
-opacity:0.3;
-pointer-events:none;
 }
 
 .toast{
@@ -135,15 +128,13 @@ font-size:13px;
 <script>
 
 let users=[];
-let currentUser=null;
-let depositDone=false;
-let amount=0;
-let period=1;
+let current=null;
 let refId=null;
+let amount=0;
 
-/* GET REF */
-const params=new URLSearchParams(location.search);
-if(params.get("ref")) refId=params.get("ref");
+/* REF LINK */
+const urlParams=new URLSearchParams(location.search);
+if(urlParams.get("ref")) refId=urlParams.get("ref");
 
 function toast(msg){
 let t=document.getElementById("toast");
@@ -152,26 +143,22 @@ t.style.display="block";
 setTimeout(()=>t.style.display="none",2000);
 }
 
-/* WELCOME */
-const screen = document.getElementById("screen");
-  function start(){
-  document.getElementById("nav").style.display = "none";
+/* START */
+function start(){
+document.getElementById("nav").style.display="none";
 
-  screen.innerHTML = `
-    <h2 class="title">WELCOME TO TIPPERS INVESTMENT</h2>
+screen.innerHTML=`
+<h2 class="title">WELCOME TO TIPPERS INVESTMENT</h2>
+<p class="desc">Grow your income safely (Demo System)</p>
 
-    <p class="desc">
-      Grow your income by using tippers investment system
-    </p>
+<div class="card">
+✔ Investment Plans<br>
+✔ Referral System<br>
+✔ Dashboard Access
+</div>
 
-    <div class="card">
-      ✔ Secure System Demo<br>
-      ✔ Referral Enabled<br>
-      ✔ Investment Plans Ready
-    </div>
-
-    <button onclick="register()">NEXT</button>
-  `;
+<button onclick="register()">NEXT</button>
+`;
 }
 
 /* REGISTER */
@@ -181,8 +168,7 @@ screen.innerHTML=`
 
 <input id="fn" placeholder="First name">
 <input id="ln" placeholder="Last name">
-
-<input id="phone" placeholder="Phone number">
+<input id="phone" placeholder="Phone">
 <input id="email" placeholder="Email">
 <input id="pass" placeholder="Password">
 <input id="cpass" placeholder="Confirm password">
@@ -218,15 +204,18 @@ ln:ln.value,
 phone:phone.value,
 email:email.value,
 pass:pass.value,
-refCount:0,
-refLink:location.origin+"?ref="+id
+refLink:location.origin+"?ref="+id,
+balance:0
 };
 
 users.push(user);
 
+/* referral link logic */
 if(refId){
 let ref=users.find(u=>u.id==refId);
-if(ref) ref.refCount++;
+if(ref){
+ref.balance += 600; // demo referral bonus
+}
 }
 
 toast("Registered ✔");
@@ -256,52 +245,47 @@ if(!u){
 toast("Wrong credentials"); return;
 }
 
-currentUser=u;
-
+current=u;
 document.getElementById("nav").style.display="flex";
 
 home();
 }
 
-/* TABLE */
+/* HOME TABLE */
 function home(){
-
 screen.innerHTML=`
 <h3 class="title">TIPPERS INVESTMENT PLAN</h3>
 
 <div class="table">
 <div>
 <div class="cell">INVEST</div>
-<div class="cell">1 DAY</div>
-<div class="cell">1 WEEK</div>
-<div class="cell">1 MONTH</div>
-<div class="cell">45 DAYS</div>
-<div class="cell">3 MONTHS</div>
-<div class="cell">4 MONTHS</div>
+<div class="cell">1D</div>
+<div class="cell">1W</div>
+<div class="cell">1M</div>
+<div class="cell">45D</div>
+<div class="cell">3M</div>
+<div class="cell">4M</div>
 </div>
 
-${[
-["5,000","110","1,050","5,400","9,225","22,500","42,000"],
-["50,000","1,100","10,500","54,000","92,250","225,000","420,000"],
-["100,000","2,200","21,000","108,000","184,500","450,000","840,000"],
-["150,000","3,300","31,500","162,000","276,750","675,000","1,260,000"],
-["300,000","6,600","63,000","324,000","553,500","1,350,000","2,520,000"],
-["500,000","11,000","105,000","540,000","922,500","2,250,000","4,200,000"],
-["700,000","15,400","147,000","756,000","1,291,500","3,150,000","5,880,000"],
-["1,000,000","22,000","210,000","1,080,000","1,845,000","4,500,000","8,400,000"],
-["1,300,000","28,600","273,000","1,404,000","2,398,500","5,850,000","10,920,000"],
-["1,500,000","33,000","315,000","1,620,000","2,767,500","6,250,000","12,600,000"]
-].map(r=>`
 <div>
-<div class="cell">${r[0]} RWF</div>
-<div class="cell">${r[1]} RWF</div>
-<div class="cell">${r[2]} RWF</div>
-<div class="cell">${r[3]} RWF</div>
-<div class="cell">${r[4]} RWF</div>
-<div class="cell">${r[5]} RWF</div>
-<div class="cell">${r[6]} RWF</div>
+<div class="cell">5,000</div>
+<div class="cell">110</div>
+<div class="cell">1,050</div>
+<div class="cell">5,400</div>
+<div class="cell">9,225</div>
+<div class="cell">22,500</div>
+<div class="cell">42,000</div>
 </div>
-`).join("")}
+
+<div>
+<div class="cell">50,000</div>
+<div class="cell">1,100</div>
+<div class="cell">10,500</div>
+<div class="cell">54,000</div>
+<div class="cell">92,250</div>
+<div class="cell">225,000</div>
+<div class="cell">420,000</div>
+</div>
 
 </div>
 `;
@@ -313,7 +297,7 @@ screen.innerHTML=`
 <h3 class="title">DEPOSIT</h3>
 
 <input id="amt" placeholder="Amount">
-<input id="sender" placeholder="Sender name">
+<input id="sender" placeholder="Sender">
 
 <button onclick="pay()">CONTINUE</button>
 `;
@@ -323,20 +307,20 @@ function pay(){
 let a=document.getElementById("amt").value;
 if(!a){toast("Fill amount");return;}
 amount=a;
-toast("Payment step...");
+toast("Processing deposit...");
 }
 
 /* EARN */
 function earn(){
 screen.innerHTML=`
 <h3 class="title">LIVE EARNING</h3>
-<div class="card" id="live">0 RWF</div>
+<div class="card" id="live">0</div>
 `;
 
 let i=0;
 setInterval(()=>{
-i+=Math.random()*500;
-document.getElementById("live").innerText=Math.floor(i)+" RWF";
+i+=Math.random()*200;
+live.innerText=Math.floor(i)+" RWF";
 },1000);
 }
 
@@ -346,14 +330,16 @@ screen.innerHTML=`
 <h3 class="title">WITHDRAW</h3>
 
 <input placeholder="Amount">
-<input placeholder="Phone number">
+<input placeholder="Phone">
 
-<button onclick="toast('Payout successful ✔')">PAYOUT</button>
+<button onclick="toast('Payout successful ✔')">PAYOUT NOW</button>
 `;
 }
 
-/* START */
-  start();
+/* INIT */
+start();
+
+</script>
 
 </body>
 </html>
