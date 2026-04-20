@@ -175,6 +175,27 @@ screen.innerHTML=`
 }
 /* register*/
 function doRegister(){
+  {
+  const fn = document.getElementById("fn").value;
+  const ln = document.getElementById("ln").value;
+  const code = document.getElementById("code").value;
+  const phone = document.getElementById("phone").value;
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("pass").value;
+  const cpass = document.getElementById("cpass").value;
+
+  if (!fn || !ln || !phone || !email || !pass || !cpass) {
+    alert("Fill all fields");
+    return;
+  }
+
+  if (pass !== cpass) {
+    alert("Passwords do not match");
+    return;
+  }
+
+  alert("Registration successful ✔");
+}
 
 if(!fn.value||!ln.value||!phone.value||!email.value||!pass.value||!cpass.value){
 toast("Fill all fields"); return;
@@ -192,7 +213,8 @@ email:email.value,
 pass:pass.value,
 refCount:0,
 referredBy: refId || null
-};
+}
+  ;
 
 /* generate link here */
 newUser.refLink = generateRefLink(id);
