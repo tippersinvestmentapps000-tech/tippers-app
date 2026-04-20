@@ -100,11 +100,13 @@ word-break:break-all;
 
 <script>
 
-/* 🔥 FIX: DECLARE DOM FIRST */
+/* DOM */
 const screen = document.getElementById("screen");
 const nav = document.getElementById("nav");
 
-/* STATE */
+/* ✅ FIX: USERS ADDED */
+let users = JSON.parse(localStorage.getItem("users")) || [];
+
 let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
 let depositDone = false;
 let amount = 0;
@@ -121,8 +123,9 @@ t.style.display="block";
 setTimeout(()=>t.style.display="none",2500);
 }
 
-/* REF LINK */
+/* ✅ FIXED getLink */
 function getLink(){
+if(!currentUser) return "";
 return window.location.origin + "?ref=" + currentUser.refCode;
 }
 
@@ -139,10 +142,6 @@ screen.innerHTML=`
 /* REGISTER */
 function register(){
 let ref=new URLSearchParams(window.location.search).get("ref");
-  function getLink(){
-if(!currentUser) return "";
-return window.location.origin + "?ref=" + currentUser.refCode;
-}
 
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
@@ -236,13 +235,10 @@ if(user.pass !== val("lp")){
 toast("Invalid password ❌"); return;
 }
 
-/* ✅ FIX */
 currentUser = user;
 localStorage.setItem("currentUser", JSON.stringify(user));
 
 nav.style.display="flex";
-
-/* IMPORTANT */
 deposit();
 }
 
@@ -264,10 +260,8 @@ return;
 
 screen.innerHTML=`
 <h3 class="title">DEPOSIT BALANCE</h3>
-
 <input id="amt" placeholder="Amount (RWF)">
 <input id="sender" placeholder="Sender name">
-
 <button onclick="goPayment()">CONTINUE</button>
 
 <div class="card">
@@ -278,7 +272,8 @@ ${getLink()}
 <button onclick="shareLink()">SHARE LINK</button>
 `;
 }
-/* payment*/
+
+/* PAYMENT */
 function goPayment(){
 if(!val("amt")||!val("sender")){
 toast("Fill all fields ❌"); return;
@@ -293,7 +288,6 @@ amount=a;
 payment();
 }
 
-/* PAYMENT */
 function payment(){
 screen.innerHTML=`
 <h3>PAYMENT</h3>
