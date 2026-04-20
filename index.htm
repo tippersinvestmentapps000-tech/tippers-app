@@ -5,8 +5,6 @@
 <title>Tippers Investment</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
 <style>
 body{
 margin:0;
@@ -16,17 +14,17 @@ display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
+color:white;
 }
 
 .app{
 width:390px;
 height:95vh;
 background:#000;
-border-radius:20px;
-overflow:hidden;
+border-radius:18px;
 display:flex;
 flex-direction:column;
-color:white;
+overflow:hidden;
 }
 
 .content{
@@ -38,7 +36,7 @@ overflow-y:auto;
 .title{color:#f59e0b;text-align:center;font-weight:bold;}
 .desc{text-align:center;color:#aaa;font-size:13px;}
 
-input{
+input,select{
 width:100%;
 padding:10px;
 margin-top:8px;
@@ -46,6 +44,7 @@ border-radius:8px;
 border:none;
 background:#0f172a;
 color:white;
+outline:none;
 }
 
 button{
@@ -60,38 +59,48 @@ font-weight:bold;
 cursor:pointer;
 }
 
-.nav{
-display:flex;
-justify-content:space-around;
-background:#020617;
-padding:10px;
-}
-
-.nav div{font-size:12px;cursor:pointer;opacity:.6}
-.nav i{display:block}
-
-.locked{pointer-events:none;opacity:.3}
-
-.table{
-overflow-x:auto;
-white-space:nowrap;
-margin-top:10px;
+.card{
 background:#111;
 padding:10px;
 border-radius:10px;
+margin-top:10px;
 }
 
-.row{
+.table{
+overflow-x:auto;
+margin-top:10px;
+}
+
+.table div{
 display:grid;
 grid-template-columns:160px repeat(7,140px);
-gap:10px;
+gap:8px;
 }
 
 .cell{
 background:#0f172a;
 padding:8px;
 border-radius:6px;
+font-size:12px;
 text-align:center;
+}
+
+.nav{
+display:none;
+justify-content:space-around;
+background:#020617;
+padding:10px;
+}
+
+.nav div{
+font-size:12px;
+text-align:center;
+cursor:pointer;
+}
+
+.locked{
+opacity:0.3;
+pointer-events:none;
 }
 
 .toast{
@@ -100,9 +109,10 @@ bottom:20px;
 left:50%;
 transform:translateX(-50%);
 background:red;
-padding:10px;
-border-radius:8px;
+padding:8px 12px;
+border-radius:6px;
 display:none;
+font-size:13px;
 }
 </style>
 </head>
@@ -112,11 +122,11 @@ display:none;
 <div class="app">
 <div class="content" id="screen"></div>
 
-<div class="nav" id="nav" style="display:none">
-<div id="homeI" class="locked" onclick="home()"><i class="fa fa-home"></i>HOME</div>
-<div id="depI" class="locked" onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
-<div id="earnI" class="locked" onclick="earn()"><i class="fa fa-chart-line"></i>EARN</div>
-<div id="witI" class="locked" onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
+<div class="nav" id="nav">
+<div onclick="home()">HOME</div>
+<div onclick="deposit()">DEPOSIT</div>
+<div onclick="earn()">EARN</div>
+<div onclick="withdraw()">WITHDRAW</div>
 </div>
 </div>
 
@@ -124,146 +134,138 @@ display:none;
 
 <script>
 
-let users = JSON.parse(localStorage.getItem("users"))||[];
-let current=null;
+let users=[];
+let currentUser=null;
+let depositDone=false;
+let amount=0;
+let period=1;
+let refId=null;
 
-const screen=document.getElementById("screen");
-const nav=document.getElementById("nav");
+/* GET REF */
+const params=new URLSearchParams(location.search);
+if(params.get("ref")) refId=params.get("ref");
 
-function toast(m){
+function toast(msg){
 let t=document.getElementById("toast");
-t.innerText=m;
+t.innerText=msg;
 t.style.display="block";
 setTimeout(()=>t.style.display="none",2000);
 }
 
-/* START */
+/* WELCOME */
 function start(){
+document.getElementById("nav").style.display="none";
 screen.innerHTML=`
 <h2 class="title">WELCOME</h2>
+<p class="desc">Tippers Investment System Demo</p>
 <button onclick="register()">NEXT</button>
 `;
 }
 
+/* REGISTER */
 function register(){
-  screen.innerHTML = `
-  <h3 class="title">REGISTER WITH GOOGLE ACCOUNT</h3>
+screen.innerHTML=`
+<h3 class="title">REGISTER</h3>
 
-  <input id="fn" placeholder="First name">
-  <input id="ln" placeholder="Last name">
+<input id="fn" placeholder="First name">
+<input id="ln" placeholder="Last name">
 
-  <div class="row">
-    <select id="code">
-      <option value="+250">🇷🇼 +250</option>
-      <option value="+254">🇰🇪 +254</option>
-      <option value="+255">🇹🇿 +255</option>
-      <option value="+256">🇺🇬 +256</option>
-    </select>
+<input id="phone" placeholder="Phone number">
+<input id="email" placeholder="Email">
+<input id="pass" placeholder="Password">
+<input id="cpass" placeholder="Confirm password">
 
-    <input id="phone" placeholder="Phone number">
-  </div>
-
-  <input id="email" placeholder="Email">
-  <input id="pass" placeholder="Password">
-  <input id="cpass" placeholder="Confirm password">
-
-  <button onclick="doRegister()">REGISTER</button>
-  `;
+<button onclick="doRegister()">REGISTER</button>
+`;
 }
+
+/* REGISTER LOGIC */
 function doRegister(){
 
-  const fn = document.getElementById("fn");
-  const ln = document.getElementById("ln");
-  const phone = document.getElementById("phone");
-  const email = document.getElementById("email");
-  const pass = document.getElementById("pass");
-  const cpass = document.getElementById("cpass");
-  const code = document.getElementById("code");
+const fn=document.getElementById("fn");
+const ln=document.getElementById("ln");
+const phone=document.getElementById("phone");
+const email=document.getElementById("email");
+const pass=document.getElementById("pass");
+const cpass=document.getElementById("cpass");
 
-  if(!fn || !ln || !phone || !email || !pass || !cpass){
-    toast("System error: fields missing");
-    return;
-  }
-  if(
-    !fn.value || !ln.value || !phone.value ||
-    !email.value || !pass.value || !cpass.value
-  ){
-    toast("Fill all fields");
-    return;
-  }
+if(!fn.value||!ln.value||!phone.value||!email.value||!pass.value||!cpass.value){
+toast("Fill all fields"); return;
+}
 
-  if(pass.value !== cpass.value){
-    toast("Passwords mismatch");
-    return;
-  }
+if(pass.value!==cpass.value){
+toast("Password mismatch"); return;
+}
 
-  let users = JSON.parse(localStorage.getItem("users")) || [];
+let id=Date.now();
 
-  let id = Date.now();
+let user={
+id,
+fn:fn.value,
+ln:ln.value,
+phone:phone.value,
+email:email.value,
+pass:pass.value,
+refCount:0,
+refLink:location.origin+"?ref="+id
+};
 
-  let newUser = {
-    id: id,
-    firstName: fn.value,
-    lastName: ln.value,
-    phone: code.value + phone.value,
-    email: email.value,
-    pass: pass.value,
-    refCount: 0,
-    referredBy: null
-  };
+users.push(user);
 
-  // safe referral link (NO ERROR)
-  newUser.refLink = window.location.origin + "?ref=" + id;
+if(refId){
+let ref=users.find(u=>u.id==refId);
+if(ref) ref.refCount++;
+}
 
-  users.push(newUser);
-  localStorage.setItem("users", JSON.stringify(users));
-
-  toast("Registered successfully ✔");
-
-  login();
-}  
-
+toast("Registered ✔");
+login();
+}
 
 /* LOGIN */
+function login(){
+screen.innerHTML=`
+<h3 class="title">LOGIN</h3>
+
+<input id="le" placeholder="Email">
+<input id="lp" placeholder="Password">
+
+<button onclick="doLogin()">LOGIN</button>
+`;
+}
 
 function doLogin(){
 
-let user = users.find(u=>u.email===le.value && u.pass===lp.value);
+let le=document.getElementById("le").value;
+let lp=document.getElementById("lp").value;
 
-if(!user){
-toast("Invalid login"); return;
+let u=users.find(x=>x.email==le && x.pass==lp);
+
+if(!u){
+toast("Wrong credentials"); return;
 }
 
-/* FIX: ensure refLink always exists */
-if(!user.refLink){
-user.refLink = generateRefLink(user.id);
-localStorage.setItem("users",JSON.stringify(users));
-}
+currentUser=u;
 
-current = user;
-
-nav.style.display="flex";
-
-/* unlock home */
-document.getElementById("homeI").classList.remove("locked");
+document.getElementById("nav").style.display="flex";
 
 home();
 }
-/* HOME */
+
+/* TABLE */
 function home(){
+
 screen.innerHTML=`
 <h3 class="title">TIPPERS INVESTMENT PLAN</h3>
 
 <div class="table">
-
-<div class="row">
+<div>
 <div class="cell">INVEST</div>
-<div class="cell">1DAY</div>
-<div class="cell">1WEEK</div>
-<div class="cell">1MONTH</div>
-<div class="cell">45DAYS</div>
-<div class="cell">3MONTH</div>
-<div class="cell">4MONTH</div>
+<div class="cell">1 DAY</div>
+<div class="cell">1 WEEK</div>
+<div class="cell">1 MONTH</div>
+<div class="cell">45 DAYS</div>
+<div class="cell">3 MONTHS</div>
+<div class="cell">4 MONTHS</div>
 </div>
 
 ${[
@@ -278,95 +280,67 @@ ${[
 ["1,300,000","28,600","273,000","1,404,000","2,398,500","5,850,000","10,920,000"],
 ["1,500,000","33,000","315,000","1,620,000","2,767,500","6,250,000","12,600,000"]
 ].map(r=>`
-<div class="row">
-${r.map(c=>`<div class="cell">${c} RWF</div>`).join("")}
-</div>`).join("")}
+<div>
+<div class="cell">${r[0]} RWF</div>
+<div class="cell">${r[1]} RWF</div>
+<div class="cell">${r[2]} RWF</div>
+<div class="cell">${r[3]} RWF</div>
+<div class="cell">${r[4]} RWF</div>
+<div class="cell">${r[5]} RWF</div>
+<div class="cell">${r[6]} RWF</div>
+</div>
+`).join("")}
 
 </div>
-function generateRefLink(id){
-return window.location.origin + window.location.pathname + "?ref=" + id;
-}
-<div class="card">
-<p>Your referral link:</p>
-<input id="ref" value="${current.refLink || generateRefLink(current.id)}" readonly>
-<button onclick="copyRef()">COPY LINK</button>
-
-<a href="${current.refLink}" target="_blank" style="color:#f59e0b;font-size:12px">
-Open Link
-</a>
-
-<p>Invited users: ${current.refCount || 0}</p>
-</div>
-
-<button onclick="unlockDeposit()">CONTINUE</button>
 `;
-}
-function copyRef(){
-let input = document.getElementById("ref");
-
-if(!input.value){
-toast("Link not ready ❌");
-return;
-}
-
-navigator.clipboard.writeText(input.value);
-toast("Link copied ✔");
-}
-
-/* UNLOCK */
-function unlockDeposit(){
-document.getElementById("depI").classList.remove("locked");
-toast("Deposit unlocked");
 }
 
 /* DEPOSIT */
 function deposit(){
 screen.innerHTML=`
 <h3 class="title">DEPOSIT</h3>
+
 <input id="amt" placeholder="Amount">
-<input id="name" placeholder="Sender name">
+<input id="sender" placeholder="Sender name">
+
 <button onclick="pay()">CONTINUE</button>
 `;
 }
 
 function pay(){
-if(!amt.value||!name.value){toast("Fill all");return;}
-
-screen.innerHTML=`
-<h3 class="title">PAY</h3>
-<div class="cell">0792459701</div>
-<div class="cell">BARAKA BOLINGO</div>
-<div class="cell">*182*1*1*0792459701#</div>
-<button onclick="finish()">FINISH</button>
-`;
-}
-
-function finish(){
-document.querySelectorAll(".nav div").forEach(i=>i.classList.remove("locked"));
-toast("Deposit done ✔");
-home();
+let a=document.getElementById("amt").value;
+if(!a){toast("Fill amount");return;}
+amount=a;
+toast("Payment step...");
 }
 
 /* EARN */
 function earn(){
-screen.innerHTML=`<h3>LIVE</h3><h1 id="live">0</h1>`;
+screen.innerHTML=`
+<h3 class="title">LIVE EARNING</h3>
+<div class="card" id="live">0 RWF</div>
+`;
+
 let i=0;
 setInterval(()=>{
 i+=Math.random()*500;
-live.innerText=Math.floor(i)+" RWF";
+document.getElementById("live").innerText=Math.floor(i)+" RWF";
 },1000);
 }
 
 /* WITHDRAW */
 function withdraw(){
 screen.innerHTML=`
-<h3>Withdraw</h3>
+<h3 class="title">WITHDRAW</h3>
+
 <input placeholder="Amount">
-<input placeholder="Phone">
+<input placeholder="Phone number">
+
 <button onclick="toast('Payout successful ✔')">PAYOUT</button>
 `;
 }
 
+/* START */
 start();
 
 </script>
