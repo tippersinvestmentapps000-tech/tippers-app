@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
+
 body{
 margin:0;
 font-family:Segoe UI;
@@ -88,8 +89,8 @@ background:#111;
 padding:15px;
 border-radius:12px;
 margin-top:10px;
-word-break:break-all;
 }
+
 </style>
 </head>
 
@@ -112,14 +113,10 @@ word-break:break-all;
 
 /* STATE */
 let users = JSON.parse(localStorage.getItem("users")) || [];
-let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
-
+let currentUser = null;
+let depositDone = false;
 let amount = 0;
 let selectedPeriod = 0;
-let referralBonus = 60000;
-
-const screen=document.getElementById("screen");
-const nav=document.getElementById("nav");
 
 /* TOAST */
 function toast(msg){
@@ -129,9 +126,9 @@ t.style.display="block";
 setTimeout(()=>t.style.display="none",2500);
 }
 
-/* REF CODE */
-function genCode(){
-return "REF"+Math.floor(Math.random()*1000000);
+/* REF LINK */
+function getReferralLink(){
+return window.location.origin + "?ref=" + currentUser.refCode;
 }
 
 /* START */
@@ -140,6 +137,7 @@ nav.style.display="none";
 
 screen.innerHTML=`
 <h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
+<p class="desc">Start now and grow your income smartly.</p>
 <button onclick="register()">START</button>
 `;
 }
@@ -150,12 +148,27 @@ function register(){
 let ref = new URLSearchParams(window.location.search).get("ref");
 
 screen.innerHTML=`
+
 <h3 class="title">REGISTER</h3>
 
-<input id="f" placeholder="First name">
-<input id="l" placeholder="Last name">
+<input id="f" placeholder="Enter first name">
+<input id="l" placeholder="Enter last name">
 
-<input id="email" placeholder="Email">
+<select id="g">
+<option value="">Select gender</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+
+<div class="row">
+<select id="code">
+<option value="+250">RWA +250</option>
+<option value="+254">KEN +254</option>
+</select>
+<input id="phone" placeholder="Phone number">
+</div>
+
+<input id="email" placeholder="Enter your email">
 <input id="pass" placeholder="6 digit password">
 <input id="cpass" placeholder="Confirm password">
 
@@ -166,20 +179,40 @@ screen.innerHTML=`
 /* REGISTER SAVE */
 function doRegister(ref){
 
+if(!f.value||!l.value||!g.value||!phone.value||!email.value||!pass.value||!cpass.value){
+toast("Fill all fields ❌"); return;
+}
+
+if(!email.value.endsWith("@gmail.com")){
+toast("Invalid email ❌"); return;
+}
+
+if(!/^[0-9]{6}$/.test(pass.value)){
+toast("Password must be 6 digits ❌"); return;
+}
+
 if(pass.value!==cpass.value){
 toast("Passwords do not match ❌"); return;
 }
 
-let myCode = genCode();
-
+/* USER */
 let user={
 email:email.value,
 pass:pass.value,
-refCode:myCode,
+refCode:"REF"+Math.floor(Math.random()*999999),
 balance:0,
+invitedBy:ref || null,
 referrals:[],
-invitedBy: ref || null
+bonusGiven:false
 };
+
+/* SAVE REFERRAL */
+if(ref){
+let inviter = users.find(u=>u.refCode===ref);
+if(inviter){
+inviter.referrals.push(email.value);
+}
+}
 
 users.push(user);
 localStorage.setItem("users",JSON.stringify(users));
@@ -191,7 +224,8 @@ login();
 /* LOGIN */
 function login(){
 screen.innerHTML=`
-<h3 class="title">LOGIN</h3>
+
+<h3 class="title">Login</h3>
 
 <input id="le">
 <input id="lp">
@@ -217,12 +251,13 @@ deposit();
 
 /* SHARE LINK */
 function shareLink(){
-let link = window.location.origin + "?ref=" + currentUser.refCode;
+
+let link = getReferralLink();
 
 if(navigator.share){
 navigator.share({
-title:"Join Investment App",
-text:"Register using my link",
+title:"Tippers Investment",
+text:"Join using my link",
 url:link
 });
 }else{
@@ -234,8 +269,6 @@ toast("Link copied ✔");
 /* DEPOSIT */
 function deposit(){
 
-let link = window.location.origin + "?ref=" + currentUser.refCode;
-
 screen.innerHTML=`
 <h3 class="title">DEPOSIT</h3>
 
@@ -245,8 +278,8 @@ screen.innerHTML=`
 <button onclick="goPayment()">CONTINUE</button>
 
 <div class="card">
-Referral link:<br>
-${link}
+Referral Link:<br>
+${getReferralLink()}
 </div>
 
 <button onclick="shareLink()">SHARE LINK</button>
@@ -272,12 +305,10 @@ BARAKA BOLINGO
 `;
 }
 
+/* DIAL */
 function dial(){
 screen.innerHTML=`
-<p>*182*1*1*0795410739#</p>
-
 <input type="file" id="file">
-
 <button onclick="submitProof()">SUBMIT</button>
 `;
 }
@@ -288,15 +319,16 @@ if(!file.value){
 toast("Upload proof ❌"); return;
 }
 
-/* BONUS */
+/* BONUS CONDITION */
 if(amount >= 1000000){
-giveBonus();
+giveReferralBonus();
 }
 
 withdrawPeriod();
 }
 
-function giveBonus(){
+/* REFERRAL BONUS */
+function giveReferralBonus(){
 
 let inviterCode = currentUser.invitedBy;
 
@@ -304,20 +336,22 @@ if(!inviterCode) return;
 
 let inviter = users.find(u=>u.refCode===inviterCode);
 
-if(inviter){
-inviter.balance = (inviter.balance || 0) + referralBonus;
+if(!inviter) return;
+
+/* prevent double bonus */
+if(inviter.bonusGiven) return;
+
+inviter.balance = (inviter.balance || 0) + 60000;
+inviter.bonusGiven = true;
 
 localStorage.setItem("users",JSON.stringify(users));
 
 toast("Referral bonus +60000 ✔");
 }
-}
 
-/* WITHDRAW PERIOD */
+/* PERIOD */
 function withdrawPeriod(){
 screen.innerHTML=`
-<h3 class="title">PERIOD</h3>
-
 <select id="period">
 <option value="1">1day</option>
 <option value="7">7days</option>
@@ -345,13 +379,15 @@ return Math.floor(a+(a*rate));
 
 /* FINISH */
 function finish(){
+
 selectedPeriod=period.value;
+depositDone=true;
 
 let final=calculateProfit(amount,selectedPeriod);
 
 screen.innerHTML=`
 <div class="card">
-<h2>FINAL BALANCE</h2>
+<h2>Final Balance</h2>
 <h1>${final} RWF</h1>
 </div>
 `;
@@ -366,39 +402,12 @@ screen.innerHTML=`
 <div class="card">
 <h2>Balance</h2>
 <h1>${u.balance || 0} RWF</h1>
+<p>Referrals: ${u.referrals.length}</p>
 </div>
 `;
 }
 
-/* EARN */
-function earn(){
-screen.innerHTML=`
-<h3 class="title">LIVE EARN</h3>
-<div class="card"><h1 id="live">0</h1></div>
-`;
-
-let i=0;
-setInterval(()=>{
-i+=Math.floor(Math.random()*2000);
-document.getElementById("live").innerText=i+" RWF";
-},1000);
-}
-
-/* WITHDRAW */
-function withdraw(){
-screen.innerHTML=`
-<h3 class="title">WITHDRAW</h3>
-
-<input id="wamt">
-
-<button onclick="doWithdraw()">WITHDRAW</button>
-`;
-}
-
-function doWithdraw(){
-toast("Locked ❌");
-}
-
+/* START */
 start();
 
 </script>
