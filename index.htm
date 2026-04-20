@@ -100,22 +100,22 @@ word-break:break-all;
 
 <script>
 
+/* STORAGE */
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let currentUser = null;
+
+/* STATE */
+let amount = 0;
+let selectedPeriod = 0;
+let depositDone = false;
+
 /* DOM */
 const screen = document.getElementById("screen");
 const nav = document.getElementById("nav");
 
-/* ✅ FIX: USERS ADDED */
-let users = JSON.parse(localStorage.getItem("users")) || [];
-
-let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
-let depositDone = false;
-let amount = 0;
-let selectedPeriod = 0;
-
-/* HELPER */
+/* HELPERS */
 function val(id){ return document.getElementById(id)?.value; }
 
-/* TOAST */
 function toast(msg){
 let t=document.getElementById("toast");
 t.innerText=msg;
@@ -123,35 +123,31 @@ t.style.display="block";
 setTimeout(()=>t.style.display="none",2500);
 }
 
-/* ✅ FIXED getLink */
+/* REF LINK */
 function getLink(){
-if(!currentUser) return "";
-return window.location.origin + "?ref=" + currentUser.refCode;
+return window.location.origin + window.location.pathname + "?ref=" + currentUser.refCode;
 }
 
 /* START */
 function start(){
 nav.style.display="none";
 screen.innerHTML=`
-<h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
-<p class="desc">Start now and grow your income smartly.</p>
-<button onclick="register()">START</button>
+<h2 class="title">WELCOME</h2>
+<p class="desc">Start your journey</p>
+<button onclick="register()">NEXT</button>
 `;
 }
 
 /* REGISTER */
 function register(){
-let ref=new URLSearchParams(window.location.search).get("ref");
+let ref = new URLSearchParams(window.location.search).get("ref");
 
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
+
 <input id="f" placeholder="First name">
 <input id="l" placeholder="Last name">
-<select id="g">
-<option value="">Gender</option>
-<option>Male</option>
-<option>Female</option>
-</select>
+
 <div class="row">
 <select id="code">
 <option value="+250">RWA +250</option>
@@ -159,49 +155,36 @@ screen.innerHTML=`
 </select>
 <input id="phone" placeholder="Phone">
 </div>
+
 <input id="email" placeholder="Email">
 <input id="pass" placeholder="6 digit password">
 <input id="cpass" placeholder="Confirm password">
+
 <button onclick="doRegister('${ref||""}')">REGISTER</button>
 `;
 }
 
-/* REGISTER SAVE */
+/* DO REGISTER */
 function doRegister(ref){
 
-if(!val("f")||!val("l")||!val("g")||!val("phone")||!val("email")||!val("pass")||!val("cpass")){
-toast("Fill all fields ❌"); return;
-}
-
-if(!val("email").endsWith("@gmail.com")){
-toast("Invalid email ❌"); return;
-}
-
-if(!/^[0-9]{6}$/.test(val("pass"))){
-toast("Password must be 6 digits ❌"); return;
+if(!val("f")||!val("l")||!val("phone")||!val("email")||!val("pass")||!val("cpass")){
+toast("Fill all fields"); return;
 }
 
 if(val("pass")!==val("cpass")){
-toast("Passwords do not match ❌"); return;
+toast("Passwords mismatch"); return;
 }
 
 let user={
 email:val("email"),
 pass:val("pass"),
-refCode:"REF"+Math.floor(Math.random()*999999),
+refCode:"REF"+Date.now(),
 balance:0,
 invitedBy:ref||null,
-referrals:[],
-bonusGiven:false
+referrals:[]
 };
 
-if(ref){
-let inviter=users.find(u=>u.refCode===ref);
-if(inviter){
-inviter.referrals.push(user.email);
-}
-}
-
+/* SAVE */
 users.push(user);
 localStorage.setItem("users",JSON.stringify(users));
 
@@ -212,11 +195,10 @@ login();
 /* LOGIN */
 function login(){
 screen.innerHTML=`
-<h3 class="title">Login to continue</h3>
-<input id="le" placeholder="Enter email">
-<input id="lp" placeholder="Enter password">
-<div style="display:flex;justify-content:space-between">
-</div>
+<h3 class="title">LOGIN</h3>
+
+<input id="le" placeholder="Email">
+<input id="lp" placeholder="Password">
 
 <button onclick="doLogin()">LOGIN</button>
 `;
@@ -224,244 +206,136 @@ screen.innerHTML=`
 
 function doLogin(){
 
-if(!val("le") || !val("lp")){
-toast("Fill all fields ❌"); return;
-}
-
-let user = users.find(u=>u.email===val("le"));
+let user = users.find(u=>u.email===val("le") && u.pass===val("lp"));
 
 if(!user){
-toast("Account not found ❌"); return;
-}
-
-if(user.pass !== val("lp")){
-toast("Invalid password ❌"); return;
+toast("Invalid login"); return;
 }
 
 currentUser = user;
-localStorage.setItem("currentUser", JSON.stringify(user));
-
 nav.style.display="flex";
-deposit();
+
+home();
 }
 
-/* SHARE */
-function shareLink(){
-let link=getLink();
-navigator.clipboard.writeText(link);
-toast("Link copied ✔");
-}
-
-/* DEPOSIT */
-function deposit(){
-
-if(!currentUser){
-toast("Login first ❌");
-login();
-return;
-}
+/* HOME */
+function home(){
 
 screen.innerHTML=`
-<h3 class="title">DEPOSIT BALANCE</h3>
-<p class="desc">Add funds using MTN mobile money</p>
-<input id="amt" placeholder="Amount (RWF)">
-<p>Minimum 5000 RWF</p>
-<input id="sender" placeholder="Sender name">
-<button onclick="goPayment()">CONTINUE</button>
+<h3 class="title">DASHBOARD</h3>
+
+<div class="card">
+Balance: ${currentUser.balance} RWF
+</div>
 
 <div class="card">
 Referral Link:<br>
 ${getLink()}
 </div>
 
-<button onclick="shareLink()">SHARE LINK</button>
+<button onclick="copy()">COPY LINK</button>
 `;
 }
 
-/* PAYMENT */
-function goPayment(){
+/* COPY */
+function copy(){
+navigator.clipboard.writeText(getLink());
+toast("Copied ✔");
+}
+
+/* DEPOSIT */
+function deposit(){
+
+screen.innerHTML=`
+<h3 class="title">DEPOSIT</h3>
+
+<input id="amt" placeholder="Amount">
+<input id="sender" placeholder="Sender name">
+
+<button onclick="pay()">CONTINUE</button>
+`;
+}
+
+function pay(){
+
 if(!val("amt")||!val("sender")){
-toast("Fill all fields to continue"); return;
+toast("Fill all"); return;
 }
 
-let a=parseInt(val("amt"));
-if(a<5000){
-toast("The Minimum amount is 5000 rwf"); return;
-}
+amount=parseInt(val("amt"));
 
-amount=a;
-payment();
-}
-
-/* PAYMENT */
-function payment(){
 screen.innerHTML=`
-<h3 class="title">PAYMENT INFORMATION</h3>
+<h3 class="title">PAYMENT</h3>
 <div class="card">0792459701</div>
-<br><br>
-
-BARAKA BOLINGO
-</div>
-<button onclick="dial()">DIAL & PAY</button>
+<button onclick="finishDeposit()">FINISH</button>
 `;
 }
-/* DIAL */
-function dial(){
-screen.innerHTML=`
-<div>*182*1*1*0792459701#</div>
-`;
-}
-return;
-/* BONUS */
- 
 
-if(amount>=1000000){
-let inviter=users.find(u=>u.refCode===currentUser.invitedBy);
-if(inviter && !inviter.bonusGiven){
-inviter.balance+=60000;
-inviter.bonusGiven=true;
-localStorage.setItem("users",JSON.stringify(users));
-toast("Bonus +60000 ✔");
-}
-}
-
-withdrawPeriod();
-}
-
-/* PERIOD */
-function withdrawPeriod(){
-screen.innerHTML=`
-
-<h3 class="title">WITHDRAW PERIOD</h3>
-
-<select id="period">
-<option value="1">1day</option>
-<option value="7">7days</option>
-<option value="14">14days</option>
-<option value="45">45days</option>
-<option value="90">3month</option>
-<option value="120">4month</option>
-</select>
-
-<button onclick="finish()">SEND & CONFIRM</button>
-`;
-}
-/* PROFIT */
-function calculateProfit(a,p){
-
-let rate=0;
-
-if(p==1) rate=0.05;
-if(p==7) rate=0.2;
-if(p==14) rate=0.45;
-if(p==45) rate=1.2;
-if(p==90) rate=3;
-if(p==120) rate=11;
-
-return Math.floor(a + (a*rate));
-}
 /* FINISH */
-function finish(){
-selectedPeriod=parseInt(val("period"));
+function finishDeposit(){
+
 depositDone=true;
 
-let final=calculateProfit(amount,selectedPeriod);
-
-screen.innerHTML=`
-
-<div class="card">
-<h2>Final Balance</h2>
-<h1>${final} RWF</h1>
-</div>
-`;
+/* BONUS 6% */
+if(currentUser.invitedBy){
+let inviter = users.find(u=>u.refCode===currentUser.invitedBy);
+if(inviter){
+let bonus = Math.floor(amount * 0.06);
+inviter.balance += bonus;
+toast("Bonus "+bonus+" RWF sent");
+}
 }
 
-/* HOME */
-function home(){
+localStorage.setItem("users",JSON.stringify(users));
 
-if(!depositDone){
-toast("Finish deposit first ❌"); return;
+toast("Deposit success ✔");
+home();
 }
 
-let u=users.find(x=>x.email===currentUser.email);
-
-screen.innerHTML=`
-
-<div class="card">
-<h2 class="title">Balance</h2>
-<h1>${calculateProfit(amount,selectedPeriod)} RWF</h1>
-<p>Referral Bonus: ${u.balance}</p>
-</div>
-
-<div class="card">
-<h3 class="title">TIPPERS INVESTMENT PLAN</h3>
-
-<p>1 Day → 5%</p>
-<p>7 Days → 20%</p>
-<p>14 Days → 45%</p>
-<p>45 Days → 120%</p>
-<p>3 Months → 300%</p>
-<p>4 Months → 1100%</p>
-
-</div>
-`;
-}
 /* EARN */
 function earn(){
 
 screen.innerHTML=`
-<h3 class="title">Live Earnings</h3>
-<div class="card">
-<h1 id="live">0 RWF</h1>
-</div>
+<h3 class="title">LIVE EARNING</h3>
+<div class="card" id="live">0</div>
 `;
 
 let i=0;
 setInterval(()=>{
-i+=Math.floor(Math.random()*2000);
-document.getElementById("live").innerText=i+" RWF";
+i+=Math.random()*1000;
+document.getElementById("live").innerText=Math.floor(i)+" RWF";
 },1000);
 }
+
 /* WITHDRAW */
 function withdraw(){
 
 if(!depositDone){
-toast("Finish deposit first!"); return;
+toast("Deposit first"); return;
 }
 
 screen.innerHTML=`
-
 <h3 class="title">WITHDRAW</h3>
 
-<input id="wamt" placeholder="0 RWF">
-<p>Minimum 7500 RWF</p>
+<input id="wamt" placeholder="Amount">
+<input id="phone" placeholder="Phone">
 
-<div class="row">
-<select>
-<option>RWA +250</option>
-<option>KEN +254</option>
-</select>
-<input id="wphone">
-</div>
-
-<button onclick="doWithdraw()">WITHDRAW</button>
+<button onclick="doWithdraw()">PAYOUT</button>
 `;
 }
+
 function doWithdraw(){
 
-if(!wamt.value){
-toast("Enter amount ❌"); return;
+if(!val("wamt")||!val("phone")){
+toast("Fill all"); return;
 }
 
-let w=parseInt(wamt.value);
+toast("Payout successful ✔");
+}
 
-if(w<7500){
-toast("INVALID INPUT ❌"); return;
-}}
 /* START */
 start();
 
 </script>
-
 </body>
 </html>
