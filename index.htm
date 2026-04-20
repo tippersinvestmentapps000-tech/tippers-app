@@ -158,58 +158,65 @@ screen.innerHTML=`
 <button onclick="doRegister()">REGISTER</button>
 `;
 }
-
+/* register*/
 function doRegister(){
+
 if(!fn.value||!ln.value||!phone.value||!email.value||!pass.value||!cpass.value){
-toast("Fill all");return;
+toast("Fill all fields"); return;
 }
-if(pass.value!==cpass.value){toast("Mismatch");return;
- users.push({
-id,
+
+if(pass.value!==cpass.value){
+toast("Passwords mismatch"); return;
+}
+
+let id = Date.now(); // unique id
+
+let newUser = {
+id:id,
 email:email.value,
 pass:pass.value,
-refLink,
 refCount:0,
-referredBy: refId || null   // 👈 aha ni ingenzi cyane
-});
+referredBy: refId || null
+};
+
+/* generate link here */
+newUser.refLink = generateRefLink(id);
+
+/* SAVE */
+users.push(newUser);
+
+/* UPDATE REFERRER */
 if(refId){
 let refUser = users.find(u=>u.id == refId);
 if(refUser){
-refUser.refCount = (refUser.refCount || 0) + 1;
+refUser.refCount = (refUser.refCount||0)+1;
 }
-}                            }
-
-let id=Date.now();
-
-let refLink = window.location.origin + window.location.pathname + "?ref=" + id;  
-
-users.push({
-id,
-email:email.value,
-pass:pass.value,
-refLink,
-refCount:0
-});
+}
 
 localStorage.setItem("users",JSON.stringify(users));
+
+toast("Registered ✔");
 login();
 }
 
 /* LOGIN */
-function login(){
-screen.innerHTML=`
-<h3 class="title">LOGIN</h3>
-<input id="le" placeholder="Email">
-<input id="lp" placeholder="Password">
-<button onclick="doLogin()">LOGIN</button>
-`;
-}
 
 function doLogin(){
-let u=users.find(x=>x.email===le.value && x.pass===lp.value);
-if(!u){toast("Invalid");return;}
 
-current=u;
+let user = users.find(u=>u.email===le.value && u.pass===lp.value);
+
+if(!user){
+toast("Invalid login"); return;
+}
+
+/* FIX: ensure refLink always exists */
+if(!user.refLink){
+user.refLink = generateRefLink(user.id);
+localStorage.setItem("users",JSON.stringify(users));
+}
+
+current = user;
+
 nav.style.display="flex";
 
 /* unlock home */
@@ -217,7 +224,6 @@ document.getElementById("homeI").classList.remove("locked");
 
 home();
 }
-
 /* HOME */
 function home(){
 screen.innerHTML=`
@@ -252,12 +258,12 @@ ${r.map(c=>`<div class="cell">${c} RWF</div>`).join("")}
 </div>`).join("")}
 
 </div>
-
+function generateRefLink(id){
+return window.location.origin + window.location.pathname + "?ref=" + id;
+}
 <div class="card">
 <p>Your referral link:</p>
-
-<input id="ref" value="${current.refLink}" readonly>
-
+<input id="ref" value="${current.refLink || generateRefLink(current.id)}" readonly>
 <button onclick="copyRef()">COPY LINK</button>
 
 <a href="${current.refLink}" target="_blank" style="color:#f59e0b;font-size:12px">
@@ -271,8 +277,14 @@ Open Link
 `;
 }
 function copyRef(){
-let link = document.getElementById("ref").value;
-navigator.clipboard.writeText(link);
+let input = document.getElementById("ref");
+
+if(!input.value){
+toast("Link not ready ❌");
+return;
+}
+
+navigator.clipboard.writeText(input.value);
 toast("Link copied ✔");
 }
 
