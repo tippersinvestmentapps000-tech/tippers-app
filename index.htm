@@ -154,10 +154,10 @@ function register(){
 
   <div class="row">
     <select id="code">
-      <option value="+250">🇷🇼 Rwanda +250</option>
-      <option value="+254">🇰🇪 Kenya +254</option>
-      <option value="+255">🇹🇿 Tanzania +255</option>
-      <option value="+256">🇺🇬 Uganda +256</option>
+      <option value="+250">🇷🇼 +250</option>
+      <option value="+254">🇰🇪 +254</option>
+      <option value="+255">🇹🇿 +255</option>
+      <option value="+256">🇺🇬 +256</option>
     </select>
 
     <input id="phone" placeholder="Phone number">
@@ -170,7 +170,7 @@ function register(){
   <button onclick="doRegister()">REGISTER</button>
   `;
 }
-  function doRegister(){
+function doRegister(){
 
   const fn = document.getElementById("fn");
   const ln = document.getElementById("ln");
@@ -180,7 +180,14 @@ function register(){
   const cpass = document.getElementById("cpass");
   const code = document.getElementById("code");
 
-  if(!fn.value || !ln.value || !phone.value || !email.value || !pass.value || !cpass.value){
+  if(!fn || !ln || !phone || !email || !pass || !cpass){
+    toast("System error: fields missing");
+    return;
+  }
+  if(
+    !fn.value || !ln.value || !phone.value ||
+    !email.value || !pass.value || !cpass.value
+  ){
     toast("Fill all fields");
     return;
   }
@@ -202,28 +209,21 @@ function register(){
     email: email.value,
     pass: pass.value,
     refCount: 0,
-    referredBy: refId || null
+    referredBy: null
   };
 
-  // referral link
+  // safe referral link (NO ERROR)
   newUser.refLink = window.location.origin + "?ref=" + id;
 
   users.push(newUser);
-
-  // referral bonus tracking
-  if(refId){
-    let refUser = users.find(u => u.id == refId);
-    if(refUser){
-      refUser.refCount = (refUser.refCount || 0) + 1;
-    }
-  }
-
   localStorage.setItem("users", JSON.stringify(users));
 
   toast("Registered successfully ✔");
 
   login();
-}
+}  
+
+
 /* LOGIN */
 
 function doLogin(){
