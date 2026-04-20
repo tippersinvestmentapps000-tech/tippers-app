@@ -1,126 +1,172 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>DEMO FIX</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-margin:0;
-font-family:Arial;
-background:#0b1120;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-color:white;
-}
-
-.app{
-width:390px;
-height:95vh;
-background:#000;
-border-radius:20px;
-display:flex;
-flex-direction:column;
-}
-
-.content{
-flex:1;
-padding:15px;
-overflow:auto;
-}
-
-button{
-width:100%;
-padding:12px;
-margin-top:10px;
-background:#f59e0b;
-border:none;
-border-radius:10px;
-font-weight:bold;
-}
-
-.title{text-align:center;color:#f59e0b}
-</style>
-</head>
-
-<body>
-
-<div class="app">
-<div class="content" id="screen">LOADING...</div>
-</div>
-
 <script>
 
-/* SAFE ELEMENT GET */
-function el(id){
-return document.getElementById(id);
+/* STATE */
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
+
+let depositDone = false;
+let amount = 0;
+let selectedPeriod = 0;
+
+/* TOAST */
+function toast(msg){
+let t=document.getElementById("toast");
+t.innerText=msg;
+t.style.display="block";
+setTimeout(()=>t.style.display="none",2500);
 }
 
-/* SAFE SCREEN */
-function show(html){
-let s = el("screen");
-if(!s){
-alert("SCREEN NOT FOUND");
-return;
-}
-s.innerHTML = html;
+/* GENERATE REF CODE */
+function genCode(){
+return "REF"+Math.floor(Math.random()*1000000);
 }
 
-/* START SAFE */
+/* START */
 function start(){
-show(`
-<h2 class="title">WELCOME TO DEMO</h2>
-<p style="text-align:center">System is running properly</p>
-<button onclick="next()">NEXT</button>
-`);
+nav.style.display="none";
+
+screen.innerHTML=`
+<h2 class="title">WELCOME TO TIPPERS INVESTMENT APP !</h2>
+<button onclick="register()">START</button>
+`;
 }
 
-/* NEXT PAGE */
-function next(){
-show(`
-<h3 class="title">REGISTER PAGE</h3>
+/* REGISTER */
+function register(){
 
-<input placeholder="First name">
-<input placeholder="Last name">
-<input placeholder="Phone">
-<input placeholder="Email">
+let urlRef = new URLSearchParams(window.location.search).get("ref");
 
-<button onclick="login()">REGISTER</button>
-`);
+screen.innerHTML=`
+
+<h3 class="title">REGISTER</h3>
+
+<input id="f" placeholder="First name">
+<input id="l" placeholder="Last name">
+
+<input id="email" placeholder="Email">
+<input id="pass" placeholder="6 digit password">
+<input id="cpass" placeholder="Confirm password">
+
+<button onclick="doRegister('${urlRef || ""}')">REGISTER</button>
+`;
+}
+
+/* SAVE USER */
+function doRegister(ref){
+
+if(pass.value!==cpass.value){
+toast("Passwords do not match"); return;
+}
+
+let myCode = genCode();
+
+let user={
+email:email.value,
+pass:pass.value,
+refCode: myCode,
+balance:0,
+referrals:[],
+invitedBy: ref || null
+};
+
+users.push(user);
+localStorage.setItem("users",JSON.stringify(users));
+
+toast("Registered ✔");
+
+login();
 }
 
 /* LOGIN */
 function login(){
-show(`
+screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
 
-<input id="email" placeholder="Email">
-<input id="pass" placeholder="Password">
+<input id="le">
+<input id="lp">
 
-<button onclick="dashboard()">LOGIN</button>
-`);
+<button onclick="doLogin()">LOGIN</button>
+`;
 }
 
-/* DASHBOARD */
-function dashboard(){
-show(`
-<h3 class="title">DASHBOARD</h3>
+function doLogin(){
 
-<p style="text-align:center">✔ System Working</p>
+let user = users.find(u=>u.email===le.value);
 
-<button onclick="start()">BACK TO START</button>
-`);
+if(!user || user.pass!==lp.value){
+toast("Wrong login"); return;
 }
 
-/* AUTO START */
-window.onload = function(){
+currentUser=user;
+localStorage.setItem("currentUser",JSON.stringify(user));
+
+nav.style.display="flex";
+deposit();
+}
+
+/* DEPOSIT */
+function deposit(){
+screen.innerHTML=`
+<h3 class="title">DEPOSIT</h3>
+
+<input id="amt">
+<input id="sender">
+
+<button onclick="goPayment()">CONTINUE</button>
+
+<p>Your referral link:</p>
+<div class="card">
+${window.location.origin+"?ref="+currentUser.refCode}
+</div>
+`;
+}
+
+/* PAYMENT FLOW */
+function goPayment(){
+
+amount=parseInt(amt.value);
+
+payment();
+}
+
+function submitProof(){
+if(amount>=1000000){
+applyReferralBonus();
+}
+withdrawPeriod();
+}
+
+/* BONUS SYSTEM */
+function applyReferralBonus(){
+
+if(!currentUser.invitedBy) return;
+
+let inviter = users.find(u=>u.refCode===currentUser.invitedBy);
+
+if(inviter){
+
+inviter.balance = (inviter.balance || 0) + 60000;
+inviter.referrals.push(currentUser.email);
+
+localStorage.setItem("users",JSON.stringify(users));
+
+toast("Referral bonus given ✔");
+}
+}
+
+/* HOME BALANCE */
+function home(){
+
+let u = users.find(x=>x.email===currentUser.email);
+
+screen.innerHTML=`
+<div class="card">
+<h2>Balance</h2>
+<h1>${u.balance || 0} RWF</h1>
+</div>
+`;
+}
+
 start();
-};
 
 </script>
-
-</body>
-</html>
