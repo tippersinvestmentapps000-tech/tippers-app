@@ -145,97 +145,85 @@ screen.innerHTML=`
 `;
 }
 
-/* REGISTER */
 function register(){
-screen.innerHTML=`
-<h3>REGISTER WITH GOOGLE ACCOUNT</h3>
+  screen.innerHTML = `
+  <h3 class="title">REGISTER WITH GOOGLE ACCOUNT</h3>
 
-<input id="fn" placeholder="First name">
-<input id="ln" placeholder="Last name">
+  <input id="fn" placeholder="First name">
+  <input id="ln" placeholder="Last name">
 
-<!-- COUNTRY CODE FIX -->
-<div class="row">
-  <select id="code">
-    <option value="+250">🇷🇼 Rwanda +250</option>
-    <option value="+254">🇰🇪 Kenya +254</option>
-    <option value="+255">🇹🇿 Tanzania +255</option>
-    <option value="+256">🇺🇬 Uganda +256</option>
-  </select>
+  <div class="row">
+    <select id="code">
+      <option value="+250">🇷🇼 Rwanda +250</option>
+      <option value="+254">🇰🇪 Kenya +254</option>
+      <option value="+255">🇹🇿 Tanzania +255</option>
+      <option value="+256">🇺🇬 Uganda +256</option>
+    </select>
 
-  <input id="phone" placeholder="Phone number">
-</div>
+    <input id="phone" placeholder="Phone number">
+  </div>
 
-<input id="email" placeholder="Email">
-<input id="pass" placeholder="Password">
-<input id="cpass" placeholder="Confirm password">
+  <input id="email" placeholder="Email">
+  <input id="pass" placeholder="Password">
+  <input id="cpass" placeholder="Confirm password">
 
-<!-- BUTTON FIX -->
-<button onclick="doRegister()">REGISTER</button>
-`;
+  <button onclick="doRegister()">REGISTER</button>
+  `;
 }
-/* register*/
-function doRegister(){
-  {
-  const fn = document.getElementById("fn").value;
-  const ln = document.getElementById("ln").value;
-  const code = document.getElementById("code").value;
-  const phone = document.getElementById("phone").value;
-  const email = document.getElementById("email").value;
-  const pass = document.getElementById("pass").value;
-  const cpass = document.getElementById("cpass").value;
+  function doRegister(){
 
-  if (!fn || !ln || !phone || !email || !pass || !cpass) {
-    alert("Fill all fields");
+  const fn = document.getElementById("fn");
+  const ln = document.getElementById("ln");
+  const phone = document.getElementById("phone");
+  const email = document.getElementById("email");
+  const pass = document.getElementById("pass");
+  const cpass = document.getElementById("cpass");
+  const code = document.getElementById("code");
+
+  if(!fn.value || !ln.value || !phone.value || !email.value || !pass.value || !cpass.value){
+    toast("Fill all fields");
     return;
   }
 
-  if (pass !== cpass) {
-    alert("Passwords do not match");
+  if(pass.value !== cpass.value){
+    toast("Passwords mismatch");
     return;
   }
 
-  alert("Registration successful ✔");
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+
+  let id = Date.now();
+
+  let newUser = {
+    id: id,
+    firstName: fn.value,
+    lastName: ln.value,
+    phone: code.value + phone.value,
+    email: email.value,
+    pass: pass.value,
+    refCount: 0,
+    referredBy: refId || null
+  };
+
+  // referral link
+  newUser.refLink = window.location.origin + "?ref=" + id;
+
+  users.push(newUser);
+
+  // referral bonus tracking
+  if(refId){
+    let refUser = users.find(u => u.id == refId);
+    if(refUser){
+      refUser.refCount = (refUser.refCount || 0) + 1;
+    }
+  }
+
+  localStorage.setItem("users", JSON.stringify(users));
+
+  toast("Registered successfully ✔");
+
+  login();
 }
-
-if(!fn.value||!ln.value||!phone.value||!email.value||!pass.value||!cpass.value){
-toast("Fill all fields"); return;
-}
-
-if(pass.value!==cpass.value){
-toast("Passwords mismatch"); return;
-}
-
-let id = Date.now(); // unique id
-
-let newUser = {
-id:id,
-email:email.value,
-pass:pass.value,
-refCount:0,
-referredBy: refId || null
-}
-  ;
-
-/* generate link here */
-newUser.refLink = generateRefLink(id);
-
-/* SAVE */
-users.push(newUser);
-
-/* UPDATE REFERRER */
-if(refId){
-let refUser = users.find(u=>u.id == refId);
-if(refUser){
-refUser.refCount = (refUser.refCount||0)+1;
-}
-}
-
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Registered ✔");
-login();
-}
-
 /* LOGIN */
 
 function doLogin(){
