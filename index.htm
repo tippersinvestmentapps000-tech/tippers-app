@@ -325,21 +325,34 @@ withdrawPeriod();
 /* PERIOD */
 function withdrawPeriod(){
 screen.innerHTML=`
+
+<h3 class="title">WITHDRAW PERIOD</h3>
+
 <select id="period">
 <option value="1">1day</option>
 <option value="7">7days</option>
 <option value="14">14days</option>
+<option value="45">45days</option>
+<option value="90">3month</option>
+<option value="120">4month</option>
 </select>
-<button onclick="finish()">CONFIRM</button>
+
+<button onclick="finish()">SEND & CONFIRM</button>
 `;
 }
 
 function calculateProfit(a,p){
+
 let rate=0;
+
 if(p==1) rate=0.05;
 if(p==7) rate=0.2;
 if(p==14) rate=0.45;
-return Math.floor(a+(a*rate));
+if(p==45) rate=1.2;
+if(p==90) rate=3;
+if(p==120) rate=11;
+
+return Math.floor(a + (a*rate));
 }
 
 function finish(){
@@ -358,6 +371,7 @@ screen.innerHTML=`
 
 /* HOME */
 function home(){
+
 if(!depositDone){
 toast("Finish deposit first ❌"); return;
 }
@@ -365,10 +379,23 @@ toast("Finish deposit first ❌"); return;
 let u=users.find(x=>x.email===currentUser.email);
 
 screen.innerHTML=`
+
 <div class="card">
-<h2>Balance</h2>
+<h2 class="title">Balance</h2>
 <h1>${calculateProfit(amount,selectedPeriod)} RWF</h1>
 <p>Referral Bonus: ${u.balance}</p>
+</div>
+
+<div class="card">
+<h3 class="title">TIPPERS INVESTMENT PLAN</h3>
+
+<p>1 Day → 5%</p>
+<p>7 Days → 20%</p>
+<p>14 Days → 45%</p>
+<p>45 Days → 120%</p>
+<p>3 Months → 300%</p>
+<p>4 Months → 1100%</p>
+
 </div>
 `;
 }
