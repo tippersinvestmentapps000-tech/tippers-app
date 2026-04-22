@@ -145,6 +145,8 @@ const nav = document.getElementById("nav");
 const ADMIN_EMAIL = "admin@app.com";
 const ADMIN_PASS = "1234";
 
+let isAdmin = false;
+
 /* HELPERS */
 function val(id){ return document.getElementById(id)?.value; }
 
@@ -227,31 +229,7 @@ toast("Registered ✔");
 login();
 }
 
-/* LOGIN */
-function login(){
-screen.innerHTML=`
-<h3 class="title">SIGN IN BY YOU GOOGLE ACOUNT</h3>
 
-<input id="le" placeholder="Email">
-<input id="lp" placeholder="Password">
-
-<button onclick="doLogin()">LOGIN</button>
-`;
-}
-
-function doLogin(){
-
-let user = users.find(u=>u.email===val("le") && u.pass===val("lp"));
-
-if(!user){
-toast("Invalid Email or incorrect  password, try again!"); return;
-}
-
-currentUser = user;
-nav.style.display="flex";
-
-home();
-}
 
 /* LOGIN */
 function login(){
@@ -266,47 +244,64 @@ screen.innerHTML=`
 <button onclick="doLogin()">LOGIN</button>
 `;
 }
-
 function doLogin(){
 
-let user = users.find(
-u => u.email === val("le") && u.pass === val("lp")
-);
+let email = val("le").trim();
+let pass = val("lp").trim();
 
-/* ADMIN LOGIN */
-if(val("le") === ADMIN_EMAIL && val("lp") === ADMIN_PASS){
+/* =======================
+   👨‍💼 ADMIN LOGIN
+======================= */
+if(email === ADMIN_EMAIL && pass === ADMIN_PASS){
+
+isAdmin = true;
 currentUser = {email:"ADMIN"};
-nav.style.display="flex";
+
+nav.style.display = "flex";
+
 adminPanel();
-toast("Admin login ✔");
+
+toast("Admin logged in ✔");
+
 return;
 }
+
+/* =======================
+   👤 USER LOGIN
+======================= */
+let user = users.find(u => 
+u.email === email && u.pass === pass
+);
 
 if(!user){
 toast("Invalid login");
 return;
 }
 
+isAdmin = false;
 currentUser = user;
-nav.style.display="flex";
+
+nav.style.display = "flex";
 
 home();
 }
 
-/* ADMIN PANEL */
+/*ADMIN PANEL*/
+  
 function adminPanel(){
 
-let pending =
-JSON.parse(localStorage.getItem("pendingDeposits")) || [];
+let pending = JSON.parse(localStorage.getItem("pendingDeposits")) || [];
 
-let html = `<h3 class="title">ADMIN PANEL</h3>`;
+let html = `<h3 class="title">ADMIN DASHBOARD</h3>`;
 
+/* NO DATA */
 if(pending.length === 0){
 html += `<div class="card">No pending deposits</div>`;
 screen.innerHTML = html;
 return;
 }
 
+/* LIST ALL PENDING */
 pending.forEach((p,i)=>{
 
 html += `
@@ -314,10 +309,10 @@ html += `
 <b>User:</b> ${p.user}<br>
 <b>Amount:</b> ${p.amount} RWF<br>
 <b>TXID:</b> ${p.txid}<br>
+<b>Date:</b> ${p.date}<br>
 
-<button onclick="approveDeposit(${i})">
-APPROVE
-</button>
+<button onclick="approveDeposit(${i})">APPROVE</button>
+<button onclick="rejectDeposit(${i})" style="background:red;">REJECT</button>
 </div>
 `;
 });
@@ -327,8 +322,7 @@ screen.innerHTML = html;
 
 function approveDeposit(index){
 
-let pending =
-JSON.parse(localStorage.getItem("pendingDeposits")) || [];
+let pending = JSON.parse(localStorage.getItem("pendingDeposits")) || [];
 
 let dep = pending[index];
 
@@ -336,38 +330,33 @@ let user = users.find(u => u.email === dep.user);
 
 if(user){
 
-/* ADD BALANCE */
 user.balance += dep.amount;
 
 /* REF BONUS */
 if(user.invitedBy){
 
-let inviter = users.find(
-u => u.refCode === user.invitedBy
-);
+let inviter = users.find(u => u.refCode === user.invitedBy);
 
 if(inviter){
-
-let bonus = Math.floor(dep.amount * 0.06);
-
-inviter.balance += bonus;
-
-toast("Bonus sent ✔");
+inviter.balance += Math.floor(dep.amount * 0.06);
 }
 }
 
 }
 
-/* REMOVE FROM PENDING */
+/* REMOVE */
 pending.splice(index,1);
 
-localStorage.setItem("pendingDeposits",JSON.stringify(pending));
-localStorage.setItem("users",JSON.stringify(users));
+localStorage.setItem("pendingDeposits", JSON.stringify(pending));
+localStorage.setItem("users", JSON.stringify(users));
 
 toast("Approved ✔");
 
 adminPanel();
 }
+currentUser.balance = user.balance;
+localStorage.setItem("users", JSON.stringify(users));
+
   
 /* HOME */
 function home(){
