@@ -455,14 +455,16 @@ document.getElementById("live").innerText=Math.floor(i)+" RWF";
 function withdraw(){
 
 if(!depositDone){
-toast("Deposit first"); return;
+toast("Deposit first"); 
+return;
 }
 
 screen.innerHTML=`
-<h3 class="title">WITHDRAW</h3>
+<h3 class="title">PAYOUT YOUR EARNS</h3>
 
-<input id="wamt" placeholder="Amount">
-<input id="phone" placeholder="Phone">
+<input id="wamt" placeholder="Enter Amount You Want to Withdraw">
+
+<input id="phone" placeholder="Enter YOUR Phone Number">
 
 <button onclick="doWithdraw()">PAYOUT</button>
 `;
@@ -470,11 +472,12 @@ screen.innerHTML=`
 
 function doWithdraw(){
 
-if(!val("wamt")||!val("phone")){
-toast("Fill all"); return;
+if(!val("wamt") || !val("phone")){
+toast("Fill all fields");
+return;
 }
 
-toast("Payout successful ✔");
+toast("Payout successful! check your balance");
 }
 
 /* START */
