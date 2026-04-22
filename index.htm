@@ -596,9 +596,8 @@ i.toLocaleString() + " RWF";
 
 /* WITHDRAW */
 function withdraw(){
-
-if(!depositDone){
-toast("You Must Deposit before Payout!"); 
+if(!currentUser || currentUser.balance <= 0){
+toast("No balance available for withdrawal");
 return;
 }
 
