@@ -142,6 +142,9 @@ let depositDone = false;
 const screen = document.getElementById("screen");
 const nav = document.getElementById("nav");
 
+const ADMIN_EMAIL = "admin@app.com";
+const ADMIN_PASS = "1234";
+
 /* HELPERS */
 function val(id){ return document.getElementById(id)?.value; }
 
@@ -266,23 +269,104 @@ screen.innerHTML=`
 
 function doLogin(){
 
-let index = users.findIndex(
-u => u.email === val("le") &&
-u.pass === val("lp")
+let user = users.find(
+u => u.email === val("le") && u.pass === val("lp")
 );
 
-if(index === -1){
-toast("Invalid email or password");
+/* ADMIN LOGIN */
+if(val("le") === ADMIN_EMAIL && val("lp") === ADMIN_PASS){
+currentUser = {email:"ADMIN"};
+nav.style.display="flex";
+adminPanel();
+toast("Admin login ✔");
 return;
 }
 
-currentUser = users[index];
+if(!user){
+toast("Invalid login");
+return;
+}
 
-nav.style.display = "flex";
-
-toast("Login successful ✔");
+currentUser = user;
+nav.style.display="flex";
 
 home();
+}
+
+/* ADMIN PANEL */
+function adminPanel(){
+
+let pending =
+JSON.parse(localStorage.getItem("pendingDeposits")) || [];
+
+let html = `<h3 class="title">ADMIN PANEL</h3>`;
+
+if(pending.length === 0){
+html += `<div class="card">No pending deposits</div>`;
+screen.innerHTML = html;
+return;
+}
+
+pending.forEach((p,i)=>{
+
+html += `
+<div class="card">
+<b>User:</b> ${p.user}<br>
+<b>Amount:</b> ${p.amount} RWF<br>
+<b>TXID:</b> ${p.txid}<br>
+
+<button onclick="approveDeposit(${i})">
+APPROVE
+</button>
+</div>
+`;
+});
+
+screen.innerHTML = html;
+}
+
+function approveDeposit(index){
+
+let pending =
+JSON.parse(localStorage.getItem("pendingDeposits")) || [];
+
+let dep = pending[index];
+
+let user = users.find(u => u.email === dep.user);
+
+if(user){
+
+/* ADD BALANCE */
+user.balance += dep.amount;
+
+/* REF BONUS */
+if(user.invitedBy){
+
+let inviter = users.find(
+u => u.refCode === user.invitedBy
+);
+
+if(inviter){
+
+let bonus = Math.floor(dep.amount * 0.06);
+
+inviter.balance += bonus;
+
+toast("Bonus sent ✔");
+}
+}
+
+}
+
+/* REMOVE FROM PENDING */
+pending.splice(index,1);
+
+localStorage.setItem("pendingDeposits",JSON.stringify(pending));
+localStorage.setItem("users",JSON.stringify(users));
+
+toast("Approved ✔");
+
+adminPanel();
 }
   
 /* HOME */
@@ -438,54 +522,60 @@ screen.innerHTML=`
 `;
 }
 
+/* PAY */
 function pay(){
 
-if(!val("amt")||!val("sender")){
-toast("Fill all"); return;
+if(!val("amt") || !val("sender")){
+toast("Fill all");
+return;
 }
 
-amount=parseInt(val("amt"));
+amount = parseInt(val("amt"));
 
 screen.innerHTML=`
-<h3 class="title">PAYMENT PROCESS</h3>
-<p class="desc">Pay by using MTN Mobile money.</p>
-<br></br>
-<div class="card">       *182*1*1*0792459701#</div>
-<br></br>
-<div class="card">BARAKA BOLINGO</div>
+<h3 class="title">PAYMENT</h3>
+
+<div class="card">
+SEND MONEY TO:<br><br>
+0792459701
+</div>
+
+<input id="txid" placeholder="Enter Transaction ID">
 
 <button onclick="finishDeposit()">FINISH</button>
 `;
 }
 
+
 /* FINISH */
 function finishDeposit(){
 
-depositDone=true;
+let txid = val("txid");
 
-/* ADD USER BALANCE */
-currentUser.balance += amount;
+if(!txid){
+toast("Enter Transaction ID");
+return;
+}
 
-/* BONUS 6% */
-if(currentUser.invitedBy){
+/* CREATE PENDING DEPOSIT */
+let pendingDeposits =
+JSON.parse(localStorage.getItem("pendingDeposits")) || [];
 
-let inviter = users.find(
-u=>u.refCode===currentUser.invitedBy
+pendingDeposits.push({
+user: currentUser.email,
+amount: amount,
+txid: txid,
+status: "pending",
+date: new Date().toLocaleString()
+});
+
+/* SAVE */
+localStorage.setItem(
+"pendingDeposits",
+JSON.stringify(pendingDeposits)
 );
 
-if(inviter){
-
-let bonus = Math.floor(amount * 0.06);
-
-inviter.balance += bonus;
-
-toast("Bonus "+bonus+" RWF sent");
-}
-}
-
-localStorage.setItem("users",JSON.stringify(users));
-
-toast("Deposit success ✔");
+toast("Deposit submitted. Waiting for admin approval");
 
 home();
 }
