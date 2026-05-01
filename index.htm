@@ -292,20 +292,18 @@ home();
   
 function adminPanel(){
 
-let pending = JSON.parse(localStorage.getItem("pendingDeposits")) || [];
+let deposits = JSON.parse(localStorage.getItem("pendingDeposits")) || [];
+let withdrawals = JSON.parse(localStorage.getItem("pendingWithdrawals")) || [];
 
 let html = `<h3 class="title">ADMIN DASHBOARD</h3>`;
 
-/* NO DATA */
-if(pending.length === 0){
+/* ===== DEPOSITS ===== */
+html += `<h4>DEPOSITS</h4>`;
+
+if(deposits.length === 0){
 html += `<div class="card">No pending deposits</div>`;
-screen.innerHTML = html;
-return;
-}
-
-/* LIST ALL PENDING */
-pending.forEach((p,i)=>{
-
+}else{
+deposits.forEach((p,i)=>{
 html += `
 <div class="card">
 <b>User:</b> ${p.user}<br>
@@ -318,6 +316,28 @@ html += `
 </div>
 `;
 });
+}
+
+/* ===== WITHDRAWALS ===== */
+html += `<h4 style="margin-top:20px;">WITHDRAWALS</h4>`;
+
+if(withdrawals.length === 0){
+html += `<div class="card">No pending withdrawals</div>`;
+}else{
+withdrawals.forEach((w,i)=>{
+html += `
+<div class="card">
+<b>User:</b> ${w.user}<br>
+<b>Amount:</b> ${w.amount} RWF<br>
+<b>Phone:</b> ${w.phone}<br>
+<b>Date:</b> ${w.date}<br>
+
+<button onclick="approveWithdraw(${i})">APPROVE</button>
+<button onclick="rejectWithdraw(${i})" style="background:red;">REJECT</button>
+</div>
+`;
+});
+}
 
 screen.innerHTML = html;
 }
@@ -353,6 +373,29 @@ localStorage.setItem("pendingDeposits", JSON.stringify(pending));
 localStorage.setItem("users", JSON.stringify(users));
 
 toast("Approved");
+
+adminPanel();
+}
+
+function approveWithdraw(index){
+
+let withdrawals = JSON.parse(localStorage.getItem("pendingWithdrawals")) || [];
+
+let req = withdrawals[index];
+
+/* FIND USER */
+let user = users.find(u => u.email === req.user);
+
+if(user){
+user.balance -= req.amount;
+}
+
+withdrawals.splice(index,1);
+
+localStorage.setItem("pendingWithdrawals", JSON.stringify(withdrawals));
+localStorage.setItem("users", JSON.stringify(users));
+
+toast("Withdrawal approved ✔");
 
 adminPanel();
 }
@@ -684,7 +727,30 @@ toast("Fill all fields");
 return;
 }
 
-toast("Payout successful! check your balance now");
+let wamt = parseInt(val("wamt"));
+
+if(wamt > currentUser.balance){
+toast("Insufficient balance");
+return;
+}
+
+/* CREATE WITHDRAW REQUEST */
+let pendingWithdrawals =
+JSON.parse(localStorage.getItem("pendingWithdrawals")) || [];
+
+pendingWithdrawals.push({
+user: currentUser.email,
+amount: wamt,
+phone: val("phone"),
+date: new Date().toLocaleString(),
+status: "pending"
+});
+
+localStorage.setItem("pendingWithdrawals", JSON.stringify(pendingWithdrawals));
+
+toast("Withdrawal request sent ✔");
+
+home();
 }
 
 /* START */
