@@ -416,7 +416,6 @@ ${getLink()}
 </div>
 
 <button onclick="copy()">COPY LINK</button>
-<p class="desc">if you have any question contact us on whatsapp: 0792459701 </p>
 <div class="table-wrap">
 <table>
 <tr>
@@ -718,6 +717,7 @@ screen.innerHTML=`
 
 <button onclick="doWithdraw()">PAYOUT NOW</button>
 `;
+home();
 }
 
 function doWithdraw(){
@@ -726,7 +726,6 @@ if(!val("wamt") || !val("phone")){
 toast("Fill all fields");
 return;
 }
-
 let wamt = parseInt(val("wamt"));
 
 if(wamt > currentUser.balance){
