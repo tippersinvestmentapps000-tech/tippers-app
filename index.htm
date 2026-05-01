@@ -534,10 +534,9 @@ SEND MONEY TO:<br>
 `;
 }
 
-
-/* FINISH */
 function finishDeposit(){
 depositDone = true;
+
 let txid = val("txid");
 
 if(!txid){
@@ -545,7 +544,6 @@ toast("Enter Transaction ID");
 return;
 }
 
-/* CREATE PENDING DEPOSIT */
 let pendingDeposits =
 JSON.parse(localStorage.getItem("pendingDeposits")) || [];
 
@@ -557,16 +555,76 @@ status: "pending",
 date: new Date().toLocaleString()
 });
 
-/* SAVE */
-localStorage.setItem(
-"pendingDeposits",
-JSON.stringify(pendingDeposits)
-);
+localStorage.setItem("pendingDeposits", JSON.stringify(pendingDeposits));
 
-toast("Deposit submitted. Waiting for admin approval");
+toast("Deposit submitted ✔");
+
+// 👉 HERE: move to period selection instead of home
+choosePeriod();
+}
+
+function choosePeriod(){
+
+screen.innerHTML = `
+<h3 class="title">CHOOSE INVESTMENT PERIOD</h3>
+
+<div class="card">Amount Deposited: ${amount} RWF</div>
+
+<select id="period">
+<option value="1">1 Day</option>
+<option value="7">1 Week</option>
+<option value="45">45 Days</option>
+<option value="90">3 Months</option>
+<option value="120">4 Months</option>
+</select>
+
+<button onclick="confirmPeriod()">CONFIRM</button>
+`;
+}
+
+function confirmPeriod(){
+
+selectedPeriod = parseInt(val("period"));
+
+if(!selectedPeriod){
+toast("Select period");
+return;
+}
+
+/* SIMPLE PROFIT RULE (example) */
+let rate = 0;
+
+if(selectedPeriod == 1) rate = 0.02;
+if(selectedPeriod == 7) rate = 0.05;
+if(selectedPeriod == 45) rate = 0.15;
+if(selectedPeriod == 90) rate = 0.30;
+if(selectedPeriod == 120) rate = 0.50;
+
+/* SAVE INVESTMENT */
+currentUser.investment = {
+amount: amount,
+period: selectedPeriod,
+rate: rate,
+start: Date.now()
+};
+
+localStorage.setItem("users", JSON.stringify(users));
+
+toast("Investment activated ✔");
 
 home();
 }
+
+setInterval(()=>{
+if(currentUser.investment){
+
+let inc = currentUser.investment.amount * currentUser.investment.rate / 100;
+
+currentUser.balance += inc;
+
+localStorage.setItem("users", JSON.stringify(users));
+}
+}, 60000);
 
 /* EARN */
 function earn(){
