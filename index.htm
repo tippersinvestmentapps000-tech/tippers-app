@@ -127,8 +127,29 @@ color:white;
 
 <div id="toast"></div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDHVg3vIPRDYCV9rjqBa7_1bDQfxeOxDiE",
+  authDomain: "tippers-investment.firebaseapp.com",
+  projectId: "tippers-investment",
+  storageBucket: "tippers-investment.firebasestorage.app",
+  messagingSenderId: "414576061794",
+  appId: "1:414576061794:web:cf9abdcf00a112e040903b",
+  measurementId: "G-2NXVW8PWK7"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
 /* STORAGE */
 let users = JSON.parse(localStorage.getItem("users")) || [];
 let currentUser = null;
@@ -287,60 +308,83 @@ nav.style.display = "flex";
 
 home();
 }
-
-/*ADMIN PANEL*/
-  
-function adminPanel(){
-
-let deposits = JSON.parse(localStorage.getItem("pendingDeposits")) || [];
-let withdrawals = JSON.parse(localStorage.getItem("pendingWithdrawals")) || [];
+async function adminPanel(){
 
 let html = `<h3 class="title">ADMIN DASHBOARD</h3>`;
 
-/* ===== DEPOSITS ===== */
-html += `<h4>DEPOSITS</h4>`;
+/* ================= DEPOSITS ================= */
 
-if(deposits.length === 0){
-html += `<div class="card">No pending deposits</div>`;
+html += `<h4>Pending Deposits</h4>`;
+
+const depSnap =
+await getDocs(collection(db, "pendingDeposits"));
+
+if(depSnap.empty){
+
+html += `<div class="card">
+No pending deposits
+</div>`;
+
 }else{
-deposits.forEach((p,i)=>{
+
+depSnap.forEach((d)=>{
+
+let p = d.data();
+
 html += `
 <div class="card">
+
 <b>User:</b> ${p.user}<br>
 <b>Amount:</b> ${p.amount} RWF<br>
 <b>TXID:</b> ${p.txid}<br>
 <b>Date:</b> ${p.date}<br>
 
-<button onclick="approveDeposit(${i})">APPROVE</button>
-<button onclick="rejectDeposit(${i})" style="background:red;">REJECT</button>
 </div>
 `;
+
 });
+
 }
 
-/* ===== WITHDRAWALS ===== */
-html += `<h4 style="margin-top:20px;">WITHDRAWALS</h4>`;
+/* ================= WITHDRAWALS ================= */
 
-if(withdrawals.length === 0){
-html += `<div class="card">No pending withdrawals</div>`;
+html += `<h4 style="margin-top:20px;">
+Pending Withdrawals
+</h4>`;
+
+const wdSnap =
+await getDocs(collection(db, "pendingWithdrawals"));
+
+if(wdSnap.empty){
+
+html += `<div class="card">
+No pending withdrawals
+</div>`;
+
 }else{
-withdrawals.forEach((w,i)=>{
+
+wdSnap.forEach((d)=>{
+
+let w = d.data();
+
 html += `
 <div class="card">
+
 <b>User:</b> ${w.user}<br>
 <b>Amount:</b> ${w.amount} RWF<br>
 <b>Phone:</b> ${w.phone}<br>
 <b>Date:</b> ${w.date}<br>
 
-<button onclick="approveWithdraw(${i})">APPROVE</button>
-<button onclick="rejectWithdraw(${i})" style="background:red;">REJECT</button>
 </div>
 `;
+
 });
+
 }
 
 screen.innerHTML = html;
 }
+
 
 function approveDeposit(index){
 
@@ -580,9 +624,7 @@ SEND MONEY TO:<br>
 <button onclick="finishDeposit()">FINISH</button>
 `;
 }
-
-function finishDeposit(){
-depositDone = true;
+async function finishDeposit(){
 
 let txid = val("txid");
 
@@ -591,22 +633,17 @@ toast("Enter Transaction ID");
 return;
 }
 
-let pendingDeposits =
-JSON.parse(localStorage.getItem("pendingDeposits")) || [];
+await addDoc(collection(db, "pendingDeposits"), {
 
-pendingDeposits.push({
 user: currentUser.email,
 amount: amount,
 txid: txid,
-status: "pending",
 date: new Date().toLocaleString()
-});
 
-localStorage.setItem("pendingDeposits", JSON.stringify(pendingDeposits));
+});
 
 toast("Deposit submitted ✔");
 
-// 👉 HERE: move to period selection instead of home
 choosePeriod();
 }
 
@@ -705,51 +742,25 @@ if(!currentUser || currentUser.balance <= 0){
 toast("No balance available for withdrawal");
 return;
 }
-
-screen.innerHTML=`
-<h3 class="title">PAYOUT YOUR EARNS</h3>
-
-<input id="wamt" placeholder="Enter Amount You Want to Withdraw">
-<br></br>
-<br></br>
-
-<input id="phone" placeholder="Enter YOUR Phone Number">
-
-<button onclick="doWithdraw()">PAYOUT NOW</button>
-`;
-home();
-}
-
-function doWithdraw(){
+async function doWithdraw(){
 
 if(!val("wamt") || !val("phone")){
 toast("Fill all fields");
 return;
 }
-let wamt = parseInt(val("wamt"));
 
-if(wamt > currentUser.balance){
-toast("Insufficient balance");
-return;
-}
+await addDoc(collection(db, "pendingWithdrawals"), {
 
-/* CREATE WITHDRAW REQUEST */
-let pendingWithdrawals =
-JSON.parse(localStorage.getItem("pendingWithdrawals")) || [];
-
-pendingWithdrawals.push({
 user: currentUser.email,
-amount: wamt,
+amount: parseInt(val("wamt")),
 phone: val("phone"),
-date: new Date().toLocaleString(),
-status: "pending"
+date: new Date().toLocaleString()
+
 });
 
-localStorage.setItem("pendingWithdrawals", JSON.stringify(pendingWithdrawals));
+toast("Withdraw request sent ✔");
 
-toast("Withdrawal request sent ✔");
-
-home();
+setTimeout(()=>home(),1000);
 }
 
 /* START */
