@@ -263,7 +263,7 @@ nav.style.display = "flex";
 
 adminPanel();
 
-toast("Admin logged in ✔");
+toast("Admin logged in ");
 
 return;
 }
@@ -352,7 +352,7 @@ pending.splice(index,1);
 localStorage.setItem("pendingDeposits", JSON.stringify(pending));
 localStorage.setItem("users", JSON.stringify(users));
 
-toast("Approved ✔");
+toast("Approved");
 
 adminPanel();
 }
@@ -502,7 +502,7 @@ function deposit(){
 
 screen.innerHTML=`
 <h3 class="title">DEPOSIT NOW</h3>
-<p class="desc">Deposit require amount shown in table!, read the tippers investment plan and deposit now! </p>
+<p class="desc">Read the tippers investment plan and deposit now! </p>
 <input id="amt" placeholder="Enter Amount you want to deposit ">
 <input id="sender" placeholder="Sender name">
 
@@ -524,7 +524,7 @@ screen.innerHTML=`
 <h3 class="title">PAYMENT</h3>
 
 <div class="card">
-SEND MONEY TO:<br><br>
+SEND MONEY TO:<br>
 0792459701
 </div>
 
