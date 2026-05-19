@@ -142,6 +142,16 @@ query,
 where
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+window.register = register;
+window.login = login;
+window.doRegister = doRegister;
+window.doLogin = doLogin;
+window.home = home;
+window.deposit = deposit;
+window.withdraw = withdraw;
+window.copy = copy;
+
 const firebaseConfig = {
   apiKey: "AIzaSyDHVg3vIPRDYCV9rjqBa7_1bDQfxeOxDiE",
   authDomain: "tippers-investment.firebaseapp.com",
@@ -826,7 +836,18 @@ investment:inv
 },60000);
   
 /* START */
-start();
+function start(){
+nav.style.display="none";
+
+screen.innerHTML=`
+<h2 class="title">WELCOME</h2>
+<p class="desc">Start your journey</p>
+
+<button onclick="register()">REGISTER</button>
+<button onclick="login()">LOGIN</button>
+`;
+}
+window.onload = start;
 
 
 </script>
