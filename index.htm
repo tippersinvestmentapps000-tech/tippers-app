@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tippers Investment (Fixed)</title>
+<title>Tippers Investment</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -36,7 +36,7 @@ overflow-y:auto;
 
 .title{color:#f59e0b;text-align:center;font-weight:bold;}
 
-input{
+input,select{
 width:100%;
 padding:10px;
 margin-top:8px;
@@ -95,9 +95,9 @@ color:white;
 <div class="content" id="screen"></div>
 
 <div class="nav" id="nav">
-<div onclick="home()">🏠</div>
-<div onclick="deposit()">💰</div>
-<div onclick="withdraw()">🏧</div>
+<div onclick="home()">🏠 HOME</div>
+<div onclick="deposit()">💰 DEPOSIT</div>
+<div onclick="withdraw()">🏧 WITHDRAW</div>
 </div>
 </div>
 
@@ -124,8 +124,8 @@ const db = getFirestore(app);
 let screen = document.getElementById("screen");
 let nav = document.getElementById("nav");
 
-let currentUser = null;
 let users = JSON.parse(localStorage.getItem("users") || "[]");
+let currentUser = null;
 let amount = 0;
 
 /* TOAST */
@@ -137,6 +137,8 @@ setTimeout(()=>t.style.display="none",2000);
 }
 
 /* START */
+window.onload = start;
+
 function start(){
 nav.style.display="none";
 
@@ -147,37 +149,64 @@ screen.innerHTML=`
 <button onclick="login()">LOGIN</button>
 `;
 }
-window.onload = start;
 
 /* REGISTER */
 window.register = function(){
+
+let ref = new URLSearchParams(window.location.search).get("ref");
+
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
 
+<input id="f" placeholder="First name">
+<input id="l" placeholder="Last name">
+
+<div class="row">
+<select id="code">
+<option value="+250">RWA +250</option>
+</select>
+<input id="phone" placeholder="Phone">
+</div>
+
 <input id="email" placeholder="Email">
 <input id="pass" type="password" placeholder="Password">
+<input id="cpass" type="password" placeholder="Confirm password">
 
-<button onclick="doRegister()">CREATE ACCOUNT</button>
+<button onclick="doRegister('${ref||""}')">REGISTER</button>
 `;
 }
 
 /* DO REGISTER */
-window.doRegister = async function(){
+window.doRegister = async function(ref){
 
-let email=document.getElementById("email").value;
-let pass=document.getElementById("pass").value;
-
-if(!email||!pass){
+if(
+!f.value || !l.value || !phone.value ||
+!email.value || !pass.value || !cpass.value
+){
 toast("Fill all fields");
 return;
 }
 
-let user = {email, pass, balance:0};
+if(pass.value !== cpass.value){
+toast("Passwords mismatch");
+return;
+}
+
+let user = {
+firstName:f.value,
+lastName:l.value,
+phone:phone.value,
+email:email.value,
+pass:pass.value,
+refCode:"REF"+Date.now(),
+invitedBy:ref || null,
+balance:0
+};
 
 users.push(user);
 localStorage.setItem("users", JSON.stringify(users));
 
-await setDoc(doc(db,"users",email), user);
+await setDoc(doc(db,"users",user.email), user);
 
 toast("Registered ✔");
 login();
@@ -185,11 +214,12 @@ login();
 
 /* LOGIN */
 window.login = function(){
+
 screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
 
-<input id="email" placeholder="Email">
-<input id="pass" type="password" placeholder="Password">
+<input id="le" placeholder="Email">
+<input id="lp" type="password" placeholder="Password">
 
 <button onclick="doLogin()">LOGIN</button>
 `;
@@ -197,18 +227,18 @@ screen.innerHTML=`
 
 window.doLogin = function(){
 
-let email=document.getElementById("email").value;
-let pass=document.getElementById("pass").value;
-
-let user = users.find(u=>u.email===email && u.pass===pass);
+let user = users.find(u =>
+u.email === le.value && u.pass === lp.value
+);
 
 if(!user){
 toast("Invalid login");
 return;
 }
 
-currentUser=user;
+currentUser = user;
 nav.style.display="flex";
+
 home();
 }
 
@@ -218,7 +248,13 @@ window.home = function(){
 screen.innerHTML=`
 <h3 class="title">DASHBOARD</h3>
 
-<div class="card">Balance: ${currentUser.balance} RWF</div>
+<div class="card">
+Balance: ${currentUser.balance} RWF
+</div>
+
+<div class="card">
+Referral: ${currentUser.refCode}
+</div>
 
 <button onclick="deposit()">DEPOSIT</button>
 <button onclick="withdraw()">WITHDRAW</button>
@@ -239,7 +275,7 @@ screen.innerHTML=`
 
 window.pay = function(){
 
-amount = Number(document.getElementById("amt").value);
+amount = Number(amt.value);
 
 if(!amount){
 toast("Invalid amount");
@@ -247,6 +283,7 @@ return;
 }
 
 currentUser.balance += amount;
+
 toast("Deposit success ✔");
 home();
 }
@@ -254,13 +291,14 @@ home();
 /* WITHDRAW */
 window.withdraw = function(){
 
-if(currentUser.balance<=0){
+if(currentUser.balance <= 0){
 toast("No balance");
 return;
 }
 
 currentUser.balance = 0;
-toast("Withdrawal sent ✔");
+
+toast("Withdrawal request sent ✔");
 home();
 }
 </script>
