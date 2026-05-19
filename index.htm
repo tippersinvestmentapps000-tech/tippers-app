@@ -126,7 +126,7 @@ color:white;
 
 <div id="toast"></div>
 
-<script type="module">
+<script>
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
@@ -191,15 +191,17 @@ return window.location.origin + window.location.pathname + "?ref=" + currentUser
 /* START */
 function start(){
 nav.style.display="none";
-screen.innerHTML=`
+
+screen.innerHTML = `
 <h2 class="title">WELCOME</h2>
 <p class="desc">Start your journey</p>
 
 <button onclick="register()">REGISTER</button>
-
 <button onclick="login()">LOGIN</button>
 `;
 }
+
+window.onload = start;
 
 /* REGISTER */
 function register(){
