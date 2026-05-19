@@ -176,6 +176,13 @@ screen.innerHTML=`
 /* DO REGISTER (FIXED + VALIDATION) */
 window.doRegister = async function(ref){
 
+let f = document.getElementById("f");
+let l = document.getElementById("l");
+let phone = document.getElementById("phone");
+let email = document.getElementById("email");
+let pass = document.getElementById("pass");
+let cpass = document.getElementById("cpass");
+
 if(!f.value || !l.value || !phone.value || !email.value || !pass.value || !cpass.value){
 toast("Fill all fields");
 return;
