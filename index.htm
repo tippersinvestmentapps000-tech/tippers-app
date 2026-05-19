@@ -126,7 +126,7 @@ color:white;
 
 <div id="toast"></div>
 
-<script>
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
@@ -138,6 +138,7 @@ doc,
 updateDoc,
 setDoc,
 getDoc,
+deleteDoc,
 query,
 where
 }
@@ -174,34 +175,72 @@ const ADMIN_PASS = "1234";
 let isAdmin = false;
 
 /* HELPERS */
-function val(id){ return document.getElementById(id)?.value; }
+function val(id){ 
+return document.getElementById(id)?.value; 
+}
 
 function toast(msg){
+
 let t=document.getElementById("toast");
+
 t.innerText=msg;
+
 t.style.display="block";
-setTimeout(()=>t.style.display="none",2500);
+
+setTimeout(
+()=>t.style.display="none",
+2500
+);
+
 }
 
 /* REF LINK */
+
 function getLink(){
-return window.location.origin + window.location.pathname + "?ref=" + currentUser.refCode;
+
+if(!currentUser){
+
+return "";
+
 }
+
+return window.location.origin +
+window.location.pathname +
+"?ref=" +
+currentUser.refCode;
+
+}
+
 
 /* START */
+
 function start(){
+
 nav.style.display="none";
 
-screen.innerHTML = `
-<h2 class="title">WELCOME</h2>
-<p class="desc">Start your journey</p>
+screen.innerHTML=`
 
-<button onclick="register()">REGISTER</button>
-<button onclick="login()">LOGIN</button>
+<h2 class="title">
+WELCOME
+</h2>
+
+<p class="desc">
+Start your journey
+</p>
+
+<button onclick="register()">
+REGISTER
+</button>
+
+<button onclick="login()">
+LOGIN
+</button>
+
 `;
+
 }
 
-window.onload = start;
+window.onload=start;
 
 /* REGISTER */
 function register(){
@@ -231,184 +270,278 @@ screen.innerHTML=`
 /* DO REGISTER */
 async function doRegister(ref){
 
-if(!val("f")||!val("l")||!val("phone")||!val("email")||!val("pass")||!val("cpass")){
-toast("Fill all fields"); return;
+if(
+!val("f") ||
+!val("l") ||
+!val("phone") ||
+!val("email") ||
+!val("pass") ||
+!val("cpass")
+){
+toast("Fill all fields");
+return;
 }
 
-if(val("pass")!==val("cpass")){
-toast("Passwords mismatch"); return;
+if(val("pass") !== val("cpass")){
+toast("Passwords mismatch");
+return;
+}
+
+/* CHECK EXISTING USER */
+
+let exists = users.find(
+u => u.email === val("email")
+);
+
+if(exists){
+
+toast("Email already exists");
+
+return;
+
 }
 
 let user={
+
 email:val("email"),
+
 pass:val("pass"),
+
 refCode:"REF"+Date.now(),
+
 balance:0,
-invitedBy:ref||null,
+
+invitedBy:ref || null,
+
 referrals:[]
+
 };
 
-/* SAVE */
+/* SAVE LOCAL */
+
 users.push(user);
-await setDoc(doc(db,"users",user.email),{
+
+localStorage.setItem(
+"users",
+JSON.stringify(users)
+);
+
+/* SAVE FIREBASE */
+
+await setDoc(
+doc(db,"users",user.email),
+{
 
 email:user.email,
+
 balance:0,
+
 investment:null,
+
 refCode:user.refCode,
-invitedBy:user.invitedBy
 
-});
-localStorage.setItem("users",JSON.stringify(users));
+invitedBy:user.invitedBy,
 
-toast("Registered ✔");
-login();
+referrals:[]
+
 }
 
+);
 
+toast("Registered ✔");
 
+login();
+
+}
 /* LOGIN */
+
 function login(){
 
 screen.innerHTML=`
+
 <h3 class="title">LOGIN</h3>
 
-<input id="le" placeholder="Enter Your Email">
+<input id="le"
+placeholder="Enter Your Email">
 
-<input id="lp" type="password" placeholder="Enter Your Password">
+<input id="lp"
+type="password"
+placeholder="Enter Your Password">
 
-<button onclick="doLogin()">LOGIN</button>
+<button onclick="doLogin()">
+LOGIN
+</button>
+
 `;
+
 }
+
+
 async function doLogin(){
 
-let email = val("le").trim();
-let pass = val("lp").trim();
+let email = val("le")?.trim();
 
-/* =======================
-   👨‍💼 ADMIN LOGIN
-======================= */
-if(email === ADMIN_EMAIL && pass === ADMIN_PASS){
+let pass = val("lp")?.trim();
 
-isAdmin = true;
-currentUser = {email:"ADMIN"};
 
-nav.style.display = "flex";
+/* ADMIN LOGIN */
+
+if(
+email===ADMIN_EMAIL &&
+pass===ADMIN_PASS
+){
+
+isAdmin=true;
+
+currentUser={email:"ADMIN"};
+
+nav.style.display="flex";
 
 adminPanel();
 
-toast("Admin logged in ");
+toast("Admin logged in");
 
 return;
+
 }
 
-/* =======================
-   👤 USER LOGIN
-======================= */
-let user = users.find(u => 
-u.email === email && u.pass === pass
+
+/* USER LOGIN */
+
+let user = users.find(
+u =>
+u.email===email &&
+u.pass===pass
 );
 
 if(!user){
+
 toast("Invalid login");
+
 return;
+
 }
 
-isAdmin = false;
-currentUser = user;
-let snap=await getDoc(
-doc(db,"users",user.email)
+isAdmin=false;
+
+currentUser=user;
+
+
+/* FIREBASE DATA */
+
+let snap = await getDoc(
+
+doc(
+db,
+"users",
+user.email
+)
+
 );
 
 if(snap.exists()){
 
 let data=snap.data();
 
-currentUser.balance=data.balance || 0;
+currentUser.balance =
+data.balance || 0;
 
-currentUser.investment=
+currentUser.investment =
 data.investment || null;
 
+currentUser.refCode =
+data.refCode || "";
+
+currentUser.invitedBy =
+data.invitedBy || null;
+
 }
-nav.style.display = "flex";
+
+nav.style.display="flex";
 
 home();
+
 }
+
+
+
+/* ADMIN PANEL */
+
 async function adminPanel(){
 
-let html = `<h3 class="title">ADMIN DASHBOARD</h3>`;
+let html=
+`<h3 class="title">
+ADMIN DASHBOARD
+</h3>`;
 
-/* ================= DEPOSITS ================= */
 
-html += `<h4>Pending Deposits</h4>`;
+/* PENDING DEPOSITS */
 
-const depSnap =
-await getDocs(collection(db, "pendingDeposits"));
+html+=`<h4>
+Pending Deposits
+</h4>`;
+
+
+const depSnap=
+await getDocs(
+collection(
+db,
+"pendingDeposits"
+)
+);
+
 
 if(depSnap.empty){
 
-html += `<div class="card">
+html += `
+
+<div class="card">
+
 No pending deposits
-</div>`;
+
+</div>
+
+`;
 
 }else{
 
-depSnap.forEach((d)=>{
+depSnap.forEach((d,index)=>{
 
-let p = d.data();
+let p=d.data();
 
-html += `
+html +=`
+
 <div class="card">
 
-<b>User:</b> ${p.user}<br>
-<b>Amount:</b> ${p.amount} RWF<br>
-<b>TXID:</b> ${p.txid}<br>
-<b>Date:</b> ${p.date}<br>
+<b>User:</b>
+${p.user}<br>
+
+<b>Amount:</b>
+${p.amount} RWF<br>
+
+<b>TXID:</b>
+${p.txid}<br>
+
+<b>Date:</b>
+${p.date}<br>
+
+<button
+onclick="approveDeposit('${d.id}')">
+
+APPROVE
+
+</button>
 
 </div>
+
 `;
 
 });
 
 }
 
-/* ================= WITHDRAWALS ================= */
+screen.innerHTML=html;
 
-html += `<h4 style="margin-top:20px;">
-Pending Withdrawals
-</h4>`;
-
-const wdSnap =
-await getDocs(collection(db, "pendingWithdrawals"));
-
-if(wdSnap.empty){
-
-html += `<div class="card">
-No pending withdrawals
-</div>`;
-
-}else{
-
-wdSnap.forEach((d)=>{
-
-let w = d.data();
-
-html += `
-<div class="card">
-
-<b>User:</b> ${w.user}<br>
-<b>Amount:</b> ${w.amount} RWF<br>
-<b>Phone:</b> ${w.phone}<br>
-<b>Date:</b> ${w.date}<br>
-
-</div>
-`;
-
-});
-
-}
-
-screen.innerHTML = html;
 }
 
 function getRate(amount){
@@ -426,17 +559,29 @@ if(amount>=300000 && amount<1000000) return 5.0;
 return 7.0;
 
 }
-async function approveDeposit(index)
+async function approveDeposit(docId){
 
-let pending = JSON.parse(localStorage.getItem("pendingDeposits")) || [];
+const depDoc = await getDoc(
+doc(db,"pendingDeposits",docId)
+);
 
-let dep = pending[index];
+if(!depDoc.exists()) return;
 
-let user = users.find(u => u.email === dep.user);
+let dep = depDoc.data();
 
-if(user){
+/* GET USER */
 
-user.balance += dep.amount;
+let userDoc = await getDoc(
+doc(db,"users",dep.user)
+);
+
+if(!userDoc.exists()) return;
+
+let user = userDoc.data();
+
+
+/* ADD BALANCE */
+
 let investment={
 
 amount:dep.amount,
@@ -449,22 +594,26 @@ daysPassed:0
 
 await updateDoc(
 
-doc(db,"users",user.email),
+doc(db,"users",dep.user),
 
 {
 
-balance:user.balance + dep.amount,
+balance:
+(user.balance || 0)
++ dep.amount,
+
 investment:investment
 
 }
 
 );
 
-/* REFERRAL BONUS 10% */
+
+/* REFERRAL BONUS */
 
 if(user.invitedBy){
 
-const q = query(
+const q=query(
 
 collection(db,"users"),
 
@@ -476,22 +625,19 @@ user.invitedBy
 
 );
 
-const result = await getDocs(q);
+const result=
+await getDocs(q);
 
 if(!result.empty){
 
-const inviterDoc = result.docs[0];
+let inviter =
+result.docs[0];
 
-const inviterData =
-inviterDoc.data();
+let inviterData=
+inviter.data();
 
-let bonus =
+let bonus=
 dep.amount*0.10;
-
-let newBalance=
-
-(inviterData.balance || 0)
-+ bonus;
 
 await updateDoc(
 
@@ -503,7 +649,9 @@ inviterData.email
 
 {
 
-balance:newBalance
+balance:
+(inviterData.balance||0)
++ bonus
 
 }
 
@@ -513,40 +661,102 @@ balance:newBalance
 
 }
 
-/* REMOVE */
-pending.splice(index,1);
 
-localStorage.setItem("pendingDeposits", JSON.stringify(pending));
-localStorage.setItem("users", JSON.stringify(users));
+/* REMOVE PENDING */
 
-toast("Approved");
+await deleteDoc(
 
-adminPanel();
-}
+doc(
+db,
+"pendingDeposits",
+docId
+)
 
-function approveWithdraw(index){
+);
 
-let withdrawals = JSON.parse(localStorage.getItem("pendingWithdrawals")) || [];
-
-let req = withdrawals[index];
-
-/* FIND USER */
-let user = users.find(u => u.email === req.user);
-
-if(user){
-user.balance -= req.amount;
-}
-
-withdrawals.splice(index,1);
-
-localStorage.setItem("pendingWithdrawals", JSON.stringify(withdrawals));
-localStorage.setItem("users", JSON.stringify(users));
-
-toast("Withdrawal approved ✔");
+toast("Deposit Approved ✔");
 
 adminPanel();
+
 }
-  
+
+
+
+async function approveWithdraw(docId){
+
+const wdDoc = await getDoc(
+
+doc(
+db,
+"pendingWithdrawals",
+docId
+)
+
+);
+
+if(!wdDoc.exists())
+return;
+
+let req =
+wdDoc.data();
+
+
+let userDoc =
+await getDoc(
+
+doc(
+db,
+"users",
+req.user
+)
+
+);
+
+if(!userDoc.exists())
+return;
+
+let user =
+userDoc.data();
+
+
+await updateDoc(
+
+doc(
+db,
+"users",
+req.user
+),
+
+{
+
+balance:
+(user.balance || 0)
+- req.amount
+
+}
+
+);
+
+
+/* REMOVE REQUEST */
+
+await deleteDoc(
+
+doc(
+db,
+"pendingWithdrawals",
+docId
+)
+
+);
+
+toast(
+"Withdrawal approved ✔"
+);
+
+adminPanel();
+
+}
 /* HOME */
 function home(){
 
@@ -663,8 +873,11 @@ screen.innerHTML=`
 <h3 class="title">PAYMENT</h3>
 
 <div class="card">
-SEND MONEY TO:<br>
+SEND MONEY TO:<br></br>
 0792459701
+<br></br>
+<div class="card">
+NMES: BARAKA BOLINGO<br></br>
 </div>
 
 <input id="txid" placeholder="Enter Transaction ID">
@@ -705,21 +918,6 @@ if(selectedPeriod == 45) rate = 0.15;
 if(selectedPeriod == 90) rate = 0.30;
 if(selectedPeriod == 120) rate = 0.50;
 
-/* SAVE INVESTMENT */
-currentUser.investment = {
-amount: amount,
-period: selectedPeriod,
-rate: rate,
-start: Date.now()
-};
-
-localStorage.setItem("users", JSON.stringify(users));
-
-toast("Investment activated ✔");
-
-home();
-}
-
 setInterval(()=>{
 if(currentUser.investment){
 
@@ -733,75 +931,110 @@ localStorage.setItem("users", JSON.stringify(users));
 
 /* WITHDRAW */
 function withdraw(){
+
 if(
-
 currentUser.investment &&
-
-currentUser.investment.daysPassed<5
-
+currentUser.investment.daysPassed < 5
 ){
 
-toast(
-"Withdrawal available after 5 days"
-);
+toast("Withdrawal available after 5 days");
 
 return;
 
 }
+
 if(!currentUser || currentUser.balance <= 0){
+
 toast("No balance available for withdrawal");
+
 return;
+
 }
+
+screen.innerHTML=`
+
+<h3 class="title">PAYOUT YOUR EARNS</h3>
+
+<input id="wamt"
+placeholder="Enter Amount You Want to Withdraw">
+
+<br><br>
+
+<input id="phone"
+placeholder="Enter YOUR Phone Number">
+
+<button onclick="doWithdraw()">
+PAYOUT NOW
+</button>
+
+`;
+
+}
+
+
 async function doWithdraw(){
 
 if(!val("wamt") || !val("phone")){
+
 toast("Fill all fields");
+
 return;
+
 }
 
-await addDoc(collection(db, "pendingWithdrawals"), {
+await addDoc(
+collection(db,"pendingWithdrawals"),
+{
 
-user: currentUser.email,
-amount: parseInt(val("wamt")),
-phone: val("phone"),
-date: new Date().toLocaleString()
+user:currentUser.email,
+amount:parseInt(val("wamt")),
+phone:val("phone"),
+date:new Date().toLocaleString()
 
-});
+}
+);
 
 toast("Withdraw request sent ✔");
 
 setTimeout(()=>home(),1000);
+
 }
+
+
+/* DAILY PROFIT */
+
 setInterval(async()=>{
 
-if(!currentUser?.investment)
+if(!currentUser?.investment){
+
 return;
 
-let inv=currentUser.investment;
+}
 
-let now=Date.now();
+let inv = currentUser.investment;
 
-let oneDay=86400000;
+let now = Date.now();
 
-let days=Math.floor(
-(now-inv.lastPaid)/oneDay
+let oneDay = 86400000;
+
+let days = Math.floor(
+(now - inv.lastPaid)/oneDay
 );
 
 if(days>0){
 
 for(let i=0;i<days;i++){
 
-let profit=
+let profit =
+(inv.amount * inv.rate)/100;
 
-(inv.amount*inv.rate)/100;
-
-currentUser.balance+=profit;
+currentUser.balance += profit;
 
 inv.daysPassed++;
 
 }
 
-inv.lastPaid=now;
+inv.lastPaid = now;
 
 await updateDoc(
 
@@ -823,7 +1056,6 @@ investment:inv
 }
 
 },60000);
-  
 /* START */
 start();
 
