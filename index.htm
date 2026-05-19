@@ -58,6 +58,11 @@ font-weight:bold;
 cursor:pointer;
 }
 
+button:disabled{
+opacity:0.4;
+cursor:not-allowed;
+}
+
 .nav{
 display:flex;
 justify-content:space-around;
@@ -105,7 +110,7 @@ color:white;
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, setDoc, doc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* FIREBASE */
 const firebaseConfig = {
@@ -152,7 +157,6 @@ screen.innerHTML=`
 
 /* REGISTER */
 window.register = function(){
-
 let ref = new URLSearchParams(window.location.search).get("ref");
 
 screen.innerHTML=`
@@ -160,14 +164,7 @@ screen.innerHTML=`
 
 <input id="f" placeholder="First name">
 <input id="l" placeholder="Last name">
-
-<div class="row">
-<select id="code">
-<option value="+250">RWA +250</option>
-</select>
 <input id="phone" placeholder="Phone">
-</div>
-
 <input id="email" placeholder="Email">
 <input id="pass" type="password" placeholder="Password">
 <input id="cpass" type="password" placeholder="Confirm password">
@@ -176,13 +173,10 @@ screen.innerHTML=`
 `;
 }
 
-/* DO REGISTER */
+/* DO REGISTER (FIXED + VALIDATION) */
 window.doRegister = async function(ref){
 
-if(
-!f.value || !l.value || !phone.value ||
-!email.value || !pass.value || !cpass.value
-){
+if(!f.value || !l.value || !phone.value || !email.value || !pass.value || !cpass.value){
 toast("Fill all fields");
 return;
 }
@@ -199,7 +193,7 @@ phone:phone.value,
 email:email.value,
 pass:pass.value,
 refCode:"REF"+Date.now(),
-invitedBy:ref || null,
+invitedBy:ref||null,
 balance:0
 };
 
@@ -227,9 +221,7 @@ screen.innerHTML=`
 
 window.doLogin = function(){
 
-let user = users.find(u =>
-u.email === le.value && u.pass === lp.value
-);
+let user = users.find(u=>u.email===le.value && u.pass===lp.value);
 
 if(!user){
 toast("Invalid login");
@@ -238,7 +230,6 @@ return;
 
 currentUser = user;
 nav.style.display="flex";
-
 home();
 }
 
@@ -248,13 +239,7 @@ window.home = function(){
 screen.innerHTML=`
 <h3 class="title">DASHBOARD</h3>
 
-<div class="card">
-Balance: ${currentUser.balance} RWF
-</div>
-
-<div class="card">
-Referral: ${currentUser.refCode}
-</div>
+<div class="card">Balance: ${currentUser.balance} RWF</div>
 
 <button onclick="deposit()">DEPOSIT</button>
 <button onclick="withdraw()">WITHDRAW</button>
@@ -277,8 +262,9 @@ window.pay = function(){
 
 amount = Number(amt.value);
 
-if(!amount){
-toast("Invalid amount");
+/* CONDITION BUTTON LOGIC */
+if(!amount || amount < 5000){
+toast("Minimum deposit is 5000 RWF");
 return;
 }
 
@@ -288,19 +274,20 @@ toast("Deposit success ✔");
 home();
 }
 
-/* WITHDRAW */
+/* WITHDRAW (CONDITIONAL) */
 window.withdraw = function(){
 
-if(currentUser.balance <= 0){
-toast("No balance");
+if(!currentUser || currentUser.balance <= 0){
+toast("No balance available");
 return;
 }
 
 currentUser.balance = 0;
 
-toast("Withdrawal request sent ✔");
+toast("Withdrawal sent ✔");
 home();
 }
+
 </script>
 
 </body>
