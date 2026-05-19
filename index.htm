@@ -1,72 +1,241 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tippers Investment</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+body{
+margin:0;
+font-family:Segoe UI;
+background:#0b1120;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+.app{
+width:380px;
+background:#000;
+border-radius:20px;
+overflow:hidden;
+color:white;
+display:flex;
+flex-direction:column;
+}
+.content{
+padding:20px;
+height:520px;
+overflow-y:auto;
+}
+.title{color:#f59e0b;text-align:center;font-weight:bold;}
+.desc{text-align:center;margin-top:10px;}
+input,select{
+width:100%;
+padding:10px;
+margin-top:8px;
+border-radius:8px;
+border:none;
+background:#0f172a;
+color:white;
+}
+button{
+width:100%;
+padding:12px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+background:linear-gradient(135deg,#f59e0b,#f97316);
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+.row{display:flex;gap:5px;}
+.nav{
+display:flex;
+justify-content:space-around;
+background:#020617;
+padding:10px;
+}
+.nav div{text-align:center;cursor:pointer;}
+.nav i{display:block;font-size:20px;margin-bottom:3px;}
+#toast{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:red;
+color:white;
+padding:10px;
+border-radius:8px;
+display:none;
+}
+.card{
+background:#111;
+padding:15px;
+border-radius:12px;
+margin-top:10px;
+word-break:break-all;
+}
+
+/* TABLE STYLE */
+.table-wrap{
+overflow-x:auto;
+margin-top:15px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+font-size:11px;
+margin-top:10px;
+}
+
+th{
+background:#f59e0b;
+color:white;
+padding:8px;
+border:1px solid #333;
+}
+
+td{
+padding:8px;
+border:1px solid #333;
+text-align:center;
+background:#0f172a;
+color:white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+<div class="content" id="screen"></div>
+
+<div class="nav" id="nav" style="display:none">
+<div onclick="home()"><i class="fa fa-home"></i>HOME</div>
+<div onclick="deposit()"><i class="fa fa-wallet"></i>DEPOSIT</div>
+<div onclick="withdraw()"><i class="fa fa-money-bill"></i>WITHDRAW</div>
+</div>
+</div>
+
+<div id="toast"></div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-getFirestore, collection, addDoc, getDocs,
-doc, setDoc, getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
+doc,
+updateDoc,
+setDoc,
+getDoc,
+query,
+where
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const firebaseConfig = {
-apiKey: "AIzaSyDHVg3vIPRDYCV9rjqBa7_1bDQfxeOxDiE",
-authDomain: "tippers-investment.firebaseapp.com",
-projectId: "tippers-investment",
-storageBucket: "tippers-investment.firebasestorage.app",
-messagingSenderId: "414576061794",
-appId: "1:414576061794:web:cf9abdcf00a112e040903b"
+  apiKey: "AIzaSyDHVg3vIPRDYCV9rjqBa7_1bDQfxeOxDiE",
+  authDomain: "tippers-investment.firebaseapp.com",
+  projectId: "tippers-investment",
+  storageBucket: "tippers-investment.firebasestorage.app",
+  messagingSenderId: "414576061794",
+  appId: "1:414576061794:web:cf9abdcf00a112e040903b",
+  measurementId: "G-2NXVW8PWK7"
 };
 
-initializeApp(firebaseConfig);
-const db = getFirestore();
+const app = initializeApp(firebaseConfig);
 
-/* STATE */
+const db = getFirestore(app);
+/* STORAGE */
 let users = JSON.parse(localStorage.getItem("users")) || [];
 let currentUser = null;
+
+/* STATE */
 let amount = 0;
+let selectedPeriod = 0;
+let depositDone = false;
 
 /* DOM */
 const screen = document.getElementById("screen");
 const nav = document.getElementById("nav");
 
+const ADMIN_EMAIL = "admin@app.com";
+const ADMIN_PASS = "1234";
+
+let isAdmin = false;
+
 /* HELPERS */
 function val(id){ return document.getElementById(id)?.value; }
 
 function toast(msg){
-const t=document.getElementById("toast");
+let t=document.getElementById("toast");
 t.innerText=msg;
 t.style.display="block";
 setTimeout(()=>t.style.display="none",2500);
 }
 
-/* ================= START ================= */
+/* REF LINK */
+function getLink(){
+return window.location.origin + window.location.pathname + "?ref=" + currentUser.refCode;
+}
+
+/* START */
 function start(){
 nav.style.display="none";
+window.onload = function(){
+start();
+};
 screen.innerHTML=`
 <h2 class="title">WELCOME</h2>
+<p class="desc">Start your journey</p>
+
 <button onclick="register()">REGISTER</button>
+
 <button onclick="login()">LOGIN</button>
 `;
 }
-start();
 
-/* ================= REGISTER ================= */
+/* REGISTER */
 function register(){
+let ref = new URLSearchParams(window.location.search).get("ref");
+
 screen.innerHTML=`
 <h3 class="title">REGISTER</h3>
 
 <input id="f" placeholder="First name">
 <input id="l" placeholder="Last name">
+
+<div class="row">
+<select id="code">
+<option value="+250">RWA +250</option>
+</select>
 <input id="phone" placeholder="Phone">
+</div>
+
 <input id="email" placeholder="Email">
-<input id="pass" placeholder="Password">
+<input id="pass" placeholder="6 digit password">
 <input id="cpass" placeholder="Confirm password">
 
-<button onclick="doRegister()">REGISTER</button>
+<button onclick="doRegister('${ref||""}')">REGISTER</button>
 `;
 }
 
-async function doRegister(){
+/* DO REGISTER */
+async function doRegister(ref){
+
 if(!val("f")||!val("l")||!val("phone")||!val("email")||!val("pass")||!val("cpass")){
 toast("Fill all fields"); return;
 }
+
 if(val("pass")!==val("cpass")){
 toast("Passwords mismatch"); return;
 }
@@ -74,126 +243,593 @@ toast("Passwords mismatch"); return;
 let user={
 email:val("email"),
 pass:val("pass"),
+refCode:"REF"+Date.now(),
 balance:0,
-refCode:"REF"+Date.now()
+invitedBy:ref||null,
+referrals:[]
 };
 
+/* SAVE */
 users.push(user);
+await setDoc(doc(db,"users",user.email),{
 
-await setDoc(doc(db,"users",user.email),user);
+email:user.email,
+balance:0,
+investment:null,
+refCode:user.refCode,
+invitedBy:user.invitedBy
 
+});
 localStorage.setItem("users",JSON.stringify(users));
 
 toast("Registered ✔");
 login();
 }
 
-/* ================= LOGIN ================= */
+
+
+/* LOGIN */
 function login(){
+
 screen.innerHTML=`
 <h3 class="title">LOGIN</h3>
 
-<input id="le" placeholder="Email">
-<input id="lp" type="password" placeholder="Password">
+<input id="le" placeholder="Enter Your Email">
+
+<input id="lp" type="password" placeholder="Enter Your Password">
 
 <button onclick="doLogin()">LOGIN</button>
 `;
 }
-
 async function doLogin(){
-let email = val("le");
-let pass = val("lp");
 
-let user = users.find(u=>u.email===email && u.pass===pass);
+let email = val("le").trim();
+let pass = val("lp").trim();
+
+/* =======================
+   👨‍💼 ADMIN LOGIN
+======================= */
+if(email === ADMIN_EMAIL && pass === ADMIN_PASS){
+
+isAdmin = true;
+currentUser = {email:"ADMIN"};
+
+nav.style.display = "flex";
+
+adminPanel();
+
+toast("Admin logged in ");
+
+return;
+}
+
+/* =======================
+   👤 USER LOGIN
+======================= */
+let user = users.find(u => 
+u.email === email && u.pass === pass
+);
 
 if(!user){
 toast("Invalid login");
 return;
 }
 
-currentUser=user;
-nav.style.display="flex";
+isAdmin = false;
+currentUser = user;
+let snap=await getDoc(
+doc(db,"users",user.email)
+);
+
+if(snap.exists()){
+
+let data=snap.data();
+
+currentUser.balance=data.balance || 0;
+
+currentUser.investment=
+data.investment || null;
+
+}
+nav.style.display = "flex";
+
 home();
 }
+async function adminPanel(){
 
-/* ================= HOME ================= */
+let html = `<h3 class="title">ADMIN DASHBOARD</h3>`;
+
+/* ================= DEPOSITS ================= */
+
+html += `<h4>Pending Deposits</h4>`;
+
+const depSnap =
+await getDocs(collection(db, "pendingDeposits"));
+
+if(depSnap.empty){
+
+html += `<div class="card">
+No pending deposits
+</div>`;
+
+}else{
+
+depSnap.forEach((d)=>{
+
+let p = d.data();
+
+html += `
+<div class="card">
+
+<b>User:</b> ${p.user}<br>
+<b>Amount:</b> ${p.amount} RWF<br>
+<b>TXID:</b> ${p.txid}<br>
+<b>Date:</b> ${p.date}<br>
+
+</div>
+`;
+
+});
+
+}
+
+/* ================= WITHDRAWALS ================= */
+
+html += `<h4 style="margin-top:20px;">
+Pending Withdrawals
+</h4>`;
+
+const wdSnap =
+await getDocs(collection(db, "pendingWithdrawals"));
+
+if(wdSnap.empty){
+
+html += `<div class="card">
+No pending withdrawals
+</div>`;
+
+}else{
+
+wdSnap.forEach((d)=>{
+
+let w = d.data();
+
+html += `
+<div class="card">
+
+<b>User:</b> ${w.user}<br>
+<b>Amount:</b> ${w.amount} RWF<br>
+<b>Phone:</b> ${w.phone}<br>
+<b>Date:</b> ${w.date}<br>
+
+</div>
+`;
+
+});
+
+}
+
+screen.innerHTML = html;
+}
+
+function getRate(amount){
+
+if(amount>=5000 && amount<50000) return 2.2;
+
+if(amount>=50000 && amount<100000) return 3.0;
+
+if(amount>=100000 && amount<150000) return 3.6;
+
+if(amount>=150000 && amount<300000) return 4.1;
+
+if(amount>=300000 && amount<1000000) return 5.0;
+
+return 7.0;
+
+}
+async function approveDeposit(index)
+
+let pending = JSON.parse(localStorage.getItem("pendingDeposits")) || [];
+
+let dep = pending[index];
+
+let user = users.find(u => u.email === dep.user);
+
+if(user){
+
+user.balance += dep.amount;
+let investment={
+
+amount:dep.amount,
+rate:getRate(dep.amount),
+startDate:Date.now(),
+lastPaid:Date.now(),
+daysPassed:0
+
+};
+
+await updateDoc(
+
+doc(db,"users",user.email),
+
+{
+
+balance:user.balance + dep.amount,
+investment:investment
+
+}
+
+);
+
+/* REFERRAL BONUS 10% */
+
+if(user.invitedBy){
+
+const q = query(
+
+collection(db,"users"),
+
+where(
+"refCode",
+"==",
+user.invitedBy
+)
+
+);
+
+const result = await getDocs(q);
+
+if(!result.empty){
+
+const inviterDoc = result.docs[0];
+
+const inviterData =
+inviterDoc.data();
+
+let bonus =
+dep.amount*0.10;
+
+let newBalance=
+
+(inviterData.balance || 0)
++ bonus;
+
+await updateDoc(
+
+doc(
+db,
+"users",
+inviterData.email
+),
+
+{
+
+balance:newBalance
+
+}
+
+);
+
+}
+
+}
+
+/* REMOVE */
+pending.splice(index,1);
+
+localStorage.setItem("pendingDeposits", JSON.stringify(pending));
+localStorage.setItem("users", JSON.stringify(users));
+
+toast("Approved");
+
+adminPanel();
+}
+
+function approveWithdraw(index){
+
+let withdrawals = JSON.parse(localStorage.getItem("pendingWithdrawals")) || [];
+
+let req = withdrawals[index];
+
+/* FIND USER */
+let user = users.find(u => u.email === req.user);
+
+if(user){
+user.balance -= req.amount;
+}
+
+withdrawals.splice(index,1);
+
+localStorage.setItem("pendingWithdrawals", JSON.stringify(withdrawals));
+localStorage.setItem("users", JSON.stringify(users));
+
+toast("Withdrawal approved ✔");
+
+adminPanel();
+}
+  
+/* HOME */
 function home(){
+
 screen.innerHTML=`
-<h3 class="title">DASHBOARD</h3>
+<h3 class="title">USER DASHBOARD</h3>
 
-<div class="card">Balance: ${currentUser.balance}</div>
+<div class="card">
+Balance: ${currentUser.balance} RWF
+</div>
 
-<button onclick="deposit()">DEPOSIT</button>
-<button onclick="withdraw()">WITHDRAW</button>
+<div class="card">
+Referral Link:<br>
+${getLink()}
+</div>
+
+<button onclick="copy()">COPY LINK</button>
+<div class="table-wrap">
+<table>
+<tr>
+<th>INVESTMENT</th>
+<th>DAILY PROFIT</th>
+</tr>
+
+<tr>
+<td>5,000 RWF</td>
+<td>110 RWF</td>
+</tr>
+
+<tr>
+<td>50,000 RWF</td>
+<td>1,500 RWF</td>
+</tr>
+
+<tr>
+<td>100,000 RWF</td>
+<td>3,600 RWF</td>
+</tr>
+
+<tr>
+<td>150,000 RWF</td>
+<td>6,150 RWF</td>
+</tr>
+
+<tr>
+<td>300,000 RWF</td>
+<td>15,000 RWF</td>
+</tr>
+
+<tr>
+<td>500,000 RWF</td>
+<td>25,000 RWF</td>
+</tr>
+
+<tr>
+<td>700,000 RWF</td>
+<td>35,000 RWF</td>
+</tr>
+
+<tr>
+<td>1,000,000 RWF</td>
+<td>70,000 RWF</td>
+</tr>
+
+<tr>
+<td>1,300,000 RWF</td>
+<td>91,000 RWF</td>
+</tr>
+
+<tr>
+<td>1,500,000 RWF</td>
+<td>105,000 RWF</td>
+</tr>
+
+</table>
+</div>
 `;
 }
 
-/* ================= DEPOSIT ================= */
+/* COPY */
+function copy(){
+navigator.clipboard.writeText(getLink());
+toast("Link Copied ");
+}
+
+/* DEPOSIT */
 function deposit(){
+
 screen.innerHTML=`
-<h3 class="title">DEPOSIT</h3>
-<input id="amt" placeholder="Amount">
+<h3 class="title">DEPOSIT NOW</h3>
+<p class="desc">Read the tippers investment plan and deposit now! </p>
+<input id="amt" placeholder="Enter Amount you want to deposit ">
+<input id="sender" placeholder="Sender name">
+
 <button onclick="pay()">CONTINUE</button>
 `;
 }
 
 function pay(){
-amount=parseInt(val("amt"));
-if(!amount){toast("Enter amount");return;}
+
+if(!val("amt") || !val("sender")){
+toast("Fill all");
+return;
+}
+
+amount = parseInt(val("amt"));
+
+/* 🔴 MINIMUM DEPOSIT CONDITION */
+if(amount < 5000){
+toast("Minimum deposit is 5,000 RWF");
+return;
+}
 
 screen.innerHTML=`
 <h3 class="title">PAYMENT</h3>
-<input id="txid" placeholder="TXID">
+
+<div class="card">
+SEND MONEY TO:<br>
+0792459701
+</div>
+
+<input id="txid" placeholder="Enter Transaction ID">
+
 <button onclick="finishDeposit()">FINISH</button>
 `;
 }
-
 async function finishDeposit(){
-await addDoc(collection(db,"pendingDeposits"),{
-user:currentUser.email,
-amount:amount,
-txid:val("txid"),
-date:new Date().toLocaleString()
+
+let txid = val("txid");
+
+if(!txid){
+toast("Enter Transaction ID");
+return;
+}
+
+await addDoc(collection(db, "pendingDeposits"), {
+
+user: currentUser.email,
+amount: amount,
+txid: txid,
+date: new Date().toLocaleString()
+
 });
 
-toast("Sent ✔");
+toast("Deposit submitted ✔");
+
 home();
 }
 
-/* ================= WITHDRAW ================= */
+
+/* SIMPLE PROFIT RULE (example) */
+let rate = 0;
+
+if(selectedPeriod == 1) rate = 0.02;
+if(selectedPeriod == 7) rate = 0.05;
+if(selectedPeriod == 45) rate = 0.15;
+if(selectedPeriod == 90) rate = 0.30;
+if(selectedPeriod == 120) rate = 0.50;
+
+/* SAVE INVESTMENT */
+currentUser.investment = {
+amount: amount,
+period: selectedPeriod,
+rate: rate,
+start: Date.now()
+};
+
+localStorage.setItem("users", JSON.stringify(users));
+
+toast("Investment activated ✔");
+
+home();
+}
+
+setInterval(()=>{
+if(currentUser.investment){
+
+let inc = currentUser.investment.amount * currentUser.investment.rate / 100;
+
+currentUser.balance += inc;
+
+localStorage.setItem("users", JSON.stringify(users));
+}
+}, 60000);
+
+/* WITHDRAW */
 function withdraw(){
-screen.innerHTML=`
-<h3 class="title">WITHDRAW</h3>
+if(
 
-<input id="wamt" placeholder="Amount">
-<input id="phone" placeholder="Phone">
+currentUser.investment &&
 
-<button onclick="doWithdraw()">SEND</button>
-`;
+currentUser.investment.daysPassed<5
+
+){
+
+toast(
+"Withdrawal available after 5 days"
+);
+
+return;
+
+}
+if(!currentUser || currentUser.balance <= 0){
+toast("No balance available for withdrawal");
+return;
+}
+async function doWithdraw(){
+
+if(!val("wamt") || !val("phone")){
+toast("Fill all fields");
+return;
 }
 
-async function doWithdraw(){
-await addDoc(collection(db,"pendingWithdrawals"),{
-user:currentUser.email,
-amount:parseInt(val("wamt")),
-phone:val("phone"),
-date:new Date().toLocaleString()
+await addDoc(collection(db, "pendingWithdrawals"), {
+
+user: currentUser.email,
+amount: parseInt(val("wamt")),
+phone: val("phone"),
+date: new Date().toLocaleString()
+
 });
 
-toast("Sent ✔");
-home();
+toast("Withdraw request sent ✔");
+
+setTimeout(()=>home(),1000);
+}
+setInterval(async()=>{
+
+if(!currentUser?.investment)
+return;
+
+let inv=currentUser.investment;
+
+let now=Date.now();
+
+let oneDay=86400000;
+
+let days=Math.floor(
+(now-inv.lastPaid)/oneDay
+);
+
+if(days>0){
+
+for(let i=0;i<days;i++){
+
+let profit=
+
+(inv.amount*inv.rate)/100;
+
+currentUser.balance+=profit;
+
+inv.daysPassed++;
+
 }
 
-/* EXPOSE FUNCTIONS (IMPORTANT FIX) */
-window.register=register;
-window.login=login;
-window.doRegister=doRegister;
-window.doLogin=doLogin;
-window.home=home;
-window.deposit=deposit;
-window.pay=pay;
-window.finishDeposit=finishDeposit;
-window.withdraw=withdraw;
-window.doWithdraw=doWithdraw;
+inv.lastPaid=now;
+
+await updateDoc(
+
+doc(
+db,
+"users",
+currentUser.email
+),
+
+{
+
+balance:currentUser.balance,
+investment:inv
+
+}
+
+);
+
+}
+
+},60000);
+  
+/* START */
+start();
+
 
 </script>
+</body>
+</html>
+```
